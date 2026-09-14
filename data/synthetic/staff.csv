@@ -1,0 +1,46 @@
+staff_id,role,skill_level,shift,workload
+N001,RN,Critical-care,Day,87%
+N002,RN,Critical-care,Night,88%
+N003,RN,Critical-care,Day,67%
+N004,RN,Critical-care,Night,83%
+N005,RN,Critical-care,Night,69%
+N006,RN,Critical-care,Day,45%
+N007,RN,Critical-care,Day,74%
+N008,RN,Critical-care,Night,57%
+N009,RN,Critical-care,Night,45%
+N010,RN,Critical-care,Day,46%
+N011,RN,Critical-care,Night,88%
+N012,RN,Critical-care,Evening,67%
+N013,RN,Critical-care,Day,50%
+N014,RN,Critical-care,Evening,85%
+N015,RN,Critical-care,Night,59%
+N016,RN,Emergency,Day,76%
+N017,RN,Emergency,Night,47%
+N018,RN,Emergency,Night,76%
+N019,RN,Emergency,Evening,83%
+N020,RN,Emergency,Day,45%
+N021,RN,Emergency,Day,85%
+N022,RN,Emergency,Night,52%
+N023,RN,Emergency,Night,81%
+N024,RN,Emergency,Evening,76%
+N025,RN,Emergency,Day,80%
+N026,RN,Emergency,Day,87%
+N027,RN,Emergency,Evening,81%
+N028,RN,General,Evening,88%
+N029,RN,General,Evening,81%
+N030,RN,General,Day,49%
+N031,RN,General,Evening,53%
+N032,RN,General,Evening,49%
+N033,RN,General,Day,61%
+N034,RN,General,Evening,59%
+N035,RN,General,Evening,62%
+N036,RN,General,Day,88%
+N037,RN,General,Day,88%
+N038,Charge Nurse,Critical-care,Evening,84%
+N039,Charge Nurse,Critical-care,Night,88%
+N040,Charge Nurse,Critical-care,Evening,74%
+N041,Charge Nurse,Critical-care,Day,72%
+D042,Resident,General,Evening,88%
+D043,Resident,General,Evening,48%
+D044,Resident,General,Night,72%
+D045,Resident,General,Night,62%

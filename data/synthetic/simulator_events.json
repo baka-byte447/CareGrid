@@ -1,0 +1,98 @@
+[
+  {
+    "event_type": "PATIENT_ARRIVAL",
+    "description": "Patient arrives at ED/triage queue with triage acuity and initial clinical profile.",
+    "payload_fields": [
+      "patient_id",
+      "acuity",
+      "specialty",
+      "arrival_time",
+      "isolation_required",
+      "ventilator_required"
+    ]
+  },
+  {
+    "event_type": "PATIENT_ADMISSION",
+    "description": "RL decision engine allocates patient to bed, clinical staff, and equipment.",
+    "payload_fields": [
+      "patient_id",
+      "bed_id",
+      "staff_id",
+      "equipment_ids",
+      "admission_time"
+    ]
+  },
+  {
+    "event_type": "PATIENT_TRANSFER",
+    "description": "Patient condition escalated or de-escalated, triggering transfer between ICU/Step-down/Ward.",
+    "payload_fields": [
+      "patient_id",
+      "source_bed_id",
+      "target_bed_id",
+      "transfer_time",
+      "reason"
+    ]
+  },
+  {
+    "event_type": "PATIENT_DISCHARGE",
+    "description": "Patient LOS reaches completion or safe discharge threshold.",
+    "payload_fields": [
+      "patient_id",
+      "bed_id",
+      "discharge_time",
+      "actual_los"
+    ]
+  },
+  {
+    "event_type": "BED_RELEASE",
+    "description": "Bed transitions to CLEANING status, then becomes AVAILABLE for next patient.",
+    "payload_fields": [
+      "bed_id",
+      "cleaned_at",
+      "turnaround_duration_minutes"
+    ]
+  },
+  {
+    "event_type": "EQUIPMENT_RELEASE",
+    "description": "Ventilator or telemetry unit sanitized and returned to storage or redeployed.",
+    "payload_fields": [
+      "equipment_id",
+      "source_ward",
+      "status"
+    ]
+  },
+  {
+    "event_type": "SHIFT_START",
+    "description": "New shift roster takes effect, recalculating nurse/patient staffing ratios.",
+    "payload_fields": [
+      "shift_name",
+      "active_staff_count",
+      "start_time"
+    ]
+  },
+  {
+    "event_type": "SHIFT_END",
+    "description": "Shift handover protocols executed.",
+    "payload_fields": [
+      "shift_name",
+      "end_time"
+    ]
+  },
+  {
+    "event_type": "SURGE_START",
+    "description": "Surge trigger activated, accelerating arrival rates to 8-15 patients/hr.",
+    "payload_fields": [
+      "surge_tier",
+      "start_time",
+      "expected_duration_hours"
+    ]
+  },
+  {
+    "event_type": "SURGE_END",
+    "description": "Hospital returns to baseline arrival intensity.",
+    "payload_fields": [
+      "end_time",
+      "peak_queue_length"
+    ]
+  }
+]

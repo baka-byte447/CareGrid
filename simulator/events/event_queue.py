@@ -16,7 +16,7 @@ class EventQueue:
 
     def __init__(self):
         self._heap=[]
-        self.counter - itertools.count()
+        self._counter = itertools.count()
 
     def schedule(self, timestamp: datetime, event_type: str, payload: dict = None) -> None:
         seq = next(self._counter)

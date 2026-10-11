@@ -12,3 +12,4 @@ env/
 *.log
 logs/
 .vscode/
+*.pyc

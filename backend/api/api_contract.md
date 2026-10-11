@@ -58,7 +58,52 @@ GET /beds
 
 ---
 
-## 3. POST /allocation/recommend
+## 3. GET /staff
+
+Returns the list of hospital staff members.
+
+### Request
+
+GET /staff
+
+### Response
+
+{
+  "staff": [
+    {
+      "staff_id": "S001",
+      "role": "Nurse",
+      "skill_level": "ICU",
+      "shift": "Morning",
+      "workload": 87
+    }
+  ]
+}
+---
+
+## 4. GET /equipment
+
+Returns the list of hospital equipment and its current state.
+
+### Request
+
+GET /equipment
+
+### Response
+
+{
+  "equipment": [
+    {
+      "equipment_id": "E001",
+      "type": "Ventilator",
+      "status": "AVAILABLE",
+      "location": "ICU-Alpha"
+    }
+  ]
+}
+---
+
+## 5. POST /allocation/recommend
 
 Requests a bed allocation recommendation for a patient.
 
@@ -82,7 +127,7 @@ POST /allocation/recommend
 
 ---
 
-## 4. POST /allocation/approve
+## 6. POST /allocation/approve
 
 Approves a previously generated allocation recommendation.
 
@@ -105,7 +150,7 @@ POST /allocation/approve
 
 ---
 
-## 5. POST /surge/simulate
+## 7. POST /surge/simulate
 
 Runs a hospital surge scenario.
 
@@ -129,7 +174,7 @@ POST /surge/simulate
 
 ---
 
-## 6. GET /metrics
+## 8. GET /metrics
 
 Returns hospital performance metrics.
 
@@ -148,7 +193,7 @@ GET /metrics
 
 ---
 
-## 7. GET /audit
+## 9. GET /audit
 
 Returns allocation and approval history.
 

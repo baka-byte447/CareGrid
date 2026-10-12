@@ -335,11 +335,86 @@ def simulate_surge(request: SurgeSimulationRequest):
     }
 
 
+
 @app.get("/metrics")
-def get_metrics():
+def get_metrics(db: Session = Depends(get_db)):
+    # Patient counts
+    patients_total = db.query(Patient).count()
+    patients_waiting = (
+        db.query(Patient)
+        .filter(Patient.current_status == "WAITING")
+        .count()
+    )
+    patients_admitted = (
+        db.query(Patient)
+        .filter(Patient.current_status == "ADMITTED")
+        .count()
+    )
+
+    # Bed counts
+    beds_total = db.query(Bed).count()
+    beds_available = (
+        db.query(Bed)
+        .filter(Bed.status == "AVAILABLE")
+        .count()
+    )
+    beds_occupied = (
+        db.query(Bed)
+        .filter(Bed.status == "OCCUPIED")
+        .count()
+    )
+
+    # Avoid division by zero
+    bed_occupancy_rate = (
+        round(beds_occupied / beds_total, 4)
+        if beds_total
+        else 0.0
+    )
+
+    # Ventilator availability
+    ventilators_total = (
+        db.query(Equipment)
+        .filter(Equipment.type == "VENTILATOR")
+        .count()
+    )
+    ventilators_available = (
+        db.query(Equipment)
+        .filter(
+            Equipment.type == "VENTILATOR",
+            Equipment.status == "AVAILABLE",
+        )
+        .count()
+    )
+    ventilators_in_use = (
+        db.query(Equipment)
+        .filter(
+            Equipment.type == "VENTILATOR",
+            Equipment.status == "IN_USE",
+        )
+        .count()
+    )
+
+    # Successful allocation audit records
+    approved_allocations = (
+        db.query(AuditLog)
+        .filter(AuditLog.action == "APPROVED")
+        .count()
+    )
+
     return {
-        "status": "NOT_IMPLEMENTED"
+        "patients_total": patients_total,
+        "patients_waiting": patients_waiting,
+        "patients_admitted": patients_admitted,
+        "beds_total": beds_total,
+        "beds_available": beds_available,
+        "beds_occupied": beds_occupied,
+        "bed_occupancy_rate": bed_occupancy_rate,
+        "ventilators_total": ventilators_total,
+        "ventilators_available": ventilators_available,
+        "ventilators_in_use": ventilators_in_use,
+        "approved_allocations": approved_allocations,
     }
+
 
 
 

@@ -1,15 +1,16 @@
-from fastapi import Depends
+from datetime import datetime, timezone
+
+from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
-from backend.db.database import get_db
-from backend.models import Patient, Bed, Staff, Equipment
-
-from fastapi import FastAPI
 from backend.api.schemas import (
     AllocationRecommendRequest,
     AllocationApproveRequest,
     SurgeSimulationRequest,
 )
+from backend.db.database import get_db
+from backend.models import AuditLog, Bed, Equipment, Patient, Staff
+
 
 app = FastAPI(
     title="CareGrid API",
@@ -99,19 +100,229 @@ def get_equipment(db: Session = Depends(get_db)):
 
 
 @app.post("/allocation/recommend")
-def recommend_allocation(request: AllocationRecommendRequest):
+def recommend_allocation(
+    request: AllocationRecommendRequest,
+    db: Session = Depends(get_db),
+):
+    # 1. Find the patient
+    patient = db.query(Patient).filter(
+        Patient.patient_id == request.patient_id
+    ).first()
+
+    if patient is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Patient not found",
+        )
+
+    # 2. Only waiting patients can receive recommendations
+    if patient.current_status.upper() != "WAITING":
+        raise HTTPException(
+            status_code=409,
+            detail="Patient is not waiting for allocation",
+        )
+
+    # 3. Define bed preference according to simulator rules
+    bed_preferences = {
+        5: ["ICU"],
+        4: ["ICU", "STEP_DOWN"],
+        3: ["STEP_DOWN", "WARD"],
+        2: ["WARD"],
+        1: ["WARD"],
+    }
+
+    preferred_types = bed_preferences.get(patient.acuity)
+
+    if preferred_types is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid patient acuity",
+        )
+
+    # 4. Find available beds
+    available_beds = (
+        db.query(Bed)
+        .filter(Bed.status == "AVAILABLE")
+        .all()
+    )
+
+    # 5. Find an available ventilator if required
+    if patient.ventilator_required:
+        available_ventilator = (
+            db.query(Equipment)
+            .filter(
+                Equipment.type == "VENTILATOR",
+                Equipment.status == "AVAILABLE",
+            )
+            .order_by(Equipment.equipment_id)
+            .first()
+        )
+
+        if available_ventilator is None:
+            return {
+                "patient_id": patient.patient_id,
+                "recommended_bed_id": None,
+                "algorithm": "rule_based",
+                "reason": "No available ventilator",
+                "status": "NO_SUITABLE_BED",
+            }
+
+    # 6. Select the first eligible bed in preference order
+    for bed_type in preferred_types:
+        candidates = [
+            bed for bed in available_beds
+            if bed.bed_type == bed_type
+            and (
+                not patient.isolation_required
+                or bed.isolation_capable
+            )
+        ]
+
+        if candidates:
+            chosen_bed = min(
+                candidates,
+                key=lambda bed: bed.bed_id,
+            )
+
+            return {
+                "patient_id": patient.patient_id,
+                "recommended_bed_id": chosen_bed.bed_id,
+                "algorithm": "rule_based",
+                "reason": (
+                    f"Compatible {bed_type} bed available"
+                ),
+                "status": "RECOMMENDED",
+            }
+
+    # 7. No compatible bed found
     return {
-        "patient_id": request.patient_id,
-        "status": "NOT_IMPLEMENTED"
+        "patient_id": patient.patient_id,
+        "recommended_bed_id": None,
+        "algorithm": "rule_based",
+        "reason": "No compatible available bed found",
+        "status": "NO_SUITABLE_BED",
     }
 
 
+
 @app.post("/allocation/approve")
-def approve_allocation(request: AllocationApproveRequest):
+def approve_allocation(
+    request: AllocationApproveRequest,
+    db: Session = Depends(get_db),
+):
+    # 1. Find the patient
+    patient = (
+        db.query(Patient)
+        .filter(Patient.patient_id == request.patient_id)
+        .with_for_update()
+        .first()
+    )
+
+    if patient is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    if patient.current_status.upper() != "WAITING":
+        raise HTTPException(
+            status_code=409,
+            detail="Patient is not waiting for allocation",
+        )
+
+    # 2. Lock and validate the requested bed
+    bed = (
+        db.query(Bed)
+        .filter(Bed.bed_id == request.bed_id)
+        .with_for_update()
+        .first()
+    )
+
+    if bed is None:
+        raise HTTPException(status_code=404, detail="Bed not found")
+
+    if bed.status.upper() != "AVAILABLE":
+        raise HTTPException(
+            status_code=409,
+            detail="Bed is no longer available",
+        )
+
+    # 3. Validate the bed type against patient acuity
+    bed_preferences = {
+        5: ["ICU"],
+        4: ["ICU", "STEP_DOWN"],
+        3: ["STEP_DOWN", "WARD"],
+        2: ["WARD"],
+        1: ["WARD"],
+    }
+
+    preferred_types = bed_preferences.get(patient.acuity)
+
+    if preferred_types is None:
+        raise HTTPException(status_code=400, detail="Invalid patient acuity")
+
+    if bed.bed_type not in preferred_types:
+        raise HTTPException(
+            status_code=400,
+            detail="Bed type is incompatible with patient acuity",
+        )
+
+    # 4. Validate isolation requirement
+    if patient.isolation_required and not bed.isolation_capable:
+        raise HTTPException(
+            status_code=400,
+            detail="Patient requires an isolation-capable bed",
+        )
+
+    # 5. Reserve a ventilator if required
+    ventilator = None
+
+    if patient.ventilator_required:
+        ventilator = (
+            db.query(Equipment)
+            .filter(
+                Equipment.type == "VENTILATOR",
+                Equipment.status == "AVAILABLE",
+            )
+            .order_by(Equipment.equipment_id)
+            .with_for_update()
+            .first()
+        )
+
+        if ventilator is None:
+            raise HTTPException(
+                status_code=409,
+                detail="No available ventilator",
+            )
+
+    # 6. Update everything in one transaction
+    try:
+        bed.status = "OCCUPIED"
+
+        if ventilator is not None:
+            ventilator.status = "IN_USE"
+
+        patient.current_status = "ADMITTED"
+
+        audit_entry = AuditLog(
+        patient_id=patient.patient_id,
+        bed_id=bed.bed_id,
+        action="APPROVED",
+        algorithm="rule_based",
+        timestamp=datetime.now(timezone.utc),
+        )
+        db.add(audit_entry)
+
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Allocation failed; changes were rolled back",
+        )
+
     return {
-        "patient_id": request.patient_id,
-        "bed_id": request.bed_id,
-        "status": "NOT_IMPLEMENTED"
+        "patient_id": patient.patient_id,
+        "bed_id": bed.bed_id,
+        "status": "APPROVED",
     }
 
 
@@ -131,8 +342,25 @@ def get_metrics():
     }
 
 
+
 @app.get("/audit")
-def get_audit():
+def get_audit_logs(db: Session = Depends(get_db)):
+    records = (
+        db.query(AuditLog)
+        .order_by(AuditLog.timestamp.desc(), AuditLog.id.desc())
+        .limit(100)
+        .all()
+    )
+
     return {
-        "audit": []
+        "audit": [
+            {
+                "patient_id": record.patient_id,
+                "bed_id": record.bed_id,
+                "action": record.action,
+                "algorithm": record.algorithm,
+                "timestamp": record.timestamp.isoformat(),
+            }
+            for record in records
+        ]
     }

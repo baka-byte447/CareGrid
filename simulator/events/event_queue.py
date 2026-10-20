@@ -25,6 +25,10 @@ class EventQueue:
     def pop(self) -> Event:
         return heapq.heappop(self._heap)
 
+    def peek(self) -> Event:
+        """Return the next event without removing it from the queue."""
+        return self._heap[0]
+
     def is_empty(self) -> bool:
         return len(self._heap) == 0
 

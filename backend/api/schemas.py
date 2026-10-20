@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AllocationRecommendRequest(BaseModel):
@@ -11,5 +11,5 @@ class AllocationApproveRequest(BaseModel):
 
 
 class SurgeSimulationRequest(BaseModel):
-    arrival_rate_multiplier: float
-    duration_hours: int
+    arrival_rate_multiplier: float = Field(gt=0)
+    duration_hours: int = Field(gt=0)

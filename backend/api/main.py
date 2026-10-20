@@ -1,5 +1,4 @@
-from datetime import datetime, timezone
-
+from datetime import datetime, timedelta, timezone
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
@@ -10,6 +9,13 @@ from backend.api.schemas import (
 )
 from backend.db.database import get_db
 from backend.models import AuditLog, Bed, Equipment, Patient, Staff
+
+from pathlib import Path
+
+from simulator.hospital.loader import load_hospital_state, load_patients
+from simulator.hospital.engine import SimulationEngine
+from simulator.metrics.collector import MetricsCollector
+from simulator.metrics.summary import compute_metrics
 
 
 app = FastAPI(
@@ -325,15 +331,85 @@ def approve_allocation(
         "status": "APPROVED",
     }
 
-
 @app.post("/surge/simulate")
 def simulate_surge(request: SurgeSimulationRequest):
-    return {
-        "arrival_rate_multiplier": request.arrival_rate_multiplier,
-        "duration_hours": request.duration_hours,
-        "status": "NOT_IMPLEMENTED"
-    }
+    try:
+        # Resolve the dataset directory from the project root.
+        data_dir = Path(__file__).resolve().parents[2] / "data" / "synthetic"
 
+        # Load fresh in-memory state and patient objects.
+        state = load_hospital_state(data_dir)
+        patients = load_patients(data_dir)
+
+        if not patients:
+            raise HTTPException(
+                status_code=500,
+                detail="No patients were loaded for simulation.",
+            )
+
+        # Start the simulation at the earliest patient arrival.
+        original_start = min(p.arrival_time for p in patients)
+        window_start = original_start
+        window_end = window_start + timedelta(hours=request.duration_hours)
+
+        # Compress or expand arrival offsets around the original start.
+        multiplier = request.arrival_rate_multiplier
+        for patient in patients:
+            offset = patient.arrival_time - original_start
+            patient.arrival_time = original_start + offset / multiplier
+
+        # Collect measurements across the requested simulation window.
+        collector = MetricsCollector(window_start, window_end)
+        engine = SimulationEngine(state, patients)
+        engine.seed_arrivals()
+        engine.run(max_time=window_end, on_tick=collector.on_tick)
+
+        # Account for the interval between the last event and window end.
+        state.current_time = window_end
+        collector.on_tick(state)
+
+        patients_arrived = sum(
+        1 for patient in patients
+        if patient.arrival_time <= window_end
+    )
+
+        metrics = compute_metrics(engine, collector)
+        waiting_patients = [
+        patient
+        for patient in engine.patients.values()
+        if patient.status == "WAITING"
+        and patient.arrival_time <= window_end
+    ]
+
+        elapsed_waits = [
+            (window_end - patient.arrival_time).total_seconds() / 60
+            for patient in waiting_patients
+        ]
+
+        metrics["waiting_patients_elapsed_wait_min"] = {
+            "avg": round(sum(elapsed_waits) / len(elapsed_waits), 2)
+            if elapsed_waits else 0.0,
+            "max": round(max(elapsed_waits), 2)
+            if elapsed_waits else 0.0,
+        }
+
+        return {
+            "status": "COMPLETED",
+            "arrival_rate_multiplier": multiplier,
+            "duration_hours": request.duration_hours,
+            "patients_arrived": patients_arrived,
+            "simulation_start": window_start.isoformat(),
+            "simulation_end": window_end.isoformat(),
+            "metrics": metrics,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Surge simulation failed: {exc}",
+        ) from exc
 
 
 @app.get("/metrics")

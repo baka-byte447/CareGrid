@@ -87,16 +87,25 @@ class SimulationEngine:
                     self._admit(patient, decision)
                     progressed = True
 
-    def run(self, max_time: Optional[datetime] = None,
-             on_tick: Optional[Callable[[HospitalState], None]] = None) -> None:
+    def run(
+        self,
+        max_time: Optional[datetime] = None,
+        on_tick: Optional[Callable[[HospitalState], None]] = None,
+    ) -> None:
         """
-        Runs until the event queue drains (or max_time is reached).
-        on_tick(state), if provided, is called after every event
+        Runs until the event queue drains or max_time is reached.
+        Events beyond max_time remain in the queue.
+        on_tick(state), if provided, is called after every processed event.
         """
         while not self.queue.is_empty():
-            event = self.queue.pop()
-            if max_time is not None and event.timestamp > max_time:
+            # Check the next event before removing it from the queue.
+            if (
+                max_time is not None
+                and self.queue.peek().timestamp > max_time
+            ):
                 break
+
+            event = self.queue.pop()
 
             self.state.current_time = event.timestamp
 

@@ -13,3 +13,4 @@ env/
 logs/
 .vscode/
 *.pyc
+*.joblib

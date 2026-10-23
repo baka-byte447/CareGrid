@@ -1,4 +1,15 @@
-"""Shared clinical/resource allocation rules for all simulator policies."""
+"""Shared clinical/resource allocation rules for all simulator policies.
+
+This module is the SINGLE implementation of the allocation rules: the simulator
+engine, the Gymnasium environment, the experiment runner and the backend's
+/allocation/recommend and /allocation/approve endpoints all call it, so the rules
+cannot drift apart. Rule-based recommendations are exposed through
+simulator/hospital/policy.py (`recommend`), where DQN + safety plug in later.
+
+Rules: hard isolation / ventilator constraints first; acuity decides the acceptable
+tiers with escalation (5: ICU | 4: ICU, STEP_DOWN | 3: STEP_DOWN, WARD | 1-2: WARD);
+lowest bed_id breaks ties.
+"""
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -12,18 +23,35 @@ class AllocationDecision:
     equipment_id: Optional[str] = None
 
 
+REASON_NO_VENTILATOR = "No available ventilator"
+REASON_NO_BED = "No compatible available bed found"
+
+
+@dataclass
+class AllocationResult:
+    """A decision plus a human-readable reason (used by the API and, later, the
+    audit log / explanation panel). `decision` is None when the patient must keep
+    waiting."""
+    decision: Optional[AllocationDecision]
+    reason: str
+
+
 class AllocationValidationError(ValueError):
     """Raised when an allocation violates simulator invariants."""
 
 
-def _candidate_bed_types(acuity: int) -> List[str]:
+def candidate_bed_types(acuity: int) -> List[str]:
+    """Acceptable bed tiers for an acuity level, in order of preference.
+    Raises ValueError for acuity outside 1-5."""
     if acuity == 5:
         return ["ICU"]
     if acuity == 4:
         return ["ICU", "STEP_DOWN"]
     if acuity == 3:
         return ["STEP_DOWN", "WARD"]
-    return ["WARD"]  # acuity 1-2
+    if acuity in (1, 2):
+        return ["WARD"]
+    raise ValueError(f"Invalid patient acuity: {acuity!r} (expected 1-5)")
 
 
 def _pick_bed(candidates: List[Bed]) -> Optional[Bed]:
@@ -59,7 +87,11 @@ def allocation_error(
         return "bed_not_found"
     if bed.status != "AVAILABLE":
         return "bed_not_available"
-    if bed.bed_type not in _candidate_bed_types(patient.acuity):
+    try:
+        acceptable_types = candidate_bed_types(patient.acuity)
+    except ValueError:
+        return "invalid_acuity"
+    if bed.bed_type not in acceptable_types:
         return "bed_type_incompatible_with_acuity"
     if patient.isolation_required and not bed.isolation_capable:
         return "bed_not_isolation_capable"
@@ -92,7 +124,11 @@ def allocation_for_bed_type(
     patient: Patient, state: HospitalState, bed_type: str
 ) -> tuple[Optional[AllocationDecision], Optional[str]]:
     """Choose the deterministic feasible allocation for a requested bed type."""
-    if bed_type not in _candidate_bed_types(patient.acuity):
+    try:
+        acceptable_types = candidate_bed_types(patient.acuity)
+    except ValueError:
+        return None, "invalid_acuity"
+    if bed_type not in acceptable_types:
         return None, "bed_type_incompatible_with_acuity"
     candidates = state.available_beds_by_type(bed_type)
     if patient.isolation_required:
@@ -114,10 +150,22 @@ def allocation_for_bed_type(
     return (None, reason) if reason else (decision, None)
 
 
-def decide_bed(patient: Patient, state: HospitalState) -> Optional[AllocationDecision]:
-    """Return the first feasible allocation according to legacy rule-based policy."""
-    for bed_type in _candidate_bed_types(patient.acuity):
+def evaluate_allocation(patient: Patient, state: HospitalState) -> AllocationResult:
+    """Rule-based recommendation with a reason. Pure: reads state, never mutates it.
+
+    The ventilator is checked before beds, so a bed is never offered to a patient
+    who cannot be safely cared for in it (and the API keeps its specific reason).
+    Raises ValueError for acuity outside 1-5."""
+    bed_types = candidate_bed_types(patient.acuity)
+    if patient.ventilator_required and not state.available_ventilators():
+        return AllocationResult(None, REASON_NO_VENTILATOR)
+    for bed_type in bed_types:
         decision, _ = allocation_for_bed_type(patient, state, bed_type)
         if decision is not None:
-            return decision
-    return None
+            return AllocationResult(decision, f"Compatible {bed_type} bed available")
+    return AllocationResult(None, REASON_NO_BED)
+
+
+def decide_bed(patient: Patient, state: HospitalState) -> Optional[AllocationDecision]:
+    """Decision only (None = stays WAITING). Used by the simulator engine."""
+    return evaluate_allocation(patient, state).decision

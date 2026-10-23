@@ -9,10 +9,13 @@ from backend.api.schemas import (
 )
 from backend.db.database import get_db
 from backend.models import AuditLog, Bed, Equipment, Patient, Staff
+from backend.services.hospital_state import build_hospital_state, to_simulator_patient
 
 from pathlib import Path
 
+from simulator.hospital.allocation_rules import candidate_bed_types
 from simulator.hospital.loader import load_hospital_state, load_patients
+from simulator.hospital.policy import DEFAULT_ALGORITHM, recommend
 from simulator.hospital.engine import SimulationEngine
 from simulator.metrics.collector import MetricsCollector
 from simulator.metrics.summary import compute_metrics
@@ -128,87 +131,39 @@ def recommend_allocation(
             detail="Patient is not waiting for allocation",
         )
 
-    # 3. Define bed preference according to simulator rules
-    bed_preferences = {
-        5: ["ICU"],
-        4: ["ICU", "STEP_DOWN"],
-        3: ["STEP_DOWN", "WARD"],
-        2: ["WARD"],
-        1: ["WARD"],
-    }
-
-    preferred_types = bed_preferences.get(patient.acuity)
-
-    if preferred_types is None:
+    # 3. Validate acuity (the shared rules only accept 1-5)
+    try:
+        candidate_bed_types(patient.acuity)
+    except ValueError:
         raise HTTPException(
             status_code=400,
             detail="Invalid patient acuity",
         )
 
-    # 4. Find available beds
-    available_beds = (
-        db.query(Bed)
-        .filter(Bed.status == "AVAILABLE")
-        .all()
+    # 4. Ask the shared allocation policy (same code the simulator uses)
+    #    about the CURRENT hospital state stored in the database
+    result = recommend(
+        to_simulator_patient(patient),
+        build_hospital_state(db),
+        DEFAULT_ALGORITHM,
     )
 
-    # 5. Find an available ventilator if required
-    if patient.ventilator_required:
-        available_ventilator = (
-            db.query(Equipment)
-            .filter(
-                Equipment.type == "VENTILATOR",
-                Equipment.status == "AVAILABLE",
-            )
-            .order_by(Equipment.equipment_id)
-            .first()
-        )
+    if result.decision is None:
+        return {
+            "patient_id": patient.patient_id,
+            "recommended_bed_id": None,
+            "algorithm": DEFAULT_ALGORITHM,
+            "reason": result.reason,
+            "status": "NO_SUITABLE_BED",
+        }
 
-        if available_ventilator is None:
-            return {
-                "patient_id": patient.patient_id,
-                "recommended_bed_id": None,
-                "algorithm": "rule_based",
-                "reason": "No available ventilator",
-                "status": "NO_SUITABLE_BED",
-            }
-
-    # 6. Select the first eligible bed in preference order
-    for bed_type in preferred_types:
-        candidates = [
-            bed for bed in available_beds
-            if bed.bed_type == bed_type
-            and (
-                not patient.isolation_required
-                or bed.isolation_capable
-            )
-        ]
-
-        if candidates:
-            chosen_bed = min(
-                candidates,
-                key=lambda bed: bed.bed_id,
-            )
-
-            return {
-                "patient_id": patient.patient_id,
-                "recommended_bed_id": chosen_bed.bed_id,
-                "algorithm": "rule_based",
-                "reason": (
-                    f"Compatible {bed_type} bed available"
-                ),
-                "status": "RECOMMENDED",
-            }
-
-    # 7. No compatible bed found
     return {
         "patient_id": patient.patient_id,
-        "recommended_bed_id": None,
-        "algorithm": "rule_based",
-        "reason": "No compatible available bed found",
-        "status": "NO_SUITABLE_BED",
+        "recommended_bed_id": result.decision.bed_id,
+        "algorithm": DEFAULT_ALGORITHM,
+        "reason": result.reason,
+        "status": "RECOMMENDED",
     }
-
 
 
 @app.post("/allocation/approve")
@@ -250,18 +205,10 @@ def approve_allocation(
             detail="Bed is no longer available",
         )
 
-    # 3. Validate the bed type against patient acuity
-    bed_preferences = {
-        5: ["ICU"],
-        4: ["ICU", "STEP_DOWN"],
-        3: ["STEP_DOWN", "WARD"],
-        2: ["WARD"],
-        1: ["WARD"],
-    }
-
-    preferred_types = bed_preferences.get(patient.acuity)
-
-    if preferred_types is None:
+    # 3. Validate the bed type against patient acuity (shared rule table)
+    try:
+        preferred_types = candidate_bed_types(patient.acuity)
+    except ValueError:
         raise HTTPException(status_code=400, detail="Invalid patient acuity")
 
     if bed.bed_type not in preferred_types:

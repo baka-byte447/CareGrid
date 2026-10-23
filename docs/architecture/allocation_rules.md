@@ -35,6 +35,18 @@ Patients who can't be admitted on arrival join `waiting_queue` (FIFO by arrival 
 
 The synthetic bed roster allocates isolation-capable beds mostly to ICU (4 per ward) and STEP_DOWN (3 per ward), but only **2 isolation-capable WARD beds** exist in the entire 50-bed WARD tier (`Medical-North` only; `Medical-South`, `Surgical-East`, `Surgical-West` have none). Because acuity 1–2 patients never escalate above WARD, isolation-required low-acuity patients can queue for a very long time under this rule set whenever those 2 beds are occupied — even while ICU/STEP_DOWN isolation beds sit free. This is the rules behaving correctly, not a bug: it's a genuine capacity bottleneck the baseline exposes, and a concrete example for "why not just use rules?" — a smarter policy (or a rule update allowing controlled escalation) could route around it.
 
+**Measured on the calibrated `normal` scenario** (`python -m experiments.run_experiment --scenario normal`, 1,000 patients, rule-based baseline):
+
+| Patient group | n | Average wait | Median wait |
+|---|---|---|---|
+| Acuity 1–2, isolation required | 48 | ~90 h | ~84 h |
+| Acuity 1–2, no isolation | 359 | 0 h | 0 h |
+| Acuity 3, isolation required | 44 | ~28 h | ~26 h |
+| Acuity 3, no isolation | 290 | 0 h | 0 h |
+| Acuity 4–5 (critical) | 259 | ~3.7 h | 0 h |
+
+Almost all queueing in the normal scenario comes from isolation-required patients competing for the 2 isolation-capable ward beds; everyone else is admitted on arrival. This is the clearest, most explainable gap for a smarter policy to close (e.g. placing isolation patients in free step-down isolation beds), and a concrete answer to "why not just use rules?".
+
 ## 6. Viva-ready answers
 
 - **"Why not just use rules?"** → point at §5: rigid tier boundaries create an isolation-bed bottleneck a rules engine won't route around on its own, even when capacity technically exists elsewhere.

@@ -132,19 +132,24 @@ def generate_patients(num_patients: int = 1000, mode: str = 'normal', start_time
     """
     Generates virtual patients following non-homogeneous Poisson arrival process.
     Arrival rate:
-    - normal: 5 patients/hour average
-    - moderate_surge: 8 patients/hour average
-    - severe_surge: 13.5 patients/hour average
+    Rates are calibrated to the 100-bed hospital in beds.csv (mean stay ~4 days):
+    - normal: 0.8 patients/hour average (~19/day, ~60% of capacity)
+    - moderate_surge: 1.3 patients/hour average (~1.6x normal)
+    - severe_surge: 2.2 patients/hour average (~2.7x normal)
+    The surge/normal ratios (1.6x, 2.7x) are the ones used by the backend's
+    /surge/simulate multiplier and by experiments/run_experiment.py.
+    (The original 5 / 8 / 13.5 per hour asked a 100-bed hospital to absorb
+    ~480 bed-days of demand per day, i.e. ~5x its capacity even in 'normal'.)
     """
     if start_time is None:
         start_time = datetime(2026, 10, 1, 8, 0, 0)
 
     rates = {
-        'normal': 5.0,
-        'moderate_surge': 8.0,
-        'severe_surge': 13.5
+        'normal': 0.8,
+        'moderate_surge': 1.3,
+        'severe_surge': 2.2
     }
-    base_rate = rates.get(mode, 5.0)
+    base_rate = rates.get(mode, rates['normal'])
 
     patients = []
     current_time = start_time
@@ -323,7 +328,7 @@ def generate_simulator_event_templates() -> list:
         },
         {
             "event_type": "SURGE_START",
-            "description": "Surge trigger activated, accelerating arrival rates to 8-15 patients/hr.",
+            "description": "Surge trigger activated, accelerating arrival rates to roughly 1.6x-2.7x the normal rate.",
             "payload_fields": ["surge_tier", "start_time", "expected_duration_hours"]
         },
         {

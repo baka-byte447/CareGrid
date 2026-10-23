@@ -80,7 +80,7 @@
   },
   {
     "event_type": "SURGE_START",
-    "description": "Surge trigger activated, accelerating arrival rates to 8-15 patients/hr.",
+    "description": "Surge trigger activated, accelerating arrival rates to roughly 1.6x-2.7x the normal rate.",
     "payload_fields": [
       "surge_tier",
       "start_time",

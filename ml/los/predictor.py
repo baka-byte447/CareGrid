@@ -1,12 +1,10 @@
 
 import json
-import warnings
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
 import joblib
 import numpy as np
-import sklearn
 
 from ml.los.features import LOS_MAX_DAYS, LOS_MIN_DAYS, to_frame
 
@@ -26,12 +24,8 @@ class LOSPredictor:
                 f"LOS model not found at {path}. Train it with: python -m ml.los.train")
         meta_path = path.with_suffix(".metadata.json")
         metadata = json.loads(meta_path.read_text()) if meta_path.exists() else {}
-        trained_with = metadata.get("sklearn_version")
-        if trained_with and trained_with != sklearn.__version__:
-            warnings.warn(
-                f"LOS model was trained with scikit-learn {trained_with} but "
-                f"{sklearn.__version__} is installed; results may differ. "
-                f"Retrain with: python -m ml.los.train", RuntimeWarning)
+        # scikit-learn itself raises InconsistentVersionWarning if the model file was
+        # pickled with a different version -- retrain (python -m ml.los.train) to fix.
         return cls(joblib.load(path), metadata)
 
     @property

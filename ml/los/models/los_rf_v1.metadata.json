@@ -1,0 +1,135 @@
+{
+  "model_name": "los_rf_v1",
+  "algorithm": "RandomForestRegressor (sklearn Pipeline with one-hot encoding)",
+  "target": "los_days (true LOS from the synthetic generator)",
+  "features": [
+    "age_group",
+    "specialty",
+    "acuity",
+    "isolation_required",
+    "ventilator_required"
+  ],
+  "hyperparameters": {
+    "n_estimators": 200,
+    "min_samples_leaf": 20
+  },
+  "cv_mae_by_min_samples_leaf": {
+    "1": 0.7191,
+    "5": 0.7177,
+    "20": 0.716,
+    "50": 0.7178,
+    "100": 0.7173
+  },
+  "n_train": 20000,
+  "n_test": 5000,
+  "train_seed": 1001,
+  "test_seed": 2002,
+  "trained_at": "2026-10-20T22:23:49",
+  "sklearn_version": "1.9.1",
+  "numpy_version": "2.5.4",
+  "metrics": {
+    "holdout_synthetic": {
+      "n": 5000,
+      "random_forest": {
+        "mae_days": 0.7242,
+        "rmse_days": 0.9622,
+        "r2": 0.8259
+      },
+      "baseline_global_mean": {
+        "mae_days": 1.8704,
+        "rmse_days": 2.3064,
+        "r2": -0.0002
+      },
+      "baseline_acuity_mean": {
+        "mae_days": 0.7962,
+        "rmse_days": 1.053,
+        "r2": 0.7915
+      },
+      "by_acuity": {
+        "1": {
+          "n": 660,
+          "mae_days": 0.2664,
+          "mean_actual": 1.39,
+          "mean_predicted": 1.38
+        },
+        "2": {
+          "n": 1382,
+          "mae_days": 0.5047,
+          "mean_actual": 2.467,
+          "mean_predicted": 2.428
+        },
+        "3": {
+          "n": 1630,
+          "mae_days": 0.8222,
+          "mean_actual": 3.994,
+          "mean_predicted": 4.01
+        },
+        "4": {
+          "n": 878,
+          "mae_days": 1.043,
+          "mean_actual": 6.383,
+          "mean_predicted": 6.406
+        },
+        "5": {
+          "n": 450,
+          "mae_days": 1.0928,
+          "mean_actual": 8.302,
+          "mean_predicted": 8.277
+        }
+      },
+      "mean_error_bias_days": -0.0052
+    },
+    "simulation_patients": {
+      "n": 1000,
+      "random_forest": {
+        "mae_days": 0.7035,
+        "rmse_days": 0.94,
+        "r2": 0.8245
+      },
+      "baseline_global_mean": {
+        "mae_days": 1.8124,
+        "rmse_days": 2.244,
+        "r2": -0.0001
+      },
+      "baseline_acuity_mean": {
+        "mae_days": 0.7639,
+        "rmse_days": 1.0193,
+        "r2": 0.7936
+      },
+      "by_acuity": {
+        "1": {
+          "n": 132,
+          "mae_days": 0.2447,
+          "mean_actual": 1.344,
+          "mean_predicted": 1.335
+        },
+        "2": {
+          "n": 275,
+          "mae_days": 0.49,
+          "mean_actual": 2.508,
+          "mean_predicted": 2.421
+        },
+        "3": {
+          "n": 334,
+          "mae_days": 0.7657,
+          "mean_actual": 4.085,
+          "mean_predicted": 4.023
+        },
+        "4": {
+          "n": 183,
+          "mae_days": 1.0628,
+          "mean_actual": 6.312,
+          "mean_predicted": 6.39
+        },
+        "5": {
+          "n": 76,
+          "mae_days": 1.1347,
+          "mean_actual": 8.412,
+          "mean_predicted": 8.282
+        }
+      },
+      "mean_error_bias_days": -0.0417
+    },
+    "noise_floor_mae_days": 0.7199
+  }
+}

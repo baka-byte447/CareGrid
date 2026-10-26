@@ -1,0 +1,6 @@
+# Everything needed to run the full test suite:  python -m pytest tests -q
+# (tests that need optional packages skip themselves if those are missing)
+-r requirements.txt
+-r ml/requirements.txt
+-r rl/requirements.txt
+httpx>=0.27

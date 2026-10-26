@@ -17,6 +17,56 @@ before they are considered executed.
 
 ---
 
+# Current Status
+
+_Last updated: 2026-10-26_
+
+**Data & simulation**
+- [x] Problem definition, architecture, repository structure
+- [x] Synthetic data generator (patients, beds, staff, equipment, events), arrival rates calibrated to the 100-bed hospital
+- [x] Virtual hospital simulator (discrete-event) with a text command-centre dashboard
+- [x] Rule-based allocation baseline (hard isolation / ventilator constraints)
+- [x] Metrics pipeline and experiment runner (wait times, utilization, turnover, constraint violations)
+- [x] Arrival-rate surge scenarios (normal / moderate / severe)
+- [ ] Shortage scenarios (ICU, staff, equipment, combined crisis)
+
+**AI**
+- [x] Length-of-stay prediction (Random Forest, `ml/los`)
+- [x] Gymnasium RL environment (14-feature observation, fresh patient streams with held-out evaluation seeds, ~16k steps/s)
+- [x] Policy evaluation harness: baselines and learned agents scored by the same metrics (`python -m rl.evaluation.evaluate`)
+- [ ] DQN agent trained on the simulator and compared with the baseline
+- [ ] Safety layer (independent validation of every proposed action)
+- [ ] Simple MARL (Bed Agent + Surge Agent)
+- [ ] Final evaluation: rule-based vs DQN vs MARL across all scenarios
+
+**Application**
+- [x] PostgreSQL schema, Alembic migrations, CSV import
+- [x] FastAPI: patients, beds, staff, equipment, recommend, approve, surge simulation, metrics, audit log
+- [x] Recommendations come from the same allocation code the simulator uses (`simulator/hospital/allocation_rules.py`)
+- [x] React dashboard: overview, wards, patient queue with approve flow, audit log
+- [ ] Reject / override with a reason
+- [ ] Surge-simulator and analytics pages (rule vs DQN vs MARL charts)
+- [ ] RL + safety layer behind `/allocation/recommend` (selectable algorithm)
+- [ ] Authentication (JWT, roles)
+- [ ] Mock FHIR endpoint
+- [ ] End-to-end demo
+
+**Quality**
+- [x] Automated tests: simulator, metrics, load calibration, LOS model, allocation API
+
+### Quick start
+
+```bash
+pip install -r requirements-dev.txt          # backend + ML + test dependencies
+python -m simulator.hospital.run             # run the simulator with the rule-based baseline
+python -m experiments.run_experiment --scenario normal      # metrics (also: moderate_surge, severe_surge)
+python -m ml.los.train                       # train the LOS model once (the model file is git-ignored)
+python -m rl.evaluation.evaluate --policy rule_based --mode normal   # baseline on held-out patient streams
+python -m pytest tests -q                    # full test suite
+```
+
+Work happens on short-lived `feature/<area>-<desc>` branches merged into `main` by pull request; `main` must always run.
+
 # Overview
 
 Hospital resources are limited and constantly changing.

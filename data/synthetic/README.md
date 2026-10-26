@@ -54,9 +54,26 @@ Defines simulation lifecycle transitions:
 
 The generator script `generate_synthetic_data.py` uses non-homogeneous Poisson processes with realistic diurnal curves and clinical correlation logic.
 
+### Load calibration (why the rates are what they are)
+
+The hospital in `beds.csv` has 100 beds and the average stay is ~4 days, so it can
+absorb roughly 25 admissions/day. The rates are set so that:
+
+| Scenario | Arrivals/hour | Arrivals/day | Offered load vs. capacity |
+|---|---|---|---|
+| normal | 0.8 | ~19 | ~75% (ICU/step-down near saturation, wards under-used) |
+| moderate_surge | 1.3 | ~31 | ~125% (queue builds) |
+| severe_surge | 2.2 | ~53 | ~210% (sustained overload) |
+
+Patient attributes (acuity, LOS, isolation, ventilator) do **not** depend on the arrival
+rate: with the fixed seed the same patients are generated at every rate, only
+`arrival_time` changes. Surge scenarios can therefore also be produced by compressing
+the arrival times of the normal file (`scale_arrivals` in `simulator/hospital/scenarios.py`,
+the `arrival_rate_multiplier` of `/surge/simulate`).
+
 ### Commands
 
-1. **Default Normal Dataset (1,000 virtual patients, ~5 patients/hour)**:
+1. **Default Normal Dataset (1,000 virtual patients, ~0.8 patients/hour, ~60 days of arrivals)**:
    ```bash
    python data/synthetic/generate_synthetic_data.py --patients 1000 --mode normal
    ```
@@ -71,12 +88,12 @@ The generator script `generate_synthetic_data.py` uses non-homogeneous Poisson p
    python data/synthetic/generate_synthetic_data.py --patients 10000 --mode normal
    ```
 
-4. **Moderate Surge Scenario (~8 patients/hour)**:
+4. **Moderate Surge Scenario (~1.3 patients/hour, ~1.6x normal)**:
    ```bash
    python data/synthetic/generate_synthetic_data.py --patients 1000 --mode moderate_surge
    ```
 
-5. **Severe Surge Scenario (~12-15 patients/hour)**:
+5. **Severe Surge Scenario (~2.2 patients/hour, ~2.7x normal)**:
    ```bash
    python data/synthetic/generate_synthetic_data.py --patients 1000 --mode severe_surge
    ```

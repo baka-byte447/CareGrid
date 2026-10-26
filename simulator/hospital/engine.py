@@ -18,8 +18,9 @@ class SimulationEngine:
         self.queue = EventQueue()
         self.admitted_count = 0
         self.discharged_count = 0
-        # External-decision mode is opt-in; the legacy run() path is unc    hanged.
+        # External-decision mode is opt-in; the legacy run() path is unchanged.
         self._external_decision_mode = False
+        self._external_tick: Optional[Callable[[HospitalState], None]] = None
         self._pending_patient_id: Optional[str] = None
         self._deferred_waiters = set()
         self._last_event_time: Optional[datetime] = None
@@ -105,15 +106,27 @@ class SimulationEngine:
                     progressed = True
 
 
-    def enable_external_decisions(self) -> None:
+    def enable_external_decisions(
+        self, on_tick: Optional[Callable[[HospitalState], None]] = None
+    ) -> None:
         """Enable event stepping for an external policy (e.g. a Gymnasium agent).
 
         Arrivals and newly available beds become decision points instead of being
         allocated automatically. The default run() behavior remains rule-based.
+
+        on_tick(state), if given, is called exactly where run() would call it: after
+        every processed event AND after each admit / defer decision, so a
+        MetricsCollector sees the same state changes in both modes and its
+        time-weighted utilization is comparable between rule-based and RL runs.
         """
+        self._external_tick = on_tick
         self._external_decision_mode = True
         self._pending_patient_id = None
         self._deferred_waiters.clear()
+
+    def _notify_external_tick(self) -> None:
+        if self._external_tick is not None:
+            self._external_tick(self.state)
 
     @property
     def pending_patient_id(self) -> Optional[str]:
@@ -142,6 +155,7 @@ class SimulationEngine:
                 self._last_event_time = event.timestamp
 
             if event.event_type == "PATIENT_ARRIVAL":
+                self._notify_external_tick()      # time advanced; state unchanged
                 patient_id = event.payload["patient_id"]
                 # Ignore stale/duplicate arrival events instead of offering an
                 # already admitted or discharged patient for another admission.
@@ -151,8 +165,10 @@ class SimulationEngine:
                     return patient_id
             elif event.event_type == "PATIENT_DISCHARGE":
                 self._handle_discharge(event.payload["patient_id"])
+                self._notify_external_tick()
             elif event.event_type == "BED_RELEASE":
                 self.state.beds[event.payload["bed_id"]].status = "AVAILABLE"
+                self._notify_external_tick()
                 # Preserve queue order, but only ask the policy to act when at
                 # least one complete, currently feasible allocation exists.
                 for patient_id in self.state.waiting_queue:
@@ -173,6 +189,7 @@ class SimulationEngine:
             self.state.waiting_queue.append(patient_id)
         self._deferred_waiters.add(patient_id)
         self._pending_patient_id = None
+        self._notify_external_tick()
         return patient_id
 
     def admit_pending_patient(self, decision: AllocationDecision) -> str:
@@ -197,6 +214,7 @@ class SimulationEngine:
         self._admit(patient, decision)
         self._pending_patient_id = None
         self._deferred_waiters.discard(patient_id)
+        self._notify_external_tick()
         return patient_id
 
     def run(

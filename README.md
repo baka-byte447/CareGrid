@@ -19,7 +19,7 @@ before they are considered executed.
 
 # Current Status
 
-_Last updated: 2026-10-23_
+_Last updated: 2026-10-26_
 
 **Data & simulation**
 - [x] Problem definition, architecture, repository structure
@@ -32,7 +32,8 @@ _Last updated: 2026-10-23_
 
 **AI**
 - [x] Length-of-stay prediction (Random Forest, `ml/los`)
-- [ ] Gymnasium RL environment
+- [x] Gymnasium RL environment (14-feature observation, fresh patient streams with held-out evaluation seeds, ~16k steps/s)
+- [x] Policy evaluation harness: baselines and learned agents scored by the same metrics (`python -m rl.evaluation.evaluate`)
 - [ ] DQN agent trained on the simulator and compared with the baseline
 - [ ] Safety layer (independent validation of every proposed action)
 - [ ] Simple MARL (Bed Agent + Surge Agent)
@@ -60,6 +61,7 @@ pip install -r requirements-dev.txt          # backend + ML + test dependencies
 python -m simulator.hospital.run             # run the simulator with the rule-based baseline
 python -m experiments.run_experiment --scenario normal      # metrics (also: moderate_surge, severe_surge)
 python -m ml.los.train                       # train the LOS model once (the model file is git-ignored)
+python -m rl.evaluation.evaluate --policy rule_based --mode normal   # baseline on held-out patient streams
 python -m pytest tests -q                    # full test suite
 ```
 

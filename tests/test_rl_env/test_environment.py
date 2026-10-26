@@ -5,7 +5,7 @@ import pytest
 
 gym = pytest.importorskip("gymnasium")
 
-from rl.environment.hospital_env import CareGridHospitalEnv
+from rl.environment.hospital_env import CareGridHospitalEnv, OBSERVATION_FEATURES
 from simulator.hospital.state import Bed, Equipment, HospitalState
 from simulator.patients.patient import Patient
 
@@ -19,7 +19,7 @@ class FakePredictor:
 def test_reset_observation_contract(data_dir):
     env = CareGridHospitalEnv(data_dir=data_dir, max_episode_days=1, los_predictor=FakePredictor())
     obs, info = env.reset(seed=123)
-    assert obs.shape == (10,)
+    assert obs.shape == (len(OBSERVATION_FEATURES),) == (14,)
     assert obs.dtype == np.float32
     assert env.observation_space.contains(obs)
     assert info["simulation_time"] is not None

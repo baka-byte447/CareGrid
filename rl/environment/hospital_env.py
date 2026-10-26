@@ -4,13 +4,17 @@ Actions: 0=ICU, 1=STEP_DOWN, 2=WARD, 3=WAIT. Bed type actions are accepted only
 when clinically/resource compatible; invalid actions are rejected and the patient
 remains waiting. The observation deliberately excludes Patient.predicted_los,
 which is the simulator's hidden discharge target, and uses LOSPredictor output.
+
+Patient streams: by default every episode replays the patient file. Pass
+`patient_source` (e.g. simulator.patients.streams.StreamSampler) so each reset()
+draws a fresh stream, or `reset(options={"patients": [...]})` for an explicit one.
 """
 from __future__ import annotations
 
 from datetime import datetime, timedelta
 from copy import deepcopy
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import numpy as np
 import gymnasium as gym
@@ -26,14 +30,34 @@ from simulator.patients.patient import Patient
 BED_ACTIONS = ("ICU", "STEP_DOWN", "WARD")
 WAIT_ACTION = 3
 
+# Order of the observation vector (all values in [0, 1]).
+OBSERVATION_FEATURES = (
+    "acuity",                      # acuity / 5
+    "age_65_plus",
+    "isolation_required",
+    "ventilator_required",
+    "los_estimate",                # LOS model estimate / 10 (never the true stay)
+    "icu_beds_available",          # available / total, per tier
+    "step_down_beds_available",
+    "ward_beds_available",
+    "ventilators_available",
+    "waiting_queue_size",          # waiting / patients in the episode
+    "icu_isolation_beds_available",        # available / total isolation-capable, per tier
+    "step_down_isolation_beds_available",
+    "ward_isolation_beds_available",
+    "critical_share_of_queue",     # waiting patients with acuity >= 4 / waiting patients
+)
+N_OBSERVATIONS = len(OBSERVATION_FEATURES)
+
 
 class CareGridHospitalEnv(gym.Env):
     """Event-driven, single-agent allocation environment over a synthetic episode.
 
-    Observation (10 float32 values): acuity/5, age-65-plus flag, isolation flag,
-    ventilator flag, predicted LOS/10, available ICU/total ICU, available step-down/
-    total step-down, available ward/total ward, available ventilators/total
-    ventilators, and waiting queue size / number of episode patients.
+    Observation: 14 float32 values in [0, 1], named in OBSERVATION_FEATURES. Besides
+    the patient's attributes and the LOS estimate, the agent sees how many beds are
+    free per tier, how many ISOLATION-capable beds are free per tier (isolation
+    beds are the scarce resource that drives waiting), ventilator availability and
+    the size / severity mix of the waiting queue.
     """
 
     metadata = {"render_modes": ["human"]}
@@ -48,6 +72,7 @@ class CareGridHospitalEnv(gym.Env):
         wait_penalty: float = 0.05,
         invalid_action_penalty: float = 1.0,
         admission_reward: float = 1.0,
+        patient_source: Optional[Callable[[np.random.Generator], list]] = None,
     ) -> None:
         super().__init__()
         project_root = Path(__file__).resolve().parents[2]
@@ -61,11 +86,14 @@ class CareGridHospitalEnv(gym.Env):
         self.wait_penalty = float(wait_penalty)
         self.invalid_action_penalty = float(invalid_action_penalty)
         self.admission_reward = float(admission_reward)
+        self.patient_source = patient_source
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(low=0.0, high=1.0, shape=(10,), dtype=np.float32)
+        self.observation_space = spaces.Box(
+            low=0.0, high=1.0, shape=(N_OBSERVATIONS,), dtype=np.float32)
         self.state: Optional[HospitalState] = None
         self.engine: Optional[SimulationEngine] = None
         self._patients: dict[str, Patient] = {}
+        self._los_estimates: dict[str, float] = {}
         self._start_time: Optional[datetime] = None
         self._end_time: Optional[datetime] = None
         self._current_patient_id: Optional[str] = None
@@ -73,10 +101,29 @@ class CareGridHospitalEnv(gym.Env):
         self._decision_count = 0
         self._last_info: dict[str, Any] = {}
 
+    @property
+    def current_patient(self) -> Optional[Patient]:
+        """The patient the agent is currently deciding for (None between episodes)."""
+        if self._current_patient_id is None:
+            return None
+        return self._patients.get(self._current_patient_id)
+
     def _ensure_predictor(self) -> Any:
         if self.los_predictor is None:
             self.los_predictor = LOSPredictor.load()
         return self.los_predictor
+
+    def _estimate_los(self, patients: list) -> dict[str, float]:
+        """One batched LOS-model call per episode instead of one per step (a single
+        call costs ~10 ms, a batch ~0.06 ms per patient). The estimate depends only on
+        attributes known at arrival, so it can be computed up front without leaking
+        anything about the future or the true stay."""
+        predictor = self._ensure_predictor()
+        if hasattr(predictor, "predict_many"):
+            values = predictor.predict_many(patients)
+        else:
+            values = [predictor.predict(p) for p in patients]
+        return {p.patient_id: float(v) for p, v in zip(patients, values)}
 
     def reset(self, *, seed: Optional[int] = None, options: Optional[dict] = None):
         super().reset(seed=seed)
@@ -85,13 +132,17 @@ class CareGridHospitalEnv(gym.Env):
         self.state = load_hospital_state(str(self.data_dir), start_empty=True)
         if options and options.get("patients") is not None:
             loaded_patients = deepcopy(list(options["patients"]))
+        elif self.patient_source is not None:
+            loaded_patients = list(self.patient_source(self.np_random))
         else:
             loaded_patients = load_patients(str(self.data_dir), self.patient_file)
         if not loaded_patients:
-            raise ValueError(f"No patients found in {self.data_dir / self.patient_file}")
+            raise ValueError("The episode has no patients (empty file, stream or options)")
         self._patients = {patient.patient_id: patient for patient in loaded_patients}
+        self._los_estimates = self._estimate_los(loaded_patients)
         self.engine = SimulationEngine(self.state, list(self._patients.values()))
-        self.engine.enable_external_decisions()
+        self.engine.enable_external_decisions(
+            on_tick=(options or {}).get("on_tick"))
         self.engine.seed_arrivals()
         self._start_time = min(p.arrival_time for p in self._patients.values())
         self._end_time = self._start_time + timedelta(days=self.max_episode_days)
@@ -186,8 +237,8 @@ class CareGridHospitalEnv(gym.Env):
         patient = self._patients.get(self._current_patient_id) if self._current_patient_id else None
         if patient is None:
             # Terminal observation is all zeros; no hidden patient target is exposed.
-            return np.zeros(10, dtype=np.float32)
-        predicted_los = float(self._ensure_predictor().predict(patient))
+            return np.zeros(N_OBSERVATIONS, dtype=np.float32)
+        predicted_los = self._los_estimates[patient.patient_id]
         values = [
             patient.acuity / 5.0,
             1.0 if patient.age_group in ("65+", "65_PLUS", "SENIOR", "ELDERLY") else 0.0,
@@ -203,6 +254,13 @@ class CareGridHospitalEnv(gym.Env):
         available_vents = sum(e.status == "AVAILABLE" for e in vents)
         values.append(available_vents / len(vents) if vents else 0.0)
         values.append(min(len(self.state.waiting_queue) / max(len(self._patients), 1), 1.0))
+        for bed_type in BED_ACTIONS:
+            iso_beds = [b for b in self.state.beds_by_type(bed_type) if b.isolation_capable]
+            free = sum(b.status == "AVAILABLE" for b in iso_beds)
+            values.append(free / len(iso_beds) if iso_beds else 0.0)
+        waiting = self.state.waiting_queue
+        critical = sum(self._patients[pid].acuity >= 4 for pid in waiting)
+        values.append(critical / len(waiting) if waiting else 0.0)
         return np.asarray(values, dtype=np.float32)
 
     def _info(self) -> dict[str, Any]:

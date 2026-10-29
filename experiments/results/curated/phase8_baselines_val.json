@@ -1,0 +1,6863 @@
+{
+ "meta": {
+  "split": "val",
+  "seed_ranges": "80000-80019",
+  "days": 30.0,
+  "drain_days": 7.0,
+  "created_at": "2026-10-27T03:32:27",
+  "streams_per_mode": {
+   "normal": 20,
+   "moderate_surge": 20,
+   "severe_surge": 10
+  },
+  "policies": [
+   "b1",
+   "h1",
+   "h2",
+   "h3",
+   "random",
+   "always_wait"
+  ],
+  "runtime_seconds": 50.1
+ },
+ "summary": {
+  "normal": {
+   "stats": {
+    "b1": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 440.605,
+      "std": 197.60237798417307
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 404.8495,
+      "std": 148.08037228056253
+     },
+     "critical_avg_wait_min": {
+      "mean": 422.82400000000007,
+      "std": 228.30878952418806
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 4783.8145,
+      "std": 1533.1666954622874
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 1108.6075,
+      "std": 691.1525814020735
+     },
+     "icu_utilization": {
+      "mean": 0.880965,
+      "std": 0.027279484507592877
+     },
+     "patients_still_waiting": {
+      "mean": 0.25,
+      "std": 1.0897247358851685
+     },
+     "peak_waiting_queue": {
+      "mean": 12.4,
+      "std": 3.2924155266308657
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 479.35240000000005,
+      "std": 33.90491571645622
+     }
+    },
+    "h1": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 193.09300000000002,
+      "std": 101.64523929333828
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 323.327,
+      "std": 170.62371160246164
+     },
+     "critical_avg_wait_min": {
+      "mean": 78.69550000000001,
+      "std": 76.44302973293249
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 4990.093500000001,
+      "std": 1995.879642469142
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 201.848,
+      "std": 448.79183175053447
+     },
+     "icu_utilization": {
+      "mean": 0.5768700000000001,
+      "std": 0.0742694223755645
+     },
+     "patients_still_waiting": {
+      "mean": 0.45,
+      "std": 1.3592277219068187
+     },
+     "peak_waiting_queue": {
+      "mean": 9.25,
+      "std": 3.2691742076555053
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 482.85585000000003,
+      "std": 35.42431132044066
+     }
+    },
+    "h2": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 468.43250000000006,
+      "std": 215.46957701436648
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 422.96000000000004,
+      "std": 177.49280822050227
+     },
+     "critical_avg_wait_min": {
+      "mean": 456.3205,
+      "std": 241.69731236559088
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 4713.426500000001,
+      "std": 2068.750074997642
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 1224.6974999999998,
+      "std": 723.8796196528466
+     },
+     "icu_utilization": {
+      "mean": 0.88128,
+      "std": 0.02553943225680633
+     },
+     "patients_still_waiting": {
+      "mean": 0.25,
+      "std": 1.0897247358851685
+     },
+     "peak_waiting_queue": {
+      "mean": 12.7,
+      "std": 3.8613469152615645
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 478.7116,
+      "std": 33.692767682990954
+     }
+    },
+    "h3": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 209.03699999999998,
+      "std": 121.3455327195855
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 338.41549999999995,
+      "std": 187.80209001699106
+     },
+     "critical_avg_wait_min": {
+      "mean": 92.74249999999999,
+      "std": 90.13552162577194
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 5020.745000000001,
+      "std": 2097.9063290897902
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 234.494,
+      "std": 523.5526123934443
+     },
+     "icu_utilization": {
+      "mean": 0.577285,
+      "std": 0.07882920952920941
+     },
+     "patients_still_waiting": {
+      "mean": 0.6,
+      "std": 1.4628738838327793
+     },
+     "peak_waiting_queue": {
+      "mean": 9.3,
+      "std": 3.3778691508109073
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 482.20949999999993,
+      "std": 35.21162218856155
+     }
+    },
+    "random": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 16708.3775,
+      "std": 1084.4730926716206
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 17100.702500000003,
+      "std": 914.5935795853533
+     },
+     "critical_avg_wait_min": {
+      "mean": 15992.172000000002,
+      "std": 1450.8902314599818
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 26862.959000000003,
+      "std": 2271.295378923446
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 37944.8565,
+      "std": 1547.517419082173
+     },
+     "icu_utilization": {
+      "mean": 0.439485,
+      "std": 0.08784958323748611
+     },
+     "patients_still_waiting": {
+      "mean": 247.6,
+      "std": 24.751565607047972
+     },
+     "peak_waiting_queue": {
+      "mean": 258.85,
+      "std": 24.633868961249267
+     },
+     "invalid_actions": {
+      "mean": 302.25,
+      "std": 28.530466172146575
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": -101.37840000000001,
+      "std": 20.379448712857762
+     }
+    },
+    "always_wait": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 31809.49,
+      "std": 1038.2733019682246
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 31750.991499999996,
+      "std": 870.6426315445099
+     },
+     "critical_avg_wait_min": {
+      "mean": 31861.634,
+      "std": 1384.1121965808975
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 32105.173499999997,
+      "std": 2182.629235466425
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 48963.3775,
+      "std": 673.3225956840816
+     },
+     "icu_utilization": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "patients_still_waiting": {
+      "mean": 490.95,
+      "std": 36.24703436144811
+     },
+     "peak_waiting_queue": {
+      "mean": 490.95,
+      "std": 36.24703436144811
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": -24.547499999999996,
+      "std": 1.8123517180724058
+     }
+    }
+   },
+   "comparisons": {
+    "b1": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_best_heuristic": {
+       "mean": 247.512,
+       "ci_low": 186.64486250000002,
+       "ci_high": 312.4831625,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_best_heuristic": {
+       "mean": 81.5225,
+       "ci_low": 33.103325,
+       "ci_high": 128.31021249999995,
+       "win_rate": 0.25,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_best_heuristic": {
+       "mean": 344.1285,
+       "ci_low": 266.56302500000004,
+       "ci_high": 423.496025,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    },
+    "h1": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": -247.512,
+       "ci_low": -312.48316250000005,
+       "ci_high": -186.64486250000002,
+       "win_rate": 1.0,
+       "n": 20,
+       "reference": "b1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": -81.5225,
+       "ci_low": -128.31021249999998,
+       "ci_high": -33.10332500000001,
+       "win_rate": 0.75,
+       "n": 20,
+       "reference": "b1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": -344.1285,
+       "ci_low": -423.496025,
+       "ci_high": -266.56302500000004,
+       "win_rate": 1.0,
+       "n": 20,
+       "reference": "b1"
+      }
+     }
+    },
+    "h2": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": 27.827499999999997,
+       "ci_low": 9.999825000000007,
+       "ci_high": 48.23646249999997,
+       "win_rate": 0.15,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 275.33950000000004,
+       "ci_low": 207.06305,
+       "ci_high": 346.42937499999994,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 18.11050000000001,
+       "ci_low": -6.637687499999989,
+       "ci_high": 46.202774999999995,
+       "win_rate": 0.35,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 99.633,
+       "ci_low": 45.96175,
+       "ci_high": 155.8923,
+       "win_rate": 0.25,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": 33.496500000000005,
+       "ci_low": 14.09350000000001,
+       "ci_high": 58.5732,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 377.625,
+       "ci_low": 292.6720624999999,
+       "ci_high": 466.9779875,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    },
+    "h3": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": -231.56799999999998,
+       "ci_low": -294.52,
+       "ci_high": -174.57267500000003,
+       "win_rate": 1.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 15.943999999999999,
+       "ci_low": 0.28248749999999545,
+       "ci_high": 34.263799999999996,
+       "win_rate": 0.25,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": -66.434,
+       "ci_low": -116.55227499999998,
+       "ci_high": -14.875824999999988,
+       "win_rate": 0.75,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 15.088499999999993,
+       "ci_low": -4.380412500000006,
+       "ci_high": 37.09138749999999,
+       "win_rate": 0.25,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": -330.08150000000006,
+       "ci_low": -404.7134000000001,
+       "ci_high": -260.87432500000006,
+       "win_rate": 1.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 14.047,
+       "ci_low": -0.38554999999999967,
+       "ci_high": 30.762637500000004,
+       "win_rate": 0.15,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    },
+    "random": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": 16267.772500000001,
+       "ci_low": 15782.5727,
+       "ci_high": 16746.959450000002,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 16515.2845,
+       "ci_low": 16029.387475000001,
+       "ci_high": 16985.869662499994,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 16695.853,
+       "ci_low": 16280.682512500003,
+       "ci_high": 17089.130624999998,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 16777.375500000002,
+       "ci_low": 16379.206812499997,
+       "ci_high": 17152.6362125,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": 15569.347999999998,
+       "ci_low": 14929.961850000002,
+       "ci_high": 16217.584200000001,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 15913.4765,
+       "ci_low": 15273.26325,
+       "ci_high": 16554.674762500003,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    },
+    "always_wait": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": 31368.885,
+       "ci_low": 30891.37175,
+       "ci_high": 31848.033999999996,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 31616.396999999997,
+       "ci_low": 31160.335887500005,
+       "ci_high": 32084.932299999997,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 31346.141999999993,
+       "ci_low": 30965.1607125,
+       "ci_high": 31757.727849999996,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 31427.664500000003,
+       "ci_low": 31047.310787500002,
+       "ci_high": 31838.287587499995,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": 31438.810000000005,
+       "ci_low": 30817.629300000008,
+       "ci_high": 32052.813674999998,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 31782.9385,
+       "ci_low": 31175.980462499992,
+       "ci_high": 32399.643425000002,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    }
+   }
+  },
+  "moderate_surge": {
+   "stats": {
+    "b1": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 3392.8939999999993,
+      "std": 987.7050251537652
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 2746.725,
+      "std": 770.8934106249709
+     },
+     "critical_avg_wait_min": {
+      "mean": 3933.5495,
+      "std": 1184.6917066793158
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 12811.041000000001,
+      "std": 2333.496526806715
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 7331.851000000001,
+      "std": 2215.575588987882
+     },
+     "icu_utilization": {
+      "mean": 0.95178,
+      "std": 0.012249963265251036
+     },
+     "patients_still_waiting": {
+      "mean": 16.1,
+      "std": 9.42284458112305
+     },
+     "peak_waiting_queue": {
+      "mean": 105.05,
+      "std": 31.172864802581103
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 725.5504999999999,
+      "std": 20.01050443766973
+     }
+    },
+    "h1": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 3096.1505,
+      "std": 981.3079540718857
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 2623.6215,
+      "std": 763.6650557625052
+     },
+     "critical_avg_wait_min": {
+      "mean": 3483.9449999999997,
+      "std": 1170.7508874713697
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 13354.2255,
+      "std": 3166.662268359976
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 6858.548,
+      "std": 2153.7669178664623
+     },
+     "icu_utilization": {
+      "mean": 0.88386,
+      "std": 0.024288565210814746
+     },
+     "patients_still_waiting": {
+      "mean": 15.45,
+      "std": 9.107551811546283
+     },
+     "peak_waiting_queue": {
+      "mean": 101.2,
+      "std": 30.827909432849967
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 729.7995,
+      "std": 20.26052255619289
+     }
+    },
+    "h2": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 3427.958,
+      "std": 1003.3205496829017
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 2757.6320000000005,
+      "std": 777.4169774297445
+     },
+     "critical_avg_wait_min": {
+      "mean": 3983.2599999999998,
+      "std": 1202.9275763112257
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 12678.9185,
+      "std": 2630.481490338366
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 7423.0,
+      "std": 2264.334011496537
+     },
+     "icu_utilization": {
+      "mean": 0.951765,
+      "std": 0.012206403032834856
+     },
+     "patients_still_waiting": {
+      "mean": 16.85,
+      "std": 9.639891078222824
+     },
+     "peak_waiting_queue": {
+      "mean": 104.95,
+      "std": 31.437994528913574
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 724.7481500000001,
+      "std": 19.4566548211017
+     }
+    },
+    "h3": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 3121.8730000000005,
+      "std": 987.0648448612685
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 2630.5645,
+      "std": 753.7844554345427
+     },
+     "critical_avg_wait_min": {
+      "mean": 3527.0414999999994,
+      "std": 1188.1874367088512
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 13386.7435,
+      "std": 3077.6510401315404
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 7024.672499999999,
+      "std": 2156.085223178516
+     },
+     "icu_utilization": {
+      "mean": 0.88316,
+      "std": 0.024856476017327957
+     },
+     "patients_still_waiting": {
+      "mean": 16.05,
+      "std": 9.124006795262705
+     },
+     "peak_waiting_queue": {
+      "mean": 101.45,
+      "std": 30.963648040888202
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 729.354,
+      "std": 20.323096614443376
+     }
+    },
+    "random": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 17012.706,
+      "std": 730.0900918955139
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 17222.957000000002,
+      "std": 655.3124739778727
+     },
+     "critical_avg_wait_min": {
+      "mean": 16387.6565,
+      "std": 971.4523474070926
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 26632.359000000004,
+      "std": 1764.9928849343844
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 37783.723000000005,
+      "std": 1509.2578497662357
+     },
+     "icu_utilization": {
+      "mean": 0.6711100000000001,
+      "std": 0.06485920058095074
+     },
+     "patients_still_waiting": {
+      "mean": 434.3,
+      "std": 32.89392041092092
+     },
+     "peak_waiting_queue": {
+      "mean": 454.2,
+      "std": 32.291794623402396
+     },
+     "invalid_actions": {
+      "mean": 526.1,
+      "std": 36.11218630877948
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": -187.94875000000002,
+      "std": 28.91162540722157
+     }
+    },
+    "always_wait": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 31714.075,
+      "std": 858.8154049939951
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 31665.909999999996,
+      "std": 612.206175646734
+     },
+     "critical_avg_wait_min": {
+      "mean": 31677.498499999998,
+      "std": 1326.25693183966
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 32081.594499999996,
+      "std": 1541.872586939255
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 49072.6645,
+      "std": 518.2287262056684
+     },
+     "icu_utilization": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "patients_still_waiting": {
+      "mean": 844.4,
+      "std": 46.3997844822581
+     },
+     "peak_waiting_queue": {
+      "mean": 844.4,
+      "std": 46.3997844822581
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": -42.21999999999999,
+      "std": 2.319989224112905
+     }
+    }
+   },
+   "comparisons": {
+    "b1": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_best_heuristic": {
+       "mean": 296.74350000000004,
+       "ci_low": 203.52252499999997,
+       "ci_high": 392.469875,
+       "win_rate": 0.1,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_best_heuristic": {
+       "mean": 123.10349999999991,
+       "ci_low": 72.75319999999994,
+       "ci_high": 179.13928749999988,
+       "win_rate": 0.2,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_best_heuristic": {
+       "mean": 449.60450000000003,
+       "ci_low": 310.87359999999995,
+       "ci_high": 593.0120125000001,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    },
+    "h1": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": -296.74350000000004,
+       "ci_low": -392.46987500000006,
+       "ci_high": -203.522525,
+       "win_rate": 0.9,
+       "n": 20,
+       "reference": "b1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": -123.10349999999991,
+       "ci_low": -179.13928749999988,
+       "ci_high": -72.75319999999995,
+       "win_rate": 0.8,
+       "n": 20,
+       "reference": "b1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": -449.60450000000003,
+       "ci_low": -593.0120125000001,
+       "ci_high": -310.87359999999995,
+       "win_rate": 1.0,
+       "n": 20,
+       "reference": "b1"
+      }
+     }
+    },
+    "h2": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": 35.06400000000001,
+       "ci_low": 12.345074999999971,
+       "ci_high": 59.12254999999998,
+       "win_rate": 0.05,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 331.80750000000006,
+       "ci_low": 236.01376250000013,
+       "ci_high": 431.55418749999995,
+       "win_rate": 0.05,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 10.907000000000073,
+       "ci_low": -9.50064999999991,
+       "ci_high": 34.45406250000003,
+       "win_rate": 0.4,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 134.01049999999998,
+       "ci_low": 75.40473750000005,
+       "ci_high": 197.06068749999994,
+       "win_rate": 0.2,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": 49.710499999999946,
+       "ci_low": 23.39415000000004,
+       "ci_high": 77.29408749999979,
+       "win_rate": 0.05,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 499.31499999999994,
+       "ci_low": 357.25375000000014,
+       "ci_high": 644.321825,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    },
+    "h3": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": -271.0210000000001,
+       "ci_low": -362.01792500000005,
+       "ci_high": -180.29680000000008,
+       "win_rate": 0.9,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 25.722500000000036,
+       "ci_low": 4.1793500000000545,
+       "ci_high": 52.75860000000001,
+       "win_rate": 0.2,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": -116.16049999999989,
+       "ci_low": -175.44776249999995,
+       "ci_high": -62.50806249999995,
+       "win_rate": 0.75,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 6.943000000000007,
+       "ci_low": -5.758762500000003,
+       "ci_high": 20.837699999999987,
+       "win_rate": 0.35,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": -406.508,
+       "ci_low": -536.5238625000002,
+       "ci_high": -278.94489999999996,
+       "win_rate": 0.95,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 43.096500000000006,
+       "ci_low": 5.091187499999985,
+       "ci_high": 88.18039999999998,
+       "win_rate": 0.2,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    },
+    "random": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": 13619.812,
+       "ci_low": 13163.961399999998,
+       "ci_high": 14119.188725,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 13916.555499999999,
+       "ci_low": 13437.813487500001,
+       "ci_high": 14434.071625,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 14476.232,
+       "ci_low": 14094.1752875,
+       "ci_high": 14927.3989,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 14599.335500000001,
+       "ci_low": 14222.260874999998,
+       "ci_high": 15050.289737500003,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": 12454.107,
+       "ci_low": 11845.000449999998,
+       "ci_high": 13074.545625,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 12903.711500000001,
+       "ci_low": 12264.594925,
+       "ci_high": 13557.4042125,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    },
+    "always_wait": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": 28321.181,
+       "ci_low": 27767.2865,
+       "ci_high": 28894.688287500005,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 28617.9245,
+       "ci_low": 28036.191687499995,
+       "ci_high": 29220.519625,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 28919.185000000005,
+       "ci_low": 28523.151275,
+       "ci_high": 29346.0496375,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 29042.288500000002,
+       "ci_low": 28644.720875000003,
+       "ci_high": 29472.5893625,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": 27743.949,
+       "ci_low": 27012.292825000004,
+       "ci_high": 28482.1088875,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 28193.553499999998,
+       "ci_low": 27398.168099999995,
+       "ci_high": 28996.018549999997,
+       "win_rate": 0.0,
+       "n": 20,
+       "reference": "h1"
+      }
+     }
+    }
+   }
+  },
+  "severe_surge": {
+   "stats": {
+    "b1": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 14095.544,
+      "std": 588.5758130130732
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 13724.022999999997,
+      "std": 616.7065747346951
+     },
+     "critical_avg_wait_min": {
+      "mean": 14463.187,
+      "std": 561.376521918222
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 21124.378999999997,
+      "std": 1794.646977522042
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 23059.124999999996,
+      "std": 1041.118869949537
+     },
+     "icu_utilization": {
+      "mean": 0.97468,
+      "std": 0.006577507126563977
+     },
+     "patients_still_waiting": {
+      "mean": 528.4,
+      "std": 55.69057370866276
+     },
+     "peak_waiting_queue": {
+      "mean": 707.8,
+      "std": 57.12407548486014
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 592.0634,
+      "std": 13.3231355708782
+     }
+    },
+    "h1": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 13969.528999999999,
+      "std": 580.3838237830201
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 13851.341,
+      "std": 615.3109542735284
+     },
+     "critical_avg_wait_min": {
+      "mean": 14124.223999999998,
+      "std": 555.8186315193113
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 21765.305,
+      "std": 2156.913088092564
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 23083.386000000002,
+      "std": 1032.3683599297296
+     },
+     "icu_utilization": {
+      "mean": 0.9416599999999999,
+      "std": 0.0068514524007687585
+     },
+     "patients_still_waiting": {
+      "mean": 529.3,
+      "std": 56.396897077764834
+     },
+     "peak_waiting_queue": {
+      "mean": 709.8,
+      "std": 57.01368256830986
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 585.852,
+      "std": 13.211138845686225
+     }
+    },
+    "h2": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 14109.944,
+      "std": 590.1872451383543
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 13728.492999999999,
+      "std": 607.941777624305
+     },
+     "critical_avg_wait_min": {
+      "mean": 14488.522999999997,
+      "std": 572.4820325748226
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 21191.740999999998,
+      "std": 1909.399543927096
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 23150.536,
+      "std": 982.2112278344207
+     },
+     "icu_utilization": {
+      "mean": 0.9746900000000001,
+      "std": 0.006579430066502713
+     },
+     "patients_still_waiting": {
+      "mean": 532.1,
+      "std": 53.03668541679429
+     },
+     "peak_waiting_queue": {
+      "mean": 707.8,
+      "std": 57.12407548486014
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 590.3478,
+      "std": 12.565569026510497
+     }
+    },
+    "h3": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 13974.953,
+      "std": 576.747143522185
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 13844.878,
+      "std": 619.6207947414289
+     },
+     "critical_avg_wait_min": {
+      "mean": 14140.414,
+      "std": 540.3355975539646
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 21551.208,
+      "std": 2222.6324400755066
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 23089.665,
+      "std": 1039.7456922945146
+     },
+     "icu_utilization": {
+      "mean": 0.94167,
+      "std": 0.006829209324658311
+     },
+     "patients_still_waiting": {
+      "mean": 529.0,
+      "std": 56.77323312970647
+     },
+     "peak_waiting_queue": {
+      "mean": 710.0,
+      "std": 56.87354393740555
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": 586.2804000000001,
+      "std": 13.3582878932893
+     }
+    },
+    "random": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 19426.523,
+      "std": 538.2296271118861
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 19063.748,
+      "std": 489.22542736043476
+     },
+     "critical_avg_wait_min": {
+      "mean": 19927.499000000003,
+      "std": 581.9085343668708
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 28211.674,
+      "std": 1774.7487583384868
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 40070.058999999994,
+      "std": 724.2939810525836
+     },
+     "icu_utilization": {
+      "mean": 0.8638899999999999,
+      "std": 0.02204769602475505
+     },
+     "patients_still_waiting": {
+      "mean": 878.1,
+      "std": 47.59926470020309
+     },
+     "peak_waiting_queue": {
+      "mean": 905.6,
+      "std": 45.87199581443999
+     },
+     "invalid_actions": {
+      "mean": 961.3,
+      "std": 47.42794534870766
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": -441.26930000000004,
+      "std": 44.563516008165244
+     }
+    },
+    "always_wait": {
+     "acuity_weighted_avg_wait_min": {
+      "mean": 31837.979000000003,
+      "std": 364.36908100029586
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "mean": 31750.701,
+      "std": 365.7080099601321
+     },
+     "critical_avg_wait_min": {
+      "mean": 31861.114,
+      "std": 530.1369867345614
+     },
+     "low_acuity_isolation_avg_wait_min": {
+      "mean": 32174.895,
+      "std": 1539.3299074873453
+     },
+     "p90_wait_incl_unadmitted_min": {
+      "mean": 49098.199,
+      "std": 523.1284522457189
+     },
+     "icu_utilization": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "patients_still_waiting": {
+      "mean": 1504.1,
+      "std": 52.7246621610798
+     },
+     "peak_waiting_queue": {
+      "mean": 1504.1,
+      "std": 52.7246621610798
+     },
+     "invalid_actions": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "constraint_violations": {
+      "mean": 0.0,
+      "std": 0.0
+     },
+     "episode_return": {
+      "mean": -75.20500000000001,
+      "std": 2.6362331080539905
+     }
+    }
+   },
+   "comparisons": {
+    "b1": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_best_heuristic": {
+       "mean": 126.01500000000014,
+       "ci_low": 88.16300000000028,
+       "ci_high": 170.14610000000047,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_best_heuristic": {
+       "mean": -4.4699999999998905,
+       "ci_low": -29.202000000000044,
+       "ci_high": 14.983000000000175,
+       "win_rate": 0.2,
+       "n": 10,
+       "reference": "h2"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_best_heuristic": {
+       "mean": 338.96299999999957,
+       "ci_low": 255.5428749999997,
+       "ci_high": 442.68567499999915,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h1"
+      }
+     }
+    },
+    "h1": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": -126.01500000000014,
+       "ci_low": -170.14610000000047,
+       "ci_high": -88.16300000000028,
+       "win_rate": 1.0,
+       "n": 10,
+       "reference": "b1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 127.31799999999967,
+       "ci_low": 88.30347499999976,
+       "ci_high": 165.72499999999945,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 122.84799999999977,
+       "ci_low": 75.77882499999974,
+       "ci_high": 165.82739999999947,
+       "win_rate": 0.1,
+       "n": 10,
+       "reference": "h2"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": -338.96299999999957,
+       "ci_low": -442.6856749999992,
+       "ci_high": -255.54287499999973,
+       "win_rate": 1.0,
+       "n": 10,
+       "reference": "b1"
+      }
+     }
+    },
+    "h2": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": 14.399999999999817,
+       "ci_low": 0.9599999999996726,
+       "ci_high": 33.25800000000017,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 140.41499999999996,
+       "ci_low": 93.69045000000003,
+       "ci_high": 191.55717499999997,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 4.4699999999998905,
+       "ci_low": -14.983000000000175,
+       "ci_high": 29.202000000000044,
+       "win_rate": 0.2,
+       "n": 10,
+       "reference": "b1"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": 25.33600000000006,
+       "ci_low": 4.293000000000393,
+       "ci_high": 50.53500000000004,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 364.29899999999964,
+       "ci_low": 274.5683249999997,
+       "ci_high": 468.5682249999991,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h1"
+      }
+     }
+    },
+    "h3": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": -120.59099999999998,
+       "ci_low": -158.09662499999993,
+       "ci_high": -86.30344999999973,
+       "win_rate": 1.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 5.42400000000016,
+       "ci_low": -1.3099999999998544,
+       "ci_high": 14.513000000000101,
+       "win_rate": 0.2,
+       "n": 10,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 120.85499999999975,
+       "ci_low": 79.11479999999996,
+       "ci_high": 161.6260999999996,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 116.38499999999985,
+       "ci_low": 67.97340000000035,
+       "ci_high": 161.34749999999974,
+       "win_rate": 0.1,
+       "n": 10,
+       "reference": "h2"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": -322.77299999999957,
+       "ci_low": -412.22942499999914,
+       "ci_high": -245.62087499999996,
+       "win_rate": 1.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 16.189999999999962,
+       "ci_low": -1.2040000000002693,
+       "ci_high": 38.401000000000025,
+       "win_rate": 0.1,
+       "n": 10,
+       "reference": "h1"
+      }
+     }
+    },
+    "random": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": 5330.979000000001,
+       "ci_low": 5068.3493499999995,
+       "ci_high": 5621.390225000001,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 5456.994000000001,
+       "ci_low": 5190.34565,
+       "ci_high": 5744.257500000001,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 5339.725,
+       "ci_low": 4985.709925,
+       "ci_high": 5706.449074999999,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 5335.255,
+       "ci_low": 4978.6512,
+       "ci_high": 5709.626325,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h2"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": 5464.312,
+       "ci_low": 5145.8000999999995,
+       "ci_high": 5764.2573999999995,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 5803.275,
+       "ci_low": 5512.35755,
+       "ci_high": 6076.397725,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h1"
+      }
+     }
+    },
+    "always_wait": {
+     "acuity_weighted_avg_wait_min": {
+      "vs_b1": {
+       "mean": 17742.435,
+       "ci_low": 17387.211325,
+       "ci_high": 18111.35315,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 17868.45,
+       "ci_low": 17510.502125000003,
+       "ci_high": 18228.73405,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h1"
+      }
+     },
+     "avg_wait_incl_unadmitted_min": {
+      "vs_b1": {
+       "mean": 18026.678000000004,
+       "ci_low": 17570.789775,
+       "ci_high": 18498.85735,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 18022.208000000002,
+       "ci_low": 17567.908300000003,
+       "ci_high": 18489.769275,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h2"
+      }
+     },
+     "critical_avg_wait_min": {
+      "vs_b1": {
+       "mean": 17397.927000000003,
+       "ci_low": 17085.9171,
+       "ci_high": 17721.757100000003,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "b1"
+      },
+      "vs_best_heuristic": {
+       "mean": 17736.889999999996,
+       "ci_low": 17401.682999999997,
+       "ci_high": 18084.072125000002,
+       "win_rate": 0.0,
+       "n": 10,
+       "reference": "h1"
+      }
+     }
+    }
+   }
+  }
+ },
+ "action_distribution": {
+  "normal": {
+   "b1": {
+    "1": [
+     0.0,
+     0.0,
+     0.912,
+     0.088
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.887,
+     0.113
+    ],
+    "3": [
+     0.0,
+     0.72,
+     0.194,
+     0.085
+    ],
+    "4": [
+     0.373,
+     0.395,
+     0.0,
+     0.232
+    ],
+    "5": [
+     0.631,
+     0.0,
+     0.0,
+     0.369
+    ]
+   },
+   "h1": {
+    "1": [
+     0.0,
+     0.0,
+     0.907,
+     0.093
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.882,
+     0.118
+    ],
+    "3": [
+     0.0,
+     0.103,
+     0.826,
+     0.071
+    ],
+    "4": [
+     0.098,
+     0.851,
+     0.0,
+     0.051
+    ],
+    "5": [
+     0.915,
+     0.0,
+     0.0,
+     0.085
+    ]
+   },
+   "h2": {
+    "1": [
+     0.0,
+     0.0,
+     0.912,
+     0.088
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.888,
+     0.112
+    ],
+    "3": [
+     0.0,
+     0.702,
+     0.183,
+     0.115
+    ],
+    "4": [
+     0.371,
+     0.392,
+     0.0,
+     0.238
+    ],
+    "5": [
+     0.632,
+     0.0,
+     0.0,
+     0.368
+    ]
+   },
+   "h3": {
+    "1": [
+     0.0,
+     0.0,
+     0.906,
+     0.094
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.882,
+     0.118
+    ],
+    "3": [
+     0.0,
+     0.108,
+     0.793,
+     0.099
+    ],
+    "4": [
+     0.098,
+     0.846,
+     0.0,
+     0.056
+    ],
+    "5": [
+     0.912,
+     0.0,
+     0.0,
+     0.088
+    ]
+   },
+   "random": {
+    "1": [
+     0.248,
+     0.254,
+     0.259,
+     0.239
+    ],
+    "2": [
+     0.252,
+     0.255,
+     0.245,
+     0.247
+    ],
+    "3": [
+     0.258,
+     0.237,
+     0.254,
+     0.251
+    ],
+    "4": [
+     0.254,
+     0.228,
+     0.251,
+     0.267
+    ],
+    "5": [
+     0.258,
+     0.234,
+     0.256,
+     0.252
+    ]
+   },
+   "always_wait": {
+    "1": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "3": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "4": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "5": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  },
+  "moderate_surge": {
+   "b1": {
+    "1": [
+     0.0,
+     0.0,
+     0.582,
+     0.418
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.582,
+     0.418
+    ],
+    "3": [
+     0.0,
+     0.167,
+     0.425,
+     0.408
+    ],
+    "4": [
+     0.11,
+     0.425,
+     0.0,
+     0.466
+    ],
+    "5": [
+     0.517,
+     0.0,
+     0.0,
+     0.483
+    ]
+   },
+   "h1": {
+    "1": [
+     0.0,
+     0.0,
+     0.561,
+     0.439
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.559,
+     0.441
+    ],
+    "3": [
+     0.0,
+     0.116,
+     0.466,
+     0.418
+    ],
+    "4": [
+     0.089,
+     0.482,
+     0.0,
+     0.429
+    ],
+    "5": [
+     0.552,
+     0.0,
+     0.0,
+     0.448
+    ]
+   },
+   "h2": {
+    "1": [
+     0.0,
+     0.0,
+     0.583,
+     0.417
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.583,
+     0.417
+    ],
+    "3": [
+     0.0,
+     0.167,
+     0.419,
+     0.414
+    ],
+    "4": [
+     0.11,
+     0.424,
+     0.0,
+     0.466
+    ],
+    "5": [
+     0.516,
+     0.0,
+     0.0,
+     0.484
+    ]
+   },
+   "h3": {
+    "1": [
+     0.0,
+     0.0,
+     0.563,
+     0.437
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.562,
+     0.438
+    ],
+    "3": [
+     0.0,
+     0.116,
+     0.462,
+     0.421
+    ],
+    "4": [
+     0.09,
+     0.48,
+     0.0,
+     0.43
+    ],
+    "5": [
+     0.552,
+     0.0,
+     0.0,
+     0.448
+    ]
+   },
+   "random": {
+    "1": [
+     0.248,
+     0.251,
+     0.258,
+     0.243
+    ],
+    "2": [
+     0.255,
+     0.25,
+     0.25,
+     0.245
+    ],
+    "3": [
+     0.244,
+     0.258,
+     0.252,
+     0.247
+    ],
+    "4": [
+     0.251,
+     0.258,
+     0.242,
+     0.249
+    ],
+    "5": [
+     0.238,
+     0.254,
+     0.242,
+     0.265
+    ]
+   },
+   "always_wait": {
+    "1": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "3": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "4": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "5": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  },
+  "severe_surge": {
+   "b1": {
+    "1": [
+     0.0,
+     0.0,
+     0.409,
+     0.591
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.413,
+     0.587
+    ],
+    "3": [
+     0.0,
+     0.096,
+     0.325,
+     0.579
+    ],
+    "4": [
+     0.074,
+     0.332,
+     0.0,
+     0.594
+    ],
+    "5": [
+     0.395,
+     0.0,
+     0.0,
+     0.605
+    ]
+   },
+   "h1": {
+    "1": [
+     0.0,
+     0.0,
+     0.398,
+     0.602
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.404,
+     0.596
+    ],
+    "3": [
+     0.0,
+     0.083,
+     0.335,
+     0.582
+    ],
+    "4": [
+     0.066,
+     0.351,
+     0.0,
+     0.584
+    ],
+    "5": [
+     0.413,
+     0.0,
+     0.0,
+     0.587
+    ]
+   },
+   "h2": {
+    "1": [
+     0.0,
+     0.0,
+     0.409,
+     0.591
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.411,
+     0.589
+    ],
+    "3": [
+     0.0,
+     0.097,
+     0.321,
+     0.581
+    ],
+    "4": [
+     0.073,
+     0.332,
+     0.0,
+     0.595
+    ],
+    "5": [
+     0.396,
+     0.0,
+     0.0,
+     0.604
+    ]
+   },
+   "h3": {
+    "1": [
+     0.0,
+     0.0,
+     0.398,
+     0.602
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.404,
+     0.596
+    ],
+    "3": [
+     0.0,
+     0.084,
+     0.334,
+     0.583
+    ],
+    "4": [
+     0.067,
+     0.35,
+     0.0,
+     0.584
+    ],
+    "5": [
+     0.412,
+     0.0,
+     0.0,
+     0.588
+    ]
+   },
+   "random": {
+    "1": [
+     0.243,
+     0.248,
+     0.254,
+     0.256
+    ],
+    "2": [
+     0.243,
+     0.253,
+     0.252,
+     0.253
+    ],
+    "3": [
+     0.248,
+     0.253,
+     0.25,
+     0.25
+    ],
+    "4": [
+     0.263,
+     0.255,
+     0.239,
+     0.243
+    ],
+    "5": [
+     0.26,
+     0.245,
+     0.251,
+     0.245
+    ]
+   },
+   "always_wait": {
+    "1": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "2": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "3": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "4": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ],
+    "5": [
+     0.0,
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  }
+ },
+ "runs": {
+  "normal": {
+   "b1": [
+    {
+     "seed": 80000,
+     "decisions": 511,
+     "invalid_actions": 0,
+     "episode_return": 437.04,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 253.56,
+     "avg_wait_incl_unadmitted_min": 234.17,
+     "critical_avg_wait_min": 229.76,
+     "low_acuity_isolation_avg_wait_min": 3446.58,
+     "p90_wait_incl_unadmitted_min": 511.3,
+     "icu_utilization": 0.8518,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 8
+    },
+    {
+     "seed": 80001,
+     "decisions": 545,
+     "invalid_actions": 0,
+     "episode_return": 471.926,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 377.48,
+     "avg_wait_incl_unadmitted_min": 413.72,
+     "critical_avg_wait_min": 313.06,
+     "low_acuity_isolation_avg_wait_min": 5995.69,
+     "p90_wait_incl_unadmitted_min": 336.92,
+     "icu_utilization": 0.8868,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 9
+    },
+    {
+     "seed": 80002,
+     "decisions": 620,
+     "invalid_actions": 0,
+     "episode_return": 512.243,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 464.38,
+     "avg_wait_incl_unadmitted_min": 382.34,
+     "critical_avg_wait_min": 512.46,
+     "low_acuity_isolation_avg_wait_min": 4477.16,
+     "p90_wait_incl_unadmitted_min": 1290.68,
+     "icu_utilization": 0.9372,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 11
+    },
+    {
+     "seed": 80003,
+     "decisions": 643,
+     "invalid_actions": 0,
+     "episode_return": 508.733,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 790.1,
+     "avg_wait_incl_unadmitted_min": 681.31,
+     "critical_avg_wait_min": 752.33,
+     "low_acuity_isolation_avg_wait_min": 6713.47,
+     "p90_wait_incl_unadmitted_min": 2855.53,
+     "icu_utilization": 0.9202,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 19
+    },
+    {
+     "seed": 80004,
+     "decisions": 468,
+     "invalid_actions": 0,
+     "episode_return": 397.007,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 282.89,
+     "avg_wait_incl_unadmitted_min": 196.01,
+     "critical_avg_wait_min": 302.62,
+     "low_acuity_isolation_avg_wait_min": 1610.73,
+     "p90_wait_incl_unadmitted_min": 690.33,
+     "icu_utilization": 0.8719,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 9
+    },
+    {
+     "seed": 80005,
+     "decisions": 659,
+     "invalid_actions": 0,
+     "episode_return": 494.428,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 671.14,
+     "avg_wait_incl_unadmitted_min": 632.81,
+     "critical_avg_wait_min": 660.44,
+     "low_acuity_isolation_avg_wait_min": 5796.93,
+     "p90_wait_incl_unadmitted_min": 1720.5,
+     "icu_utilization": 0.9197,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 15
+    },
+    {
+     "seed": 80006,
+     "decisions": 497,
+     "invalid_actions": 0,
+     "episode_return": 429.012,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 280.12,
+     "avg_wait_incl_unadmitted_min": 397.05,
+     "critical_avg_wait_min": 169.37,
+     "low_acuity_isolation_avg_wait_min": 5233.52,
+     "p90_wait_incl_unadmitted_min": 403.45,
+     "icu_utilization": 0.8758,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 10
+    },
+    {
+     "seed": 80007,
+     "decisions": 562,
+     "invalid_actions": 0,
+     "episode_return": 463.078,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 371.09,
+     "avg_wait_incl_unadmitted_min": 521.64,
+     "critical_avg_wait_min": 228.13,
+     "low_acuity_isolation_avg_wait_min": 7158.48,
+     "p90_wait_incl_unadmitted_min": 1099.32,
+     "icu_utilization": 0.8849,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 13
+    },
+    {
+     "seed": 80008,
+     "decisions": 559,
+     "invalid_actions": 0,
+     "episode_return": 481.273,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 373.0,
+     "avg_wait_incl_unadmitted_min": 371.13,
+     "critical_avg_wait_min": 366.17,
+     "low_acuity_isolation_avg_wait_min": 5081.14,
+     "p90_wait_incl_unadmitted_min": 942.22,
+     "icu_utilization": 0.8521,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 14
+    },
+    {
+     "seed": 80009,
+     "decisions": 567,
+     "invalid_actions": 0,
+     "episode_return": 460.426,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 548.26,
+     "avg_wait_incl_unadmitted_min": 601.71,
+     "critical_avg_wait_min": 456.47,
+     "low_acuity_isolation_avg_wait_min": 5745.2,
+     "p90_wait_incl_unadmitted_min": 1825.4,
+     "icu_utilization": 0.8424,
+     "patients_still_waiting": 5,
+     "peak_waiting_queue": 16
+    },
+    {
+     "seed": 80010,
+     "decisions": 606,
+     "invalid_actions": 0,
+     "episode_return": 492.546,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 553.64,
+     "avg_wait_incl_unadmitted_min": 542.15,
+     "critical_avg_wait_min": 477.73,
+     "low_acuity_isolation_avg_wait_min": 6817.55,
+     "p90_wait_incl_unadmitted_min": 1368.67,
+     "icu_utilization": 0.8772,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 16
+    },
+    {
+     "seed": 80011,
+     "decisions": 519,
+     "invalid_actions": 0,
+     "episode_return": 449.781,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 160.85,
+     "avg_wait_incl_unadmitted_min": 193.81,
+     "critical_avg_wait_min": 139.24,
+     "low_acuity_isolation_avg_wait_min": 2191.21,
+     "p90_wait_incl_unadmitted_min": 414.1,
+     "icu_utilization": 0.8536,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 8
+    },
+    {
+     "seed": 80012,
+     "decisions": 603,
+     "invalid_actions": 0,
+     "episode_return": 488.347,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 318.06,
+     "avg_wait_incl_unadmitted_min": 314.72,
+     "critical_avg_wait_min": 282.09,
+     "low_acuity_isolation_avg_wait_min": 4432.3,
+     "p90_wait_incl_unadmitted_min": 890.18,
+     "icu_utilization": 0.8895,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 12
+    },
+    {
+     "seed": 80013,
+     "decisions": 587,
+     "invalid_actions": 0,
+     "episode_return": 504.661,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 380.55,
+     "avg_wait_incl_unadmitted_min": 260.43,
+     "critical_avg_wait_min": 397.17,
+     "low_acuity_isolation_avg_wait_min": 3351.44,
+     "p90_wait_incl_unadmitted_min": 409.32,
+     "icu_utilization": 0.8936,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 14
+    },
+    {
+     "seed": 80014,
+     "decisions": 605,
+     "invalid_actions": 0,
+     "episode_return": 499.108,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 396.36,
+     "avg_wait_incl_unadmitted_min": 405.32,
+     "critical_avg_wait_min": 386.38,
+     "low_acuity_isolation_avg_wait_min": 5440.36,
+     "p90_wait_incl_unadmitted_min": 882.97,
+     "icu_utilization": 0.8509,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 12
+    },
+    {
+     "seed": 80015,
+     "decisions": 626,
+     "invalid_actions": 0,
+     "episode_return": 495.872,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 978.0,
+     "avg_wait_incl_unadmitted_min": 586.55,
+     "critical_avg_wait_min": 1086.26,
+     "low_acuity_isolation_avg_wait_min": 4396.29,
+     "p90_wait_incl_unadmitted_min": 2512.72,
+     "icu_utilization": 0.8892,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 17
+    },
+    {
+     "seed": 80016,
+     "decisions": 531,
+     "invalid_actions": 0,
+     "episode_return": 462.851,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 153.54,
+     "avg_wait_incl_unadmitted_min": 187.24,
+     "critical_avg_wait_min": 117.64,
+     "low_acuity_isolation_avg_wait_min": 3138.9,
+     "p90_wait_incl_unadmitted_min": 270.7,
+     "icu_utilization": 0.8316,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 6
+    },
+    {
+     "seed": 80017,
+     "decisions": 684,
+     "invalid_actions": 0,
+     "episode_return": 553.986,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 494.26,
+     "avg_wait_incl_unadmitted_min": 468.89,
+     "critical_avg_wait_min": 549.79,
+     "low_acuity_isolation_avg_wait_min": 6616.35,
+     "p90_wait_incl_unadmitted_min": 1193.32,
+     "icu_utilization": 0.8885,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 14
+    },
+    {
+     "seed": 80018,
+     "decisions": 623,
+     "invalid_actions": 0,
+     "episode_return": 506.807,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 533.83,
+     "avg_wait_incl_unadmitted_min": 330.42,
+     "critical_avg_wait_min": 632.29,
+     "low_acuity_isolation_avg_wait_min": 3263.8,
+     "p90_wait_incl_unadmitted_min": 1440.37,
+     "icu_utilization": 0.8952,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 12
+    },
+    {
+     "seed": 80019,
+     "decisions": 583,
+     "invalid_actions": 0,
+     "episode_return": 477.923,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 430.99,
+     "avg_wait_incl_unadmitted_min": 375.57,
+     "critical_avg_wait_min": 397.08,
+     "low_acuity_isolation_avg_wait_min": 4769.19,
+     "p90_wait_incl_unadmitted_min": 1114.15,
+     "icu_utilization": 0.9072,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 13
+    }
+   ],
+   "h1": [
+    {
+     "seed": 80000,
+     "decisions": 472,
+     "invalid_actions": 0,
+     "episode_return": 440.499,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 63.09,
+     "avg_wait_incl_unadmitted_min": 136.27,
+     "critical_avg_wait_min": 0.0,
+     "low_acuity_isolation_avg_wait_min": 2983.07,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.519,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 5
+    },
+    {
+     "seed": 80001,
+     "decisions": 521,
+     "invalid_actions": 0,
+     "episode_return": 472.467,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 235.65,
+     "avg_wait_incl_unadmitted_min": 453.12,
+     "critical_avg_wait_min": 59.9,
+     "low_acuity_isolation_avg_wait_min": 7657.01,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5463,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 9
+    },
+    {
+     "seed": 80002,
+     "decisions": 572,
+     "invalid_actions": 0,
+     "episode_return": 516.82,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 171.72,
+     "avg_wait_incl_unadmitted_min": 262.74,
+     "critical_avg_wait_min": 113.18,
+     "low_acuity_isolation_avg_wait_min": 4467.12,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.6577,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 7
+    },
+    {
+     "seed": 80003,
+     "decisions": 587,
+     "invalid_actions": 0,
+     "episode_return": 515.4,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 269.48,
+     "avg_wait_incl_unadmitted_min": 469.99,
+     "critical_avg_wait_min": 105.13,
+     "low_acuity_isolation_avg_wait_min": 6393.82,
+     "p90_wait_incl_unadmitted_min": 492.67,
+     "icu_utilization": 0.6426,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 11
+    },
+    {
+     "seed": 80004,
+     "decisions": 430,
+     "invalid_actions": 0,
+     "episode_return": 400.147,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 48.16,
+     "avg_wait_incl_unadmitted_min": 107.42,
+     "critical_avg_wait_min": 3.4,
+     "low_acuity_isolation_avg_wait_min": 1735.86,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5132,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 3
+    },
+    {
+     "seed": 80005,
+     "decisions": 584,
+     "invalid_actions": 0,
+     "episode_return": 495.296,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 376.38,
+     "avg_wait_incl_unadmitted_min": 720.7,
+     "critical_avg_wait_min": 93.59,
+     "low_acuity_isolation_avg_wait_min": 9119.16,
+     "p90_wait_incl_unadmitted_min": 1539.65,
+     "icu_utilization": 0.7157,
+     "patients_still_waiting": 2,
+     "peak_waiting_queue": 13
+    },
+    {
+     "seed": 80006,
+     "decisions": 479,
+     "invalid_actions": 0,
+     "episode_return": 426.803,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 261.72,
+     "avg_wait_incl_unadmitted_min": 560.23,
+     "critical_avg_wait_min": 43.97,
+     "low_acuity_isolation_avg_wait_min": 8116.08,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5323,
+     "patients_still_waiting": 1,
+     "peak_waiting_queue": 11
+    },
+    {
+     "seed": 80007,
+     "decisions": 524,
+     "invalid_actions": 0,
+     "episode_return": 468.905,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 173.07,
+     "avg_wait_incl_unadmitted_min": 284.08,
+     "critical_avg_wait_min": 53.59,
+     "low_acuity_isolation_avg_wait_min": 4023.63,
+     "p90_wait_incl_unadmitted_min": 28.45,
+     "icu_utilization": 0.5536,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 11
+    },
+    {
+     "seed": 80008,
+     "decisions": 525,
+     "invalid_actions": 0,
+     "episode_return": 484.715,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 133.0,
+     "avg_wait_incl_unadmitted_min": 268.91,
+     "critical_avg_wait_min": 35.79,
+     "low_acuity_isolation_avg_wait_min": 4987.7,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5381,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 8
+    },
+    {
+     "seed": 80009,
+     "decisions": 535,
+     "invalid_actions": 0,
+     "episode_return": 460.46,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 402.74,
+     "avg_wait_incl_unadmitted_min": 661.4,
+     "critical_avg_wait_min": 204.37,
+     "low_acuity_isolation_avg_wait_min": 7500.19,
+     "p90_wait_incl_unadmitted_min": 1426.92,
+     "icu_utilization": 0.5459,
+     "patients_still_waiting": 6,
+     "peak_waiting_queue": 16
+    },
+    {
+     "seed": 80010,
+     "decisions": 558,
+     "invalid_actions": 0,
+     "episode_return": 497.025,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 261.08,
+     "avg_wait_incl_unadmitted_min": 421.8,
+     "critical_avg_wait_min": 139.35,
+     "low_acuity_isolation_avg_wait_min": 6790.01,
+     "p90_wait_incl_unadmitted_min": 55.63,
+     "icu_utilization": 0.6057,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 15
+    },
+    {
+     "seed": 80011,
+     "decisions": 494,
+     "invalid_actions": 0,
+     "episode_return": 450.474,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 120.73,
+     "avg_wait_incl_unadmitted_min": 228.99,
+     "critical_avg_wait_min": 4.31,
+     "low_acuity_isolation_avg_wait_min": 3708.6,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.382,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 7
+    },
+    {
+     "seed": 80012,
+     "decisions": 545,
+     "invalid_actions": 0,
+     "episode_return": 491.33,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 138.87,
+     "avg_wait_incl_unadmitted_min": 309.95,
+     "critical_avg_wait_min": 18.92,
+     "low_acuity_isolation_avg_wait_min": 6414.94,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.6127,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 10
+    },
+    {
+     "seed": 80013,
+     "decisions": 547,
+     "invalid_actions": 0,
+     "episode_return": 508.551,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 92.38,
+     "avg_wait_incl_unadmitted_min": 154.35,
+     "critical_avg_wait_min": 32.32,
+     "low_acuity_isolation_avg_wait_min": 3211.05,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.6573,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 6
+    },
+    {
+     "seed": 80014,
+     "decisions": 557,
+     "invalid_actions": 0,
+     "episode_return": 504.258,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 167.13,
+     "avg_wait_incl_unadmitted_min": 250.37,
+     "critical_avg_wait_min": 84.14,
+     "low_acuity_isolation_avg_wait_min": 3965.31,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5726,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 8
+    },
+    {
+     "seed": 80015,
+     "decisions": 573,
+     "invalid_actions": 0,
+     "episode_return": 502.252,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 383.37,
+     "avg_wait_incl_unadmitted_min": 376.77,
+     "critical_avg_wait_min": 336.22,
+     "low_acuity_isolation_avg_wait_min": 4510.55,
+     "p90_wait_incl_unadmitted_min": 431.27,
+     "icu_utilization": 0.6029,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 13
+    },
+    {
+     "seed": 80016,
+     "decisions": 503,
+     "invalid_actions": 0,
+     "episode_return": 465.018,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 101.78,
+     "avg_wait_incl_unadmitted_min": 140.12,
+     "critical_avg_wait_min": 57.59,
+     "low_acuity_isolation_avg_wait_min": 2594.3,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.4735,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 6
+    },
+    {
+     "seed": 80017,
+     "decisions": 630,
+     "invalid_actions": 0,
+     "episode_return": 561.023,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 154.28,
+     "avg_wait_incl_unadmitted_min": 249.39,
+     "critical_avg_wait_min": 43.42,
+     "low_acuity_isolation_avg_wait_min": 4608.74,
+     "p90_wait_incl_unadmitted_min": 62.37,
+     "icu_utilization": 0.598,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 10
+    },
+    {
+     "seed": 80018,
+     "decisions": 561,
+     "invalid_actions": 0,
+     "episode_return": 512.887,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 125.55,
+     "avg_wait_incl_unadmitted_min": 164.74,
+     "critical_avg_wait_min": 69.23,
+     "low_acuity_isolation_avg_wait_min": 3484.57,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.6651,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 7
+    },
+    {
+     "seed": 80019,
+     "decisions": 530,
+     "invalid_actions": 0,
+     "episode_return": 482.787,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 181.68,
+     "avg_wait_incl_unadmitted_min": 245.2,
+     "critical_avg_wait_min": 75.49,
+     "low_acuity_isolation_avg_wait_min": 3530.16,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.6032,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 9
+    }
+   ],
+   "h2": [
+    {
+     "seed": 80000,
+     "decisions": 524,
+     "invalid_actions": 0,
+     "episode_return": 436.234,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 269.31,
+     "avg_wait_incl_unadmitted_min": 244.25,
+     "critical_avg_wait_min": 238.58,
+     "low_acuity_isolation_avg_wait_min": 3118.5,
+     "p90_wait_incl_unadmitted_min": 644.85,
+     "icu_utilization": 0.852,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 8
+    },
+    {
+     "seed": 80001,
+     "decisions": 556,
+     "invalid_actions": 0,
+     "episode_return": 471.509,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 392.99,
+     "avg_wait_incl_unadmitted_min": 405.75,
+     "critical_avg_wait_min": 341.21,
+     "low_acuity_isolation_avg_wait_min": 5478.13,
+     "p90_wait_incl_unadmitted_min": 706.18,
+     "icu_utilization": 0.8868,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 9
+    },
+    {
+     "seed": 80002,
+     "decisions": 622,
+     "invalid_actions": 0,
+     "episode_return": 512.299,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 478.93,
+     "avg_wait_incl_unadmitted_min": 373.81,
+     "critical_avg_wait_min": 555.78,
+     "low_acuity_isolation_avg_wait_min": 4002.19,
+     "p90_wait_incl_unadmitted_min": 1491.52,
+     "icu_utilization": 0.9378,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 11
+    },
+    {
+     "seed": 80003,
+     "decisions": 650,
+     "invalid_actions": 0,
+     "episode_return": 504.798,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 874.81,
+     "avg_wait_incl_unadmitted_min": 885.29,
+     "critical_avg_wait_min": 767.39,
+     "low_acuity_isolation_avg_wait_min": 10531.19,
+     "p90_wait_incl_unadmitted_min": 2659.97,
+     "icu_utilization": 0.9146,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 23
+    },
+    {
+     "seed": 80004,
+     "decisions": 468,
+     "invalid_actions": 0,
+     "episode_return": 397.007,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 282.89,
+     "avg_wait_incl_unadmitted_min": 196.01,
+     "critical_avg_wait_min": 302.62,
+     "low_acuity_isolation_avg_wait_min": 1610.73,
+     "p90_wait_incl_unadmitted_min": 690.33,
+     "icu_utilization": 0.8719,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 9
+    },
+    {
+     "seed": 80005,
+     "decisions": 658,
+     "invalid_actions": 0,
+     "episode_return": 493.682,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 817.57,
+     "avg_wait_incl_unadmitted_min": 677.52,
+     "critical_avg_wait_min": 881.83,
+     "low_acuity_isolation_avg_wait_min": 5066.99,
+     "p90_wait_incl_unadmitted_min": 2773.92,
+     "icu_utilization": 0.9046,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 17
+    },
+    {
+     "seed": 80006,
+     "decisions": 497,
+     "invalid_actions": 0,
+     "episode_return": 429.012,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 280.12,
+     "avg_wait_incl_unadmitted_min": 397.05,
+     "critical_avg_wait_min": 169.37,
+     "low_acuity_isolation_avg_wait_min": 5233.52,
+     "p90_wait_incl_unadmitted_min": 403.45,
+     "icu_utilization": 0.8758,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 10
+    },
+    {
+     "seed": 80007,
+     "decisions": 565,
+     "invalid_actions": 0,
+     "episode_return": 464.304,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 356.33,
+     "avg_wait_incl_unadmitted_min": 438.44,
+     "critical_avg_wait_min": 255.71,
+     "low_acuity_isolation_avg_wait_min": 5112.34,
+     "p90_wait_incl_unadmitted_min": 1356.37,
+     "icu_utilization": 0.8889,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 13
+    },
+    {
+     "seed": 80008,
+     "decisions": 559,
+     "invalid_actions": 0,
+     "episode_return": 481.273,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 373.0,
+     "avg_wait_incl_unadmitted_min": 371.13,
+     "critical_avg_wait_min": 366.17,
+     "low_acuity_isolation_avg_wait_min": 5081.14,
+     "p90_wait_incl_unadmitted_min": 942.22,
+     "icu_utilization": 0.8521,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 14
+    },
+    {
+     "seed": 80009,
+     "decisions": 567,
+     "invalid_actions": 0,
+     "episode_return": 460.426,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 548.26,
+     "avg_wait_incl_unadmitted_min": 601.71,
+     "critical_avg_wait_min": 456.47,
+     "low_acuity_isolation_avg_wait_min": 5745.2,
+     "p90_wait_incl_unadmitted_min": 1825.4,
+     "icu_utilization": 0.8424,
+     "patients_still_waiting": 5,
+     "peak_waiting_queue": 16
+    },
+    {
+     "seed": 80010,
+     "decisions": 611,
+     "invalid_actions": 0,
+     "episode_return": 491.119,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 588.05,
+     "avg_wait_incl_unadmitted_min": 615.27,
+     "critical_avg_wait_min": 479.98,
+     "low_acuity_isolation_avg_wait_min": 8039.84,
+     "p90_wait_incl_unadmitted_min": 1377.4,
+     "icu_utilization": 0.8772,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 16
+    },
+    {
+     "seed": 80011,
+     "decisions": 526,
+     "invalid_actions": 0,
+     "episode_return": 449.237,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 173.71,
+     "avg_wait_incl_unadmitted_min": 206.09,
+     "critical_avg_wait_min": 148.46,
+     "low_acuity_isolation_avg_wait_min": 2218.3,
+     "p90_wait_incl_unadmitted_min": 448.43,
+     "icu_utilization": 0.8547,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 8
+    },
+    {
+     "seed": 80012,
+     "decisions": 613,
+     "invalid_actions": 0,
+     "episode_return": 486.2,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 404.31,
+     "avg_wait_incl_unadmitted_min": 409.79,
+     "critical_avg_wait_min": 397.4,
+     "low_acuity_isolation_avg_wait_min": 5659.48,
+     "p90_wait_incl_unadmitted_min": 1059.48,
+     "icu_utilization": 0.8976,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 13
+    },
+    {
+     "seed": 80013,
+     "decisions": 593,
+     "invalid_actions": 0,
+     "episode_return": 504.551,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 376.56,
+     "avg_wait_incl_unadmitted_min": 249.77,
+     "critical_avg_wait_min": 400.4,
+     "low_acuity_isolation_avg_wait_min": 3106.27,
+     "p90_wait_incl_unadmitted_min": 409.32,
+     "icu_utilization": 0.8937,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 13
+    },
+    {
+     "seed": 80014,
+     "decisions": 610,
+     "invalid_actions": 0,
+     "episode_return": 499.882,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 392.68,
+     "avg_wait_incl_unadmitted_min": 347.61,
+     "critical_avg_wait_min": 412.52,
+     "low_acuity_isolation_avg_wait_min": 4033.22,
+     "p90_wait_incl_unadmitted_min": 889.53,
+     "icu_utilization": 0.8582,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 10
+    },
+    {
+     "seed": 80015,
+     "decisions": 635,
+     "invalid_actions": 0,
+     "episode_return": 495.357,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 983.85,
+     "avg_wait_incl_unadmitted_min": 590.21,
+     "critical_avg_wait_min": 1090.96,
+     "low_acuity_isolation_avg_wait_min": 4396.29,
+     "p90_wait_incl_unadmitted_min": 2512.72,
+     "icu_utilization": 0.8892,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 17
+    },
+    {
+     "seed": 80016,
+     "decisions": 549,
+     "invalid_actions": 0,
+     "episode_return": 462.334,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 156.88,
+     "avg_wait_incl_unadmitted_min": 163.71,
+     "critical_avg_wait_min": 134.57,
+     "low_acuity_isolation_avg_wait_min": 1796.03,
+     "p90_wait_incl_unadmitted_min": 339.73,
+     "icu_utilization": 0.8372,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 7
+    },
+    {
+     "seed": 80017,
+     "decisions": 688,
+     "invalid_actions": 0,
+     "episode_return": 553.603,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 517.0,
+     "avg_wait_incl_unadmitted_min": 478.17,
+     "critical_avg_wait_min": 594.58,
+     "low_acuity_isolation_avg_wait_min": 6712.94,
+     "p90_wait_incl_unadmitted_min": 1301.03,
+     "icu_utilization": 0.8834,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 15
+    },
+    {
+     "seed": 80018,
+     "decisions": 634,
+     "invalid_actions": 0,
+     "episode_return": 506.27,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 546.12,
+     "avg_wait_incl_unadmitted_min": 329.67,
+     "critical_avg_wait_min": 644.4,
+     "low_acuity_isolation_avg_wait_min": 3077.82,
+     "p90_wait_incl_unadmitted_min": 1442.15,
+     "icu_utilization": 0.8977,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 11
+    },
+    {
+     "seed": 80019,
+     "decisions": 604,
+     "invalid_actions": 0,
+     "episode_return": 475.135,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 555.28,
+     "avg_wait_incl_unadmitted_min": 477.95,
+     "critical_avg_wait_min": 488.01,
+     "low_acuity_isolation_avg_wait_min": 4248.41,
+     "p90_wait_incl_unadmitted_min": 1219.95,
+     "icu_utilization": 0.9098,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 14
+    }
+   ],
+   "h3": [
+    {
+     "seed": 80000,
+     "decisions": 473,
+     "invalid_actions": 0,
+     "episode_return": 440.416,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 65.95,
+     "avg_wait_incl_unadmitted_min": 138.42,
+     "critical_avg_wait_min": 0.0,
+     "low_acuity_isolation_avg_wait_min": 2919.09,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.519,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 5
+    },
+    {
+     "seed": 80001,
+     "decisions": 521,
+     "invalid_actions": 0,
+     "episode_return": 472.467,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 235.65,
+     "avg_wait_incl_unadmitted_min": 453.12,
+     "critical_avg_wait_min": 59.9,
+     "low_acuity_isolation_avg_wait_min": 7657.01,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5463,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 9
+    },
+    {
+     "seed": 80002,
+     "decisions": 578,
+     "invalid_actions": 0,
+     "episode_return": 515.807,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 211.92,
+     "avg_wait_incl_unadmitted_min": 301.9,
+     "critical_avg_wait_min": 145.82,
+     "low_acuity_isolation_avg_wait_min": 4874.73,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.6587,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 7
+    },
+    {
+     "seed": 80003,
+     "decisions": 593,
+     "invalid_actions": 0,
+     "episode_return": 512.963,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 346.2,
+     "avg_wait_incl_unadmitted_min": 586.75,
+     "critical_avg_wait_min": 166.58,
+     "low_acuity_isolation_avg_wait_min": 8217.46,
+     "p90_wait_incl_unadmitted_min": 606.5,
+     "icu_utilization": 0.662,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 12
+    },
+    {
+     "seed": 80004,
+     "decisions": 432,
+     "invalid_actions": 0,
+     "episode_return": 399.807,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 54.51,
+     "avg_wait_incl_unadmitted_min": 124.57,
+     "critical_avg_wait_min": 3.4,
+     "low_acuity_isolation_avg_wait_min": 2069.49,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5045,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 5
+    },
+    {
+     "seed": 80005,
+     "decisions": 594,
+     "invalid_actions": 0,
+     "episode_return": 492.423,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 487.31,
+     "avg_wait_incl_unadmitted_min": 818.61,
+     "critical_avg_wait_min": 221.03,
+     "low_acuity_isolation_avg_wait_min": 9847.99,
+     "p90_wait_incl_unadmitted_min": 1991.65,
+     "icu_utilization": 0.7035,
+     "patients_still_waiting": 3,
+     "peak_waiting_queue": 15
+    },
+    {
+     "seed": 80006,
+     "decisions": 479,
+     "invalid_actions": 0,
+     "episode_return": 426.803,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 261.72,
+     "avg_wait_incl_unadmitted_min": 560.23,
+     "critical_avg_wait_min": 43.97,
+     "low_acuity_isolation_avg_wait_min": 8116.08,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5323,
+     "patients_still_waiting": 1,
+     "peak_waiting_queue": 11
+    },
+    {
+     "seed": 80007,
+     "decisions": 524,
+     "invalid_actions": 0,
+     "episode_return": 468.905,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 173.07,
+     "avg_wait_incl_unadmitted_min": 284.08,
+     "critical_avg_wait_min": 53.59,
+     "low_acuity_isolation_avg_wait_min": 4023.63,
+     "p90_wait_incl_unadmitted_min": 28.45,
+     "icu_utilization": 0.5536,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 11
+    },
+    {
+     "seed": 80008,
+     "decisions": 520,
+     "invalid_actions": 0,
+     "episode_return": 485.296,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 118.59,
+     "avg_wait_incl_unadmitted_min": 249.5,
+     "critical_avg_wait_min": 26.33,
+     "low_acuity_isolation_avg_wait_min": 4806.27,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5306,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 7
+    },
+    {
+     "seed": 80009,
+     "decisions": 535,
+     "invalid_actions": 0,
+     "episode_return": 460.46,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 402.74,
+     "avg_wait_incl_unadmitted_min": 661.4,
+     "critical_avg_wait_min": 204.37,
+     "low_acuity_isolation_avg_wait_min": 7500.19,
+     "p90_wait_incl_unadmitted_min": 1426.92,
+     "icu_utilization": 0.5459,
+     "patients_still_waiting": 6,
+     "peak_waiting_queue": 16
+    },
+    {
+     "seed": 80010,
+     "decisions": 571,
+     "invalid_actions": 0,
+     "episode_return": 495.122,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 299.8,
+     "avg_wait_incl_unadmitted_min": 415.56,
+     "critical_avg_wait_min": 200.68,
+     "low_acuity_isolation_avg_wait_min": 5985.8,
+     "p90_wait_incl_unadmitted_min": 144.07,
+     "icu_utilization": 0.6094,
+     "patients_still_waiting": 2,
+     "peak_waiting_queue": 14
+    },
+    {
+     "seed": 80011,
+     "decisions": 502,
+     "invalid_actions": 0,
+     "episode_return": 449.718,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 140.01,
+     "avg_wait_incl_unadmitted_min": 251.48,
+     "critical_avg_wait_min": 4.31,
+     "low_acuity_isolation_avg_wait_min": 3710.16,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.372,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 7
+    },
+    {
+     "seed": 80012,
+     "decisions": 556,
+     "invalid_actions": 0,
+     "episode_return": 491.874,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 114.51,
+     "avg_wait_incl_unadmitted_min": 246.77,
+     "critical_avg_wait_min": 18.92,
+     "low_acuity_isolation_avg_wait_min": 4954.67,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.6127,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 9
+    },
+    {
+     "seed": 80013,
+     "decisions": 549,
+     "invalid_actions": 0,
+     "episode_return": 508.238,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 99.31,
+     "avg_wait_incl_unadmitted_min": 166.29,
+     "critical_avg_wait_min": 33.16,
+     "low_acuity_isolation_avg_wait_min": 3388.88,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.6665,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 6
+    },
+    {
+     "seed": 80014,
+     "decisions": 561,
+     "invalid_actions": 0,
+     "episode_return": 504.782,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 146.88,
+     "avg_wait_incl_unadmitted_min": 209.54,
+     "critical_avg_wait_min": 84.14,
+     "low_acuity_isolation_avg_wait_min": 3265.04,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.5726,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 6
+    },
+    {
+     "seed": 80015,
+     "decisions": 581,
+     "invalid_actions": 0,
+     "episode_return": 501.82,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 384.77,
+     "avg_wait_incl_unadmitted_min": 378.55,
+     "critical_avg_wait_min": 336.22,
+     "low_acuity_isolation_avg_wait_min": 4510.55,
+     "p90_wait_incl_unadmitted_min": 431.27,
+     "icu_utilization": 0.6029,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 13
+    },
+    {
+     "seed": 80016,
+     "decisions": 504,
+     "invalid_actions": 0,
+     "episode_return": 464.869,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 76.39,
+     "avg_wait_incl_unadmitted_min": 146.19,
+     "critical_avg_wait_min": 10.46,
+     "low_acuity_isolation_avg_wait_min": 2992.27,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.4573,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 5
+    },
+    {
+     "seed": 80017,
+     "decisions": 644,
+     "invalid_actions": 0,
+     "episode_return": 560.652,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 140.29,
+     "avg_wait_incl_unadmitted_min": 232.73,
+     "critical_avg_wait_min": 33.61,
+     "low_acuity_isolation_avg_wait_min": 3988.01,
+     "p90_wait_incl_unadmitted_min": 61.02,
+     "icu_utilization": 0.5973,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 10
+    },
+    {
+     "seed": 80018,
+     "decisions": 571,
+     "invalid_actions": 0,
+     "episode_return": 512.342,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 131.96,
+     "avg_wait_incl_unadmitted_min": 167.25,
+     "critical_avg_wait_min": 82.25,
+     "low_acuity_isolation_avg_wait_min": 3167.42,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.6706,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 7
+    },
+    {
+     "seed": 80019,
+     "decisions": 553,
+     "invalid_actions": 0,
+     "episode_return": 479.426,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 289.16,
+     "avg_wait_incl_unadmitted_min": 375.37,
+     "critical_avg_wait_min": 126.11,
+     "low_acuity_isolation_avg_wait_min": 4420.16,
+     "p90_wait_incl_unadmitted_min": 0.0,
+     "icu_utilization": 0.628,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 11
+    }
+   ],
+   "random": [
+    {
+     "seed": 80000,
+     "decisions": 640,
+     "invalid_actions": 258,
+     "episode_return": -88.625,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 18013.88,
+     "avg_wait_incl_unadmitted_min": 17469.52,
+     "critical_avg_wait_min": 17711.18,
+     "low_acuity_isolation_avg_wait_min": 26408.49,
+     "p90_wait_incl_unadmitted_min": 38743.65,
+     "icu_utilization": 0.2459,
+     "patients_still_waiting": 242,
+     "peak_waiting_queue": 254
+    },
+    {
+     "seed": 80001,
+     "decisions": 733,
+     "invalid_actions": 308,
+     "episode_return": -98.644,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15716.6,
+     "avg_wait_incl_unadmitted_min": 16155.31,
+     "critical_avg_wait_min": 14628.39,
+     "low_acuity_isolation_avg_wait_min": 22568.14,
+     "p90_wait_incl_unadmitted_min": 37023.42,
+     "icu_utilization": 0.4832,
+     "patients_still_waiting": 227,
+     "peak_waiting_queue": 234
+    },
+    {
+     "seed": 80002,
+     "decisions": 766,
+     "invalid_actions": 313,
+     "episode_return": -108.791,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 18433.7,
+     "avg_wait_incl_unadmitted_min": 18546.07,
+     "critical_avg_wait_min": 17730.7,
+     "low_acuity_isolation_avg_wait_min": 30832.46,
+     "p90_wait_incl_unadmitted_min": 39518.37,
+     "icu_utilization": 0.396,
+     "patients_still_waiting": 276,
+     "peak_waiting_queue": 289
+    },
+    {
+     "seed": 80003,
+     "decisions": 778,
+     "invalid_actions": 302,
+     "episode_return": -89.727,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17173.47,
+     "avg_wait_incl_unadmitted_min": 17454.74,
+     "critical_avg_wait_min": 16167.7,
+     "low_acuity_isolation_avg_wait_min": 27208.04,
+     "p90_wait_incl_unadmitted_min": 39817.9,
+     "icu_utilization": 0.58,
+     "patients_still_waiting": 270,
+     "peak_waiting_queue": 280
+    },
+    {
+     "seed": 80004,
+     "decisions": 610,
+     "invalid_actions": 232,
+     "episode_return": -60.618,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17454.59,
+     "avg_wait_incl_unadmitted_min": 17657.76,
+     "critical_avg_wait_min": 16389.65,
+     "low_acuity_isolation_avg_wait_min": 25453.25,
+     "p90_wait_incl_unadmitted_min": 38723.4,
+     "icu_utilization": 0.4821,
+     "patients_still_waiting": 191,
+     "peak_waiting_queue": 200
+    },
+    {
+     "seed": 80005,
+     "decisions": 760,
+     "invalid_actions": 344,
+     "episode_return": -136.418,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16269.22,
+     "avg_wait_incl_unadmitted_min": 17898.0,
+     "critical_avg_wait_min": 15136.53,
+     "low_acuity_isolation_avg_wait_min": 23997.71,
+     "p90_wait_incl_unadmitted_min": 38779.58,
+     "icu_utilization": 0.5824,
+     "patients_still_waiting": 263,
+     "peak_waiting_queue": 276
+    },
+    {
+     "seed": 80006,
+     "decisions": 641,
+     "invalid_actions": 280,
+     "episode_return": -109.011,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17012.35,
+     "avg_wait_incl_unadmitted_min": 18156.6,
+     "critical_avg_wait_min": 14669.9,
+     "low_acuity_isolation_avg_wait_min": 28175.45,
+     "p90_wait_incl_unadmitted_min": 38318.42,
+     "icu_utilization": 0.4248,
+     "patients_still_waiting": 233,
+     "peak_waiting_queue": 240
+    },
+    {
+     "seed": 80007,
+     "decisions": 736,
+     "invalid_actions": 300,
+     "episode_return": -79.797,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14829.43,
+     "avg_wait_incl_unadmitted_min": 15322.08,
+     "critical_avg_wait_min": 12886.12,
+     "low_acuity_isolation_avg_wait_min": 27558.2,
+     "p90_wait_incl_unadmitted_min": 35495.42,
+     "icu_utilization": 0.5653,
+     "patients_still_waiting": 208,
+     "peak_waiting_queue": 221
+    },
+    {
+     "seed": 80008,
+     "decisions": 714,
+     "invalid_actions": 299,
+     "episode_return": -108.782,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16822.89,
+     "avg_wait_incl_unadmitted_min": 17808.03,
+     "critical_avg_wait_min": 16851.75,
+     "low_acuity_isolation_avg_wait_min": 29622.27,
+     "p90_wait_incl_unadmitted_min": 39885.95,
+     "icu_utilization": 0.3816,
+     "patients_still_waiting": 260,
+     "peak_waiting_queue": 274
+    },
+    {
+     "seed": 80009,
+     "decisions": 670,
+     "invalid_actions": 308,
+     "episode_return": -140.477,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 18594.67,
+     "avg_wait_incl_unadmitted_min": 18371.02,
+     "critical_avg_wait_min": 18829.28,
+     "low_acuity_isolation_avg_wait_min": 26349.4,
+     "p90_wait_incl_unadmitted_min": 40662.2,
+     "icu_utilization": 0.2832,
+     "patients_still_waiting": 281,
+     "peak_waiting_queue": 288
+    },
+    {
+     "seed": 80010,
+     "decisions": 766,
+     "invalid_actions": 321,
+     "episode_return": -101.786,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15169.24,
+     "avg_wait_incl_unadmitted_min": 15731.67,
+     "critical_avg_wait_min": 15257.88,
+     "low_acuity_isolation_avg_wait_min": 26930.54,
+     "p90_wait_incl_unadmitted_min": 34940.25,
+     "icu_utilization": 0.4989,
+     "patients_still_waiting": 238,
+     "peak_waiting_queue": 250
+    },
+    {
+     "seed": 80011,
+     "decisions": 683,
+     "invalid_actions": 275,
+     "episode_return": -86.028,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16644.65,
+     "avg_wait_incl_unadmitted_min": 16386.2,
+     "critical_avg_wait_min": 16901.78,
+     "low_acuity_isolation_avg_wait_min": 27876.99,
+     "p90_wait_incl_unadmitted_min": 36681.32,
+     "icu_utilization": 0.3611,
+     "patients_still_waiting": 225,
+     "peak_waiting_queue": 238
+    },
+    {
+     "seed": 80012,
+     "decisions": 727,
+     "invalid_actions": 286,
+     "episode_return": -93.192,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17728.23,
+     "avg_wait_incl_unadmitted_min": 17816.72,
+     "critical_avg_wait_min": 17077.85,
+     "low_acuity_isolation_avg_wait_min": 27006.86,
+     "p90_wait_incl_unadmitted_min": 38590.67,
+     "icu_utilization": 0.4675,
+     "patients_still_waiting": 263,
+     "peak_waiting_queue": 274
+    },
+    {
+     "seed": 80013,
+     "decisions": 755,
+     "invalid_actions": 318,
+     "episode_return": -108.639,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17662.76,
+     "avg_wait_incl_unadmitted_min": 17623.86,
+     "critical_avg_wait_min": 17820.81,
+     "low_acuity_isolation_avg_wait_min": 28810.2,
+     "p90_wait_incl_unadmitted_min": 39266.03,
+     "icu_utilization": 0.5253,
+     "patients_still_waiting": 264,
+     "peak_waiting_queue": 272
+    },
+    {
+     "seed": 80014,
+     "decisions": 769,
+     "invalid_actions": 303,
+     "episode_return": -84.764,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14806.2,
+     "avg_wait_incl_unadmitted_min": 16003.96,
+     "critical_avg_wait_min": 14541.12,
+     "low_acuity_isolation_avg_wait_min": 25582.21,
+     "p90_wait_incl_unadmitted_min": 36493.92,
+     "icu_utilization": 0.4189,
+     "patients_still_waiting": 246,
+     "peak_waiting_queue": 260
+    },
+    {
+     "seed": 80015,
+     "decisions": 772,
+     "invalid_actions": 325,
+     "episode_return": -109.382,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16268.71,
+     "avg_wait_incl_unadmitted_min": 16635.72,
+     "critical_avg_wait_min": 14861.25,
+     "low_acuity_isolation_avg_wait_min": 29469.46,
+     "p90_wait_incl_unadmitted_min": 35887.57,
+     "icu_utilization": 0.4396,
+     "patients_still_waiting": 245,
+     "peak_waiting_queue": 263
+    },
+    {
+     "seed": 80016,
+     "decisions": 709,
+     "invalid_actions": 282,
+     "episode_return": -76.852,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15820.7,
+     "avg_wait_incl_unadmitted_min": 16078.46,
+     "critical_avg_wait_min": 15024.39,
+     "low_acuity_isolation_avg_wait_min": 23210.05,
+     "p90_wait_incl_unadmitted_min": 38247.13,
+     "icu_utilization": 0.347,
+     "patients_still_waiting": 222,
+     "peak_waiting_queue": 232
+    },
+    {
+     "seed": 80017,
+     "decisions": 849,
+     "invalid_actions": 363,
+     "episode_return": -127.496,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16875.28,
+     "avg_wait_incl_unadmitted_min": 16966.54,
+     "critical_avg_wait_min": 16983.82,
+     "low_acuity_isolation_avg_wait_min": 27492.4,
+     "p90_wait_incl_unadmitted_min": 36820.87,
+     "icu_utilization": 0.428,
+     "patients_still_waiting": 284,
+     "peak_waiting_queue": 292
+    },
+    {
+     "seed": 80018,
+     "decisions": 755,
+     "invalid_actions": 329,
+     "episode_return": -129.825,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16981.65,
+     "avg_wait_incl_unadmitted_min": 17444.15,
+     "critical_avg_wait_min": 15764.59,
+     "low_acuity_isolation_avg_wait_min": 29580.66,
+     "p90_wait_incl_unadmitted_min": 36808.83,
+     "icu_utilization": 0.4265,
+     "patients_still_waiting": 276,
+     "peak_waiting_queue": 286
+    },
+    {
+     "seed": 80019,
+     "decisions": 728,
+     "invalid_actions": 299,
+     "episode_return": -88.714,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15889.33,
+     "avg_wait_incl_unadmitted_min": 16487.64,
+     "critical_avg_wait_min": 14608.75,
+     "low_acuity_isolation_avg_wait_min": 23126.4,
+     "p90_wait_incl_unadmitted_min": 38192.23,
+     "icu_utilization": 0.4524,
+     "patients_still_waiting": 238,
+     "peak_waiting_queue": 254
+    }
+   ],
+   "always_wait": [
+    {
+     "seed": 80000,
+     "decisions": 444,
+     "invalid_actions": 0,
+     "episode_return": -22.2,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31096.44,
+     "avg_wait_incl_unadmitted_min": 30730.83,
+     "critical_avg_wait_min": 31677.47,
+     "low_acuity_isolation_avg_wait_min": 35775.54,
+     "p90_wait_incl_unadmitted_min": 49121.83,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 444,
+     "peak_waiting_queue": 444
+    },
+    {
+     "seed": 80001,
+     "decisions": 482,
+     "invalid_actions": 0,
+     "episode_return": -24.1,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32833.93,
+     "avg_wait_incl_unadmitted_min": 32848.36,
+     "critical_avg_wait_min": 31924.78,
+     "low_acuity_isolation_avg_wait_min": 36334.9,
+     "p90_wait_incl_unadmitted_min": 50131.45,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 482,
+     "peak_waiting_queue": 482
+    },
+    {
+     "seed": 80002,
+     "decisions": 524,
+     "invalid_actions": 0,
+     "episode_return": -26.2,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32048.58,
+     "avg_wait_incl_unadmitted_min": 32140.65,
+     "critical_avg_wait_min": 32255.98,
+     "low_acuity_isolation_avg_wait_min": 34882.03,
+     "p90_wait_incl_unadmitted_min": 49497.02,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 524,
+     "peak_waiting_queue": 524
+    },
+    {
+     "seed": 80003,
+     "decisions": 527,
+     "invalid_actions": 0,
+     "episode_return": -26.35,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 33023.12,
+     "avg_wait_incl_unadmitted_min": 32156.38,
+     "critical_avg_wait_min": 33712.59,
+     "low_acuity_isolation_avg_wait_min": 31725.48,
+     "p90_wait_incl_unadmitted_min": 49358.77,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 527,
+     "peak_waiting_queue": 527
+    },
+    {
+     "seed": 80004,
+     "decisions": 403,
+     "invalid_actions": 0,
+     "episode_return": -20.15,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 34441.02,
+     "avg_wait_incl_unadmitted_min": 34065.59,
+     "critical_avg_wait_min": 35100.59,
+     "low_acuity_isolation_avg_wait_min": 31812.48,
+     "p90_wait_incl_unadmitted_min": 49959.52,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 403,
+     "peak_waiting_queue": 403
+    },
+    {
+     "seed": 80005,
+     "decisions": 513,
+     "invalid_actions": 0,
+     "episode_return": -25.65,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 33143.19,
+     "avg_wait_incl_unadmitted_min": 32677.36,
+     "critical_avg_wait_min": 34112.02,
+     "low_acuity_isolation_avg_wait_min": 29776.08,
+     "p90_wait_incl_unadmitted_min": 48390.92,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 513,
+     "peak_waiting_queue": 513
+    },
+    {
+     "seed": 80006,
+     "decisions": 438,
+     "invalid_actions": 0,
+     "episode_return": -21.9,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31488.38,
+     "avg_wait_incl_unadmitted_min": 31962.2,
+     "critical_avg_wait_min": 30761.76,
+     "low_acuity_isolation_avg_wait_min": 32225.51,
+     "p90_wait_incl_unadmitted_min": 49748.53,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 438,
+     "peak_waiting_queue": 438
+    },
+    {
+     "seed": 80007,
+     "decisions": 476,
+     "invalid_actions": 0,
+     "episode_return": -23.8,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32251.72,
+     "avg_wait_incl_unadmitted_min": 31690.59,
+     "critical_avg_wait_min": 32806.98,
+     "low_acuity_isolation_avg_wait_min": 33983.16,
+     "p90_wait_incl_unadmitted_min": 48576.3,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 476,
+     "peak_waiting_queue": 476
+    },
+    {
+     "seed": 80008,
+     "decisions": 491,
+     "invalid_actions": 0,
+     "episode_return": -24.55,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32280.71,
+     "avg_wait_incl_unadmitted_min": 32028.38,
+     "critical_avg_wait_min": 31842.97,
+     "low_acuity_isolation_avg_wait_min": 31807.91,
+     "p90_wait_incl_unadmitted_min": 48852.9,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 491,
+     "peak_waiting_queue": 491
+    },
+    {
+     "seed": 80009,
+     "decisions": 478,
+     "invalid_actions": 0,
+     "episode_return": -23.9,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 30865.53,
+     "avg_wait_incl_unadmitted_min": 30424.4,
+     "critical_avg_wait_min": 31598.29,
+     "low_acuity_isolation_avg_wait_min": 28003.79,
+     "p90_wait_incl_unadmitted_min": 48561.53,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 478,
+     "peak_waiting_queue": 478
+    },
+    {
+     "seed": 80010,
+     "decisions": 507,
+     "invalid_actions": 0,
+     "episode_return": -25.35,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31107.21,
+     "avg_wait_incl_unadmitted_min": 30772.07,
+     "critical_avg_wait_min": 31468.81,
+     "low_acuity_isolation_avg_wait_min": 29608.19,
+     "p90_wait_incl_unadmitted_min": 47672.18,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 507,
+     "peak_waiting_queue": 507
+    },
+    {
+     "seed": 80011,
+     "decisions": 456,
+     "invalid_actions": 0,
+     "episode_return": -22.8,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31304.58,
+     "avg_wait_incl_unadmitted_min": 31381.87,
+     "critical_avg_wait_min": 31131.81,
+     "low_acuity_isolation_avg_wait_min": 30995.07,
+     "p90_wait_incl_unadmitted_min": 48626.13,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 456,
+     "peak_waiting_queue": 456
+    },
+    {
+     "seed": 80012,
+     "decisions": 499,
+     "invalid_actions": 0,
+     "episode_return": -24.95,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32043.17,
+     "avg_wait_incl_unadmitted_min": 31397.21,
+     "critical_avg_wait_min": 32282.6,
+     "low_acuity_isolation_avg_wait_min": 29218.5,
+     "p90_wait_incl_unadmitted_min": 48326.67,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 499,
+     "peak_waiting_queue": 499
+    },
+    {
+     "seed": 80013,
+     "decisions": 513,
+     "invalid_actions": 0,
+     "episode_return": -25.65,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31779.63,
+     "avg_wait_incl_unadmitted_min": 31859.54,
+     "critical_avg_wait_min": 31203.69,
+     "low_acuity_isolation_avg_wait_min": 33163.75,
+     "p90_wait_incl_unadmitted_min": 49671.98,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 513,
+     "peak_waiting_queue": 513
+    },
+    {
+     "seed": 80014,
+     "decisions": 511,
+     "invalid_actions": 0,
+     "episode_return": -25.55,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 30253.78,
+     "avg_wait_incl_unadmitted_min": 31196.37,
+     "critical_avg_wait_min": 29104.79,
+     "low_acuity_isolation_avg_wait_min": 31153.88,
+     "p90_wait_incl_unadmitted_min": 48451.22,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 511,
+     "peak_waiting_queue": 511
+    },
+    {
+     "seed": 80015,
+     "decisions": 512,
+     "invalid_actions": 0,
+     "episode_return": -25.6,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 29915.06,
+     "avg_wait_incl_unadmitted_min": 30773.63,
+     "critical_avg_wait_min": 29992.79,
+     "low_acuity_isolation_avg_wait_min": 33487.83,
+     "p90_wait_incl_unadmitted_min": 49018.87,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 512,
+     "peak_waiting_queue": 512
+    },
+    {
+     "seed": 80016,
+     "decisions": 469,
+     "invalid_actions": 0,
+     "episode_return": -23.45,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32122.36,
+     "avg_wait_incl_unadmitted_min": 32519.3,
+     "critical_avg_wait_min": 32384.15,
+     "low_acuity_isolation_avg_wait_min": 29650.33,
+     "p90_wait_incl_unadmitted_min": 50031.17,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 469,
+     "peak_waiting_queue": 469
+    },
+    {
+     "seed": 80017,
+     "decisions": 569,
+     "invalid_actions": 0,
+     "episode_return": -28.45,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32176.64,
+     "avg_wait_incl_unadmitted_min": 32347.65,
+     "critical_avg_wait_min": 32511.58,
+     "low_acuity_isolation_avg_wait_min": 33568.95,
+     "p90_wait_incl_unadmitted_min": 48478.32,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 569,
+     "peak_waiting_queue": 569
+    },
+    {
+     "seed": 80018,
+     "decisions": 518,
+     "invalid_actions": 0,
+     "episode_return": -25.9,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 30896.55,
+     "avg_wait_incl_unadmitted_min": 31013.13,
+     "critical_avg_wait_min": 29942.08,
+     "low_acuity_isolation_avg_wait_min": 33448.26,
+     "p90_wait_incl_unadmitted_min": 48439.82,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 518,
+     "peak_waiting_queue": 518
+    },
+    {
+     "seed": 80019,
+     "decisions": 489,
+     "invalid_actions": 0,
+     "episode_return": -24.45,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31118.2,
+     "avg_wait_incl_unadmitted_min": 31034.32,
+     "critical_avg_wait_min": 31416.95,
+     "low_acuity_isolation_avg_wait_min": 31481.83,
+     "p90_wait_incl_unadmitted_min": 48352.42,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 489,
+     "peak_waiting_queue": 489
+    }
+   ]
+  },
+  "moderate_surge": {
+   "b1": [
+    {
+     "seed": 80000,
+     "decisions": 1082,
+     "invalid_actions": 0,
+     "episode_return": 677.444,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 1470.69,
+     "avg_wait_incl_unadmitted_min": 937.54,
+     "critical_avg_wait_min": 1827.57,
+     "low_acuity_isolation_avg_wait_min": 6245.66,
+     "p90_wait_incl_unadmitted_min": 3504.77,
+     "icu_utilization": 0.9436,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 38
+    },
+    {
+     "seed": 80001,
+     "decisions": 1367,
+     "invalid_actions": 0,
+     "episode_return": 739.039,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2242.94,
+     "avg_wait_incl_unadmitted_min": 2019.52,
+     "critical_avg_wait_min": 2405.95,
+     "low_acuity_isolation_avg_wait_min": 14755.2,
+     "p90_wait_incl_unadmitted_min": 4345.43,
+     "icu_utilization": 0.954,
+     "patients_still_waiting": 11,
+     "peak_waiting_queue": 79
+    },
+    {
+     "seed": 80002,
+     "decisions": 1570,
+     "invalid_actions": 0,
+     "episode_return": 749.259,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4826.47,
+     "avg_wait_incl_unadmitted_min": 3649.27,
+     "critical_avg_wait_min": 5855.61,
+     "low_acuity_isolation_avg_wait_min": 12419.67,
+     "p90_wait_incl_unadmitted_min": 10842.25,
+     "icu_utilization": 0.9728,
+     "patients_still_waiting": 35,
+     "peak_waiting_queue": 151
+    },
+    {
+     "seed": 80003,
+     "decisions": 1532,
+     "invalid_actions": 0,
+     "episode_return": 733.935,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3612.32,
+     "avg_wait_incl_unadmitted_min": 3028.91,
+     "critical_avg_wait_min": 4171.18,
+     "low_acuity_isolation_avg_wait_min": 14147.66,
+     "p90_wait_incl_unadmitted_min": 7434.72,
+     "icu_utilization": 0.9664,
+     "patients_still_waiting": 13,
+     "peak_waiting_queue": 111
+    },
+    {
+     "seed": 80004,
+     "decisions": 1528,
+     "invalid_actions": 0,
+     "episode_return": 731.928,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3201.8,
+     "avg_wait_incl_unadmitted_min": 2517.83,
+     "critical_avg_wait_min": 3694.38,
+     "low_acuity_isolation_avg_wait_min": 10002.49,
+     "p90_wait_incl_unadmitted_min": 5730.68,
+     "icu_utilization": 0.9561,
+     "patients_still_waiting": 7,
+     "peak_waiting_queue": 103
+    },
+    {
+     "seed": 80005,
+     "decisions": 1495,
+     "invalid_actions": 0,
+     "episode_return": 704.213,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4225.46,
+     "avg_wait_incl_unadmitted_min": 3369.35,
+     "critical_avg_wait_min": 4964.41,
+     "low_acuity_isolation_avg_wait_min": 14986.51,
+     "p90_wait_incl_unadmitted_min": 9841.3,
+     "icu_utilization": 0.9713,
+     "patients_still_waiting": 15,
+     "peak_waiting_queue": 99
+    },
+    {
+     "seed": 80006,
+     "decisions": 1473,
+     "invalid_actions": 0,
+     "episode_return": 742.872,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2355.54,
+     "avg_wait_incl_unadmitted_min": 2306.58,
+     "critical_avg_wait_min": 2438.94,
+     "low_acuity_isolation_avg_wait_min": 16638.09,
+     "p90_wait_incl_unadmitted_min": 5471.97,
+     "icu_utilization": 0.9415,
+     "patients_still_waiting": 24,
+     "peak_waiting_queue": 111
+    },
+    {
+     "seed": 80007,
+     "decisions": 1678,
+     "invalid_actions": 0,
+     "episode_return": 753.689,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4377.29,
+     "avg_wait_incl_unadmitted_min": 3892.78,
+     "critical_avg_wait_min": 4747.71,
+     "low_acuity_isolation_avg_wait_min": 14167.36,
+     "p90_wait_incl_unadmitted_min": 8444.03,
+     "icu_utilization": 0.9597,
+     "patients_still_waiting": 18,
+     "peak_waiting_queue": 166
+    },
+    {
+     "seed": 80008,
+     "decisions": 1380,
+     "invalid_actions": 0,
+     "episode_return": 700.639,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 1935.45,
+     "avg_wait_incl_unadmitted_min": 1867.04,
+     "critical_avg_wait_min": 2105.62,
+     "low_acuity_isolation_avg_wait_min": 14479.03,
+     "p90_wait_incl_unadmitted_min": 4748.63,
+     "icu_utilization": 0.933,
+     "patients_still_waiting": 14,
+     "peak_waiting_queue": 54
+    },
+    {
+     "seed": 80009,
+     "decisions": 1285,
+     "invalid_actions": 0,
+     "episode_return": 726.626,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3071.49,
+     "avg_wait_incl_unadmitted_min": 2498.19,
+     "critical_avg_wait_min": 3742.35,
+     "low_acuity_isolation_avg_wait_min": 15017.07,
+     "p90_wait_incl_unadmitted_min": 10012.28,
+     "icu_utilization": 0.9459,
+     "patients_still_waiting": 32,
+     "peak_waiting_queue": 88
+    },
+    {
+     "seed": 80010,
+     "decisions": 1471,
+     "invalid_actions": 0,
+     "episode_return": 716.551,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2708.44,
+     "avg_wait_incl_unadmitted_min": 2419.14,
+     "critical_avg_wait_min": 3047.61,
+     "low_acuity_isolation_avg_wait_min": 13064.17,
+     "p90_wait_incl_unadmitted_min": 5094.48,
+     "icu_utilization": 0.9558,
+     "patients_still_waiting": 9,
+     "peak_waiting_queue": 77
+    },
+    {
+     "seed": 80011,
+     "decisions": 1345,
+     "invalid_actions": 0,
+     "episode_return": 728.384,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2804.79,
+     "avg_wait_incl_unadmitted_min": 2233.95,
+     "critical_avg_wait_min": 3201.54,
+     "low_acuity_isolation_avg_wait_min": 11105.89,
+     "p90_wait_incl_unadmitted_min": 6089.07,
+     "icu_utilization": 0.9392,
+     "patients_still_waiting": 20,
+     "peak_waiting_queue": 110
+    },
+    {
+     "seed": 80012,
+     "decisions": 1540,
+     "invalid_actions": 0,
+     "episode_return": 698.312,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4025.32,
+     "avg_wait_incl_unadmitted_min": 3621.83,
+     "critical_avg_wait_min": 4352.86,
+     "low_acuity_isolation_avg_wait_min": 15238.88,
+     "p90_wait_incl_unadmitted_min": 6813.7,
+     "icu_utilization": 0.9544,
+     "patients_still_waiting": 16,
+     "peak_waiting_queue": 111
+    },
+    {
+     "seed": 80013,
+     "decisions": 1377,
+     "invalid_actions": 0,
+     "episode_return": 712.112,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3112.19,
+     "avg_wait_incl_unadmitted_min": 2548.73,
+     "critical_avg_wait_min": 3689.63,
+     "low_acuity_isolation_avg_wait_min": 11302.1,
+     "p90_wait_incl_unadmitted_min": 6109.77,
+     "icu_utilization": 0.9601,
+     "patients_still_waiting": 5,
+     "peak_waiting_queue": 94
+    },
+    {
+     "seed": 80014,
+     "decisions": 1305,
+     "invalid_actions": 0,
+     "episode_return": 724.461,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2879.66,
+     "avg_wait_incl_unadmitted_min": 2132.48,
+     "critical_avg_wait_min": 3580.71,
+     "low_acuity_isolation_avg_wait_min": 12031.31,
+     "p90_wait_incl_unadmitted_min": 7490.1,
+     "icu_utilization": 0.9243,
+     "patients_still_waiting": 8,
+     "peak_waiting_queue": 89
+    },
+    {
+     "seed": 80015,
+     "decisions": 1602,
+     "invalid_actions": 0,
+     "episode_return": 727.532,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 5303.63,
+     "avg_wait_incl_unadmitted_min": 4018.23,
+     "critical_avg_wait_min": 5968.15,
+     "low_acuity_isolation_avg_wait_min": 13238.93,
+     "p90_wait_incl_unadmitted_min": 11954.43,
+     "icu_utilization": 0.952,
+     "patients_still_waiting": 36,
+     "peak_waiting_queue": 153
+    },
+    {
+     "seed": 80016,
+     "decisions": 1553,
+     "invalid_actions": 0,
+     "episode_return": 762.813,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3496.41,
+     "avg_wait_incl_unadmitted_min": 2771.68,
+     "critical_avg_wait_min": 4236.25,
+     "low_acuity_isolation_avg_wait_min": 11606.68,
+     "p90_wait_incl_unadmitted_min": 7850.73,
+     "icu_utilization": 0.9514,
+     "patients_still_waiting": 10,
+     "peak_waiting_queue": 129
+    },
+    {
+     "seed": 80017,
+     "decisions": 1593,
+     "invalid_actions": 0,
+     "episode_return": 730.014,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4206.24,
+     "avg_wait_incl_unadmitted_min": 3627.97,
+     "critical_avg_wait_min": 4658.56,
+     "low_acuity_isolation_avg_wait_min": 13979.03,
+     "p90_wait_incl_unadmitted_min": 7125.23,
+     "icu_utilization": 0.9372,
+     "patients_still_waiting": 12,
+     "peak_waiting_queue": 125
+    },
+    {
+     "seed": 80018,
+     "decisions": 1531,
+     "invalid_actions": 0,
+     "episode_return": 736.667,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4621.14,
+     "avg_wait_incl_unadmitted_min": 3216.22,
+     "critical_avg_wait_min": 5851.85,
+     "low_acuity_isolation_avg_wait_min": 10105.86,
+     "p90_wait_incl_unadmitted_min": 9124.28,
+     "icu_utilization": 0.9561,
+     "patients_still_waiting": 18,
+     "peak_waiting_queue": 128
+    },
+    {
+     "seed": 80019,
+     "decisions": 1350,
+     "invalid_actions": 0,
+     "episode_return": 714.52,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3380.61,
+     "avg_wait_incl_unadmitted_min": 2257.26,
+     "critical_avg_wait_min": 4130.11,
+     "low_acuity_isolation_avg_wait_min": 11689.23,
+     "p90_wait_incl_unadmitted_min": 8609.17,
+     "icu_utilization": 0.9608,
+     "patients_still_waiting": 19,
+     "peak_waiting_queue": 85
+    }
+   ],
+   "h1": [
+    {
+     "seed": 80000,
+     "decisions": 1050,
+     "invalid_actions": 0,
+     "episode_return": 683.545,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 1065.57,
+     "avg_wait_incl_unadmitted_min": 757.25,
+     "critical_avg_wait_min": 1257.03,
+     "low_acuity_isolation_avg_wait_min": 5362.71,
+     "p90_wait_incl_unadmitted_min": 2458.08,
+     "icu_utilization": 0.8599,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 36
+    },
+    {
+     "seed": 80001,
+     "decisions": 1378,
+     "invalid_actions": 0,
+     "episode_return": 738.829,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2056.68,
+     "avg_wait_incl_unadmitted_min": 2037.91,
+     "critical_avg_wait_min": 2038.28,
+     "low_acuity_isolation_avg_wait_min": 17013.16,
+     "p90_wait_incl_unadmitted_min": 4501.82,
+     "icu_utilization": 0.8817,
+     "patients_still_waiting": 12,
+     "peak_waiting_queue": 76
+    },
+    {
+     "seed": 80002,
+     "decisions": 1656,
+     "invalid_actions": 0,
+     "episode_return": 751.653,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4426.98,
+     "avg_wait_incl_unadmitted_min": 3572.96,
+     "critical_avg_wait_min": 5256.13,
+     "low_acuity_isolation_avg_wait_min": 12675.35,
+     "p90_wait_incl_unadmitted_min": 10537.75,
+     "icu_utilization": 0.8927,
+     "patients_still_waiting": 28,
+     "peak_waiting_queue": 150
+    },
+    {
+     "seed": 80003,
+     "decisions": 1550,
+     "invalid_actions": 0,
+     "episode_return": 743.322,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2818.75,
+     "avg_wait_incl_unadmitted_min": 2718.75,
+     "critical_avg_wait_min": 3035.53,
+     "low_acuity_isolation_avg_wait_min": 14449.83,
+     "p90_wait_incl_unadmitted_min": 5504.87,
+     "icu_utilization": 0.9234,
+     "patients_still_waiting": 12,
+     "peak_waiting_queue": 99
+    },
+    {
+     "seed": 80004,
+     "decisions": 1537,
+     "invalid_actions": 0,
+     "episode_return": 736.638,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2800.22,
+     "avg_wait_incl_unadmitted_min": 2341.55,
+     "critical_avg_wait_min": 3174.3,
+     "low_acuity_isolation_avg_wait_min": 10002.49,
+     "p90_wait_incl_unadmitted_min": 5603.9,
+     "icu_utilization": 0.8891,
+     "patients_still_waiting": 7,
+     "peak_waiting_queue": 96
+    },
+    {
+     "seed": 80005,
+     "decisions": 1492,
+     "invalid_actions": 0,
+     "episode_return": 708.055,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3680.65,
+     "avg_wait_incl_unadmitted_min": 3324.8,
+     "critical_avg_wait_min": 3928.46,
+     "low_acuity_isolation_avg_wait_min": 18748.94,
+     "p90_wait_incl_unadmitted_min": 8863.95,
+     "icu_utilization": 0.8999,
+     "patients_still_waiting": 18,
+     "peak_waiting_queue": 93
+    },
+    {
+     "seed": 80006,
+     "decisions": 1436,
+     "invalid_actions": 0,
+     "episode_return": 745.442,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2324.5,
+     "avg_wait_incl_unadmitted_min": 2328.06,
+     "critical_avg_wait_min": 2373.01,
+     "low_acuity_isolation_avg_wait_min": 18240.8,
+     "p90_wait_incl_unadmitted_min": 5507.23,
+     "icu_utilization": 0.8698,
+     "patients_still_waiting": 25,
+     "peak_waiting_queue": 111
+    },
+    {
+     "seed": 80007,
+     "decisions": 1693,
+     "invalid_actions": 0,
+     "episode_return": 763.613,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3980.95,
+     "avg_wait_incl_unadmitted_min": 3625.82,
+     "critical_avg_wait_min": 4267.55,
+     "low_acuity_isolation_avg_wait_min": 15213.01,
+     "p90_wait_incl_unadmitted_min": 7775.77,
+     "icu_utilization": 0.8991,
+     "patients_still_waiting": 16,
+     "peak_waiting_queue": 160
+    },
+    {
+     "seed": 80008,
+     "decisions": 1340,
+     "invalid_actions": 0,
+     "episode_return": 703.622,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 1843.59,
+     "avg_wait_incl_unadmitted_min": 1859.19,
+     "critical_avg_wait_min": 2061.64,
+     "low_acuity_isolation_avg_wait_min": 16560.56,
+     "p90_wait_incl_unadmitted_min": 4494.62,
+     "icu_utilization": 0.8908,
+     "patients_still_waiting": 16,
+     "peak_waiting_queue": 54
+    },
+    {
+     "seed": 80009,
+     "decisions": 1286,
+     "invalid_actions": 0,
+     "episode_return": 730.591,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2537.21,
+     "avg_wait_incl_unadmitted_min": 2406.11,
+     "critical_avg_wait_min": 2897.99,
+     "low_acuity_isolation_avg_wait_min": 16664.74,
+     "p90_wait_incl_unadmitted_min": 9224.02,
+     "icu_utilization": 0.8877,
+     "patients_still_waiting": 32,
+     "peak_waiting_queue": 88
+    },
+    {
+     "seed": 80010,
+     "decisions": 1450,
+     "invalid_actions": 0,
+     "episode_return": 730.047,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2177.94,
+     "avg_wait_incl_unadmitted_min": 1978.04,
+     "critical_avg_wait_min": 2399.47,
+     "low_acuity_isolation_avg_wait_min": 12202.53,
+     "p90_wait_incl_unadmitted_min": 4717.4,
+     "icu_utilization": 0.8967,
+     "patients_still_waiting": 9,
+     "peak_waiting_queue": 71
+    },
+    {
+     "seed": 80011,
+     "decisions": 1335,
+     "invalid_actions": 0,
+     "episode_return": 728.812,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2822.24,
+     "avg_wait_incl_unadmitted_min": 2247.86,
+     "critical_avg_wait_min": 3193.38,
+     "low_acuity_isolation_avg_wait_min": 11842.57,
+     "p90_wait_incl_unadmitted_min": 6493.05,
+     "icu_utilization": 0.8484,
+     "patients_still_waiting": 20,
+     "peak_waiting_queue": 108
+    },
+    {
+     "seed": 80012,
+     "decisions": 1558,
+     "invalid_actions": 0,
+     "episode_return": 698.685,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3685.01,
+     "avg_wait_incl_unadmitted_min": 3571.67,
+     "critical_avg_wait_min": 3773.69,
+     "low_acuity_isolation_avg_wait_min": 14789.48,
+     "p90_wait_incl_unadmitted_min": 5934.33,
+     "icu_utilization": 0.895,
+     "patients_still_waiting": 15,
+     "peak_waiting_queue": 106
+    },
+    {
+     "seed": 80013,
+     "decisions": 1393,
+     "invalid_actions": 0,
+     "episode_return": 718.024,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2926.05,
+     "avg_wait_incl_unadmitted_min": 2307.26,
+     "critical_avg_wait_min": 3400.4,
+     "low_acuity_isolation_avg_wait_min": 10887.89,
+     "p90_wait_incl_unadmitted_min": 5904.62,
+     "icu_utilization": 0.9117,
+     "patients_still_waiting": 5,
+     "peak_waiting_queue": 90
+    },
+    {
+     "seed": 80014,
+     "decisions": 1355,
+     "invalid_actions": 0,
+     "episode_return": 721.66,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2793.55,
+     "avg_wait_incl_unadmitted_min": 2180.81,
+     "critical_avg_wait_min": 3355.91,
+     "low_acuity_isolation_avg_wait_min": 13550.47,
+     "p90_wait_incl_unadmitted_min": 7073.53,
+     "icu_utilization": 0.8069,
+     "patients_still_waiting": 8,
+     "peak_waiting_queue": 85
+    },
+    {
+     "seed": 80015,
+     "decisions": 1648,
+     "invalid_actions": 0,
+     "episode_return": 727.761,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 5212.66,
+     "avg_wait_incl_unadmitted_min": 3922.82,
+     "critical_avg_wait_min": 5839.41,
+     "low_acuity_isolation_avg_wait_min": 13238.93,
+     "p90_wait_incl_unadmitted_min": 11431.37,
+     "icu_utilization": 0.8786,
+     "patients_still_waiting": 37,
+     "peak_waiting_queue": 151
+    },
+    {
+     "seed": 80016,
+     "decisions": 1539,
+     "invalid_actions": 0,
+     "episode_return": 766.058,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3515.29,
+     "avg_wait_incl_unadmitted_min": 2673.79,
+     "critical_avg_wait_min": 4197.7,
+     "low_acuity_isolation_avg_wait_min": 10334.47,
+     "p90_wait_incl_unadmitted_min": 7675.93,
+     "icu_utilization": 0.8809,
+     "patients_still_waiting": 10,
+     "peak_waiting_queue": 124
+    },
+    {
+     "seed": 80017,
+     "decisions": 1598,
+     "invalid_actions": 0,
+     "episode_return": 735.04,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3864.78,
+     "avg_wait_incl_unadmitted_min": 3481.5,
+     "critical_avg_wait_min": 4152.32,
+     "low_acuity_isolation_avg_wait_min": 13409.8,
+     "p90_wait_incl_unadmitted_min": 7024.27,
+     "icu_utilization": 0.8906,
+     "patients_still_waiting": 9,
+     "peak_waiting_queue": 122
+    },
+    {
+     "seed": 80018,
+     "decisions": 1511,
+     "invalid_actions": 0,
+     "episode_return": 742.346,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4459.87,
+     "avg_wait_incl_unadmitted_min": 3040.83,
+     "critical_avg_wait_min": 5638.03,
+     "low_acuity_isolation_avg_wait_min": 10611.77,
+     "p90_wait_incl_unadmitted_min": 8992.37,
+     "icu_utilization": 0.9022,
+     "patients_still_waiting": 19,
+     "peak_waiting_queue": 123
+    },
+    {
+     "seed": 80019,
+     "decisions": 1370,
+     "invalid_actions": 0,
+     "episode_return": 722.247,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2930.52,
+     "avg_wait_incl_unadmitted_min": 2095.45,
+     "critical_avg_wait_min": 3438.67,
+     "low_acuity_isolation_avg_wait_min": 11285.01,
+     "p90_wait_incl_unadmitted_min": 7452.08,
+     "icu_utilization": 0.8721,
+     "patients_still_waiting": 11,
+     "peak_waiting_queue": 81
+    }
+   ],
+   "h2": [
+    {
+     "seed": 80000,
+     "decisions": 1091,
+     "invalid_actions": 0,
+     "episode_return": 677.1,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 1502.48,
+     "avg_wait_incl_unadmitted_min": 933.28,
+     "critical_avg_wait_min": 1903.48,
+     "low_acuity_isolation_avg_wait_min": 5441.53,
+     "p90_wait_incl_unadmitted_min": 3519.73,
+     "icu_utilization": 0.9436,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 37
+    },
+    {
+     "seed": 80001,
+     "decisions": 1367,
+     "invalid_actions": 0,
+     "episode_return": 739.039,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2242.94,
+     "avg_wait_incl_unadmitted_min": 2019.52,
+     "critical_avg_wait_min": 2405.95,
+     "low_acuity_isolation_avg_wait_min": 14755.2,
+     "p90_wait_incl_unadmitted_min": 4345.43,
+     "icu_utilization": 0.954,
+     "patients_still_waiting": 11,
+     "peak_waiting_queue": 79
+    },
+    {
+     "seed": 80002,
+     "decisions": 1592,
+     "invalid_actions": 0,
+     "episode_return": 743.644,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4932.17,
+     "avg_wait_incl_unadmitted_min": 3792.54,
+     "critical_avg_wait_min": 5900.94,
+     "low_acuity_isolation_avg_wait_min": 12189.0,
+     "p90_wait_incl_unadmitted_min": 10897.22,
+     "icu_utilization": 0.9728,
+     "patients_still_waiting": 36,
+     "peak_waiting_queue": 152
+    },
+    {
+     "seed": 80003,
+     "decisions": 1522,
+     "invalid_actions": 0,
+     "episode_return": 733.172,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3636.81,
+     "avg_wait_incl_unadmitted_min": 3026.64,
+     "critical_avg_wait_min": 4230.82,
+     "low_acuity_isolation_avg_wait_min": 13566.99,
+     "p90_wait_incl_unadmitted_min": 7575.0,
+     "icu_utilization": 0.9665,
+     "patients_still_waiting": 14,
+     "peak_waiting_queue": 112
+    },
+    {
+     "seed": 80004,
+     "decisions": 1528,
+     "invalid_actions": 0,
+     "episode_return": 731.928,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3201.8,
+     "avg_wait_incl_unadmitted_min": 2517.83,
+     "critical_avg_wait_min": 3694.38,
+     "low_acuity_isolation_avg_wait_min": 10002.49,
+     "p90_wait_incl_unadmitted_min": 5730.68,
+     "icu_utilization": 0.9561,
+     "patients_still_waiting": 7,
+     "peak_waiting_queue": 103
+    },
+    {
+     "seed": 80005,
+     "decisions": 1495,
+     "invalid_actions": 0,
+     "episode_return": 704.213,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4225.46,
+     "avg_wait_incl_unadmitted_min": 3369.35,
+     "critical_avg_wait_min": 4964.41,
+     "low_acuity_isolation_avg_wait_min": 14986.51,
+     "p90_wait_incl_unadmitted_min": 9841.3,
+     "icu_utilization": 0.9713,
+     "patients_still_waiting": 15,
+     "peak_waiting_queue": 99
+    },
+    {
+     "seed": 80006,
+     "decisions": 1473,
+     "invalid_actions": 0,
+     "episode_return": 742.872,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2355.54,
+     "avg_wait_incl_unadmitted_min": 2306.58,
+     "critical_avg_wait_min": 2438.94,
+     "low_acuity_isolation_avg_wait_min": 16638.09,
+     "p90_wait_incl_unadmitted_min": 5471.97,
+     "icu_utilization": 0.9415,
+     "patients_still_waiting": 24,
+     "peak_waiting_queue": 111
+    },
+    {
+     "seed": 80007,
+     "decisions": 1678,
+     "invalid_actions": 0,
+     "episode_return": 753.689,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4377.29,
+     "avg_wait_incl_unadmitted_min": 3892.78,
+     "critical_avg_wait_min": 4747.71,
+     "low_acuity_isolation_avg_wait_min": 14167.36,
+     "p90_wait_incl_unadmitted_min": 8444.03,
+     "icu_utilization": 0.9597,
+     "patients_still_waiting": 18,
+     "peak_waiting_queue": 166
+    },
+    {
+     "seed": 80008,
+     "decisions": 1380,
+     "invalid_actions": 0,
+     "episode_return": 700.639,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 1935.45,
+     "avg_wait_incl_unadmitted_min": 1867.04,
+     "critical_avg_wait_min": 2105.62,
+     "low_acuity_isolation_avg_wait_min": 14479.03,
+     "p90_wait_incl_unadmitted_min": 4748.63,
+     "icu_utilization": 0.933,
+     "patients_still_waiting": 14,
+     "peak_waiting_queue": 54
+    },
+    {
+     "seed": 80009,
+     "decisions": 1285,
+     "invalid_actions": 0,
+     "episode_return": 726.626,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3071.49,
+     "avg_wait_incl_unadmitted_min": 2498.19,
+     "critical_avg_wait_min": 3742.35,
+     "low_acuity_isolation_avg_wait_min": 15017.07,
+     "p90_wait_incl_unadmitted_min": 10012.28,
+     "icu_utilization": 0.9459,
+     "patients_still_waiting": 32,
+     "peak_waiting_queue": 88
+    },
+    {
+     "seed": 80010,
+     "decisions": 1473,
+     "invalid_actions": 0,
+     "episode_return": 715.364,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2745.17,
+     "avg_wait_incl_unadmitted_min": 2463.92,
+     "critical_avg_wait_min": 3084.08,
+     "low_acuity_isolation_avg_wait_min": 13363.23,
+     "p90_wait_incl_unadmitted_min": 5289.52,
+     "icu_utilization": 0.9557,
+     "patients_still_waiting": 9,
+     "peak_waiting_queue": 79
+    },
+    {
+     "seed": 80011,
+     "decisions": 1349,
+     "invalid_actions": 0,
+     "episode_return": 729.697,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2818.51,
+     "avg_wait_incl_unadmitted_min": 2184.56,
+     "critical_avg_wait_min": 3283.58,
+     "low_acuity_isolation_avg_wait_min": 9091.47,
+     "p90_wait_incl_unadmitted_min": 5924.83,
+     "icu_utilization": 0.9392,
+     "patients_still_waiting": 19,
+     "peak_waiting_queue": 108
+    },
+    {
+     "seed": 80012,
+     "decisions": 1538,
+     "invalid_actions": 0,
+     "episode_return": 698.973,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4060.18,
+     "avg_wait_incl_unadmitted_min": 3596.82,
+     "critical_avg_wait_min": 4447.23,
+     "low_acuity_isolation_avg_wait_min": 15599.06,
+     "p90_wait_incl_unadmitted_min": 7003.27,
+     "icu_utilization": 0.9545,
+     "patients_still_waiting": 17,
+     "peak_waiting_queue": 111
+    },
+    {
+     "seed": 80013,
+     "decisions": 1378,
+     "invalid_actions": 0,
+     "episode_return": 712.627,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3195.92,
+     "avg_wait_incl_unadmitted_min": 2519.81,
+     "critical_avg_wait_min": 3800.88,
+     "low_acuity_isolation_avg_wait_min": 9961.91,
+     "p90_wait_incl_unadmitted_min": 6109.77,
+     "icu_utilization": 0.96,
+     "patients_still_waiting": 5,
+     "peak_waiting_queue": 94
+    },
+    {
+     "seed": 80014,
+     "decisions": 1330,
+     "invalid_actions": 0,
+     "episode_return": 724.446,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2800.89,
+     "avg_wait_incl_unadmitted_min": 2085.32,
+     "critical_avg_wait_min": 3509.25,
+     "low_acuity_isolation_avg_wait_min": 10778.97,
+     "p90_wait_incl_unadmitted_min": 6882.05,
+     "icu_utilization": 0.9246,
+     "patients_still_waiting": 8,
+     "peak_waiting_queue": 86
+    },
+    {
+     "seed": 80015,
+     "decisions": 1602,
+     "invalid_actions": 0,
+     "episode_return": 727.532,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 5303.63,
+     "avg_wait_incl_unadmitted_min": 4018.23,
+     "critical_avg_wait_min": 5968.15,
+     "low_acuity_isolation_avg_wait_min": 13238.93,
+     "p90_wait_incl_unadmitted_min": 11954.43,
+     "icu_utilization": 0.952,
+     "patients_still_waiting": 36,
+     "peak_waiting_queue": 153
+    },
+    {
+     "seed": 80016,
+     "decisions": 1561,
+     "invalid_actions": 0,
+     "episode_return": 759.479,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3623.67,
+     "avg_wait_incl_unadmitted_min": 2867.9,
+     "critical_avg_wait_min": 4337.47,
+     "low_acuity_isolation_avg_wait_min": 11789.77,
+     "p90_wait_incl_unadmitted_min": 7964.85,
+     "icu_utilization": 0.951,
+     "patients_still_waiting": 10,
+     "peak_waiting_queue": 132
+    },
+    {
+     "seed": 80017,
+     "decisions": 1589,
+     "invalid_actions": 0,
+     "episode_return": 728.716,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4285.52,
+     "avg_wait_incl_unadmitted_min": 3599.09,
+     "critical_avg_wait_min": 4814.15,
+     "low_acuity_isolation_avg_wait_min": 13962.37,
+     "p90_wait_incl_unadmitted_min": 7842.92,
+     "icu_utilization": 0.9373,
+     "patients_still_waiting": 16,
+     "peak_waiting_queue": 124
+    },
+    {
+     "seed": 80018,
+     "decisions": 1526,
+     "invalid_actions": 0,
+     "episode_return": 734.472,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4706.05,
+     "avg_wait_incl_unadmitted_min": 3213.19,
+     "critical_avg_wait_min": 6029.77,
+     "low_acuity_isolation_avg_wait_min": 10594.27,
+     "p90_wait_incl_unadmitted_min": 9219.97,
+     "icu_utilization": 0.9559,
+     "patients_still_waiting": 23,
+     "peak_waiting_queue": 127
+    },
+    {
+     "seed": 80019,
+     "decisions": 1351,
+     "invalid_actions": 0,
+     "episode_return": 710.735,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3538.19,
+     "avg_wait_incl_unadmitted_min": 2380.05,
+     "critical_avg_wait_min": 4256.04,
+     "low_acuity_isolation_avg_wait_min": 13955.12,
+     "p90_wait_incl_unadmitted_min": 9682.12,
+     "icu_utilization": 0.9607,
+     "patients_still_waiting": 23,
+     "peak_waiting_queue": 84
+    }
+   ],
+   "h3": [
+    {
+     "seed": 80000,
+     "decisions": 1055,
+     "invalid_actions": 0,
+     "episode_return": 682.797,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 1092.45,
+     "avg_wait_incl_unadmitted_min": 777.2,
+     "critical_avg_wait_min": 1307.53,
+     "low_acuity_isolation_avg_wait_min": 5460.02,
+     "p90_wait_incl_unadmitted_min": 2696.35,
+     "icu_utilization": 0.8598,
+     "patients_still_waiting": 0,
+     "peak_waiting_queue": 35
+    },
+    {
+     "seed": 80001,
+     "decisions": 1378,
+     "invalid_actions": 0,
+     "episode_return": 738.829,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2056.68,
+     "avg_wait_incl_unadmitted_min": 2037.91,
+     "critical_avg_wait_min": 2038.28,
+     "low_acuity_isolation_avg_wait_min": 17013.16,
+     "p90_wait_incl_unadmitted_min": 4501.82,
+     "icu_utilization": 0.8817,
+     "patients_still_waiting": 12,
+     "peak_waiting_queue": 76
+    },
+    {
+     "seed": 80002,
+     "decisions": 1657,
+     "invalid_actions": 0,
+     "episode_return": 752.401,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4439.25,
+     "avg_wait_incl_unadmitted_min": 3566.02,
+     "critical_avg_wait_min": 5275.88,
+     "low_acuity_isolation_avg_wait_min": 12299.52,
+     "p90_wait_incl_unadmitted_min": 10537.75,
+     "icu_utilization": 0.8927,
+     "patients_still_waiting": 27,
+     "peak_waiting_queue": 150
+    },
+    {
+     "seed": 80003,
+     "decisions": 1545,
+     "invalid_actions": 0,
+     "episode_return": 743.359,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2901.68,
+     "avg_wait_incl_unadmitted_min": 2706.63,
+     "critical_avg_wait_min": 3198.19,
+     "low_acuity_isolation_avg_wait_min": 14639.39,
+     "p90_wait_incl_unadmitted_min": 5786.88,
+     "icu_utilization": 0.9234,
+     "patients_still_waiting": 13,
+     "peak_waiting_queue": 100
+    },
+    {
+     "seed": 80004,
+     "decisions": 1537,
+     "invalid_actions": 0,
+     "episode_return": 736.638,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2800.22,
+     "avg_wait_incl_unadmitted_min": 2341.55,
+     "critical_avg_wait_min": 3174.3,
+     "low_acuity_isolation_avg_wait_min": 10002.49,
+     "p90_wait_incl_unadmitted_min": 5603.9,
+     "icu_utilization": 0.8891,
+     "patients_still_waiting": 7,
+     "peak_waiting_queue": 96
+    },
+    {
+     "seed": 80005,
+     "decisions": 1504,
+     "invalid_actions": 0,
+     "episode_return": 708.13,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3718.03,
+     "avg_wait_incl_unadmitted_min": 3280.25,
+     "critical_avg_wait_min": 3998.72,
+     "low_acuity_isolation_avg_wait_min": 16841.04,
+     "p90_wait_incl_unadmitted_min": 9258.75,
+     "icu_utilization": 0.8995,
+     "patients_still_waiting": 15,
+     "peak_waiting_queue": 91
+    },
+    {
+     "seed": 80006,
+     "decisions": 1436,
+     "invalid_actions": 0,
+     "episode_return": 745.442,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2324.5,
+     "avg_wait_incl_unadmitted_min": 2328.06,
+     "critical_avg_wait_min": 2373.01,
+     "low_acuity_isolation_avg_wait_min": 18240.8,
+     "p90_wait_incl_unadmitted_min": 5507.23,
+     "icu_utilization": 0.8698,
+     "patients_still_waiting": 25,
+     "peak_waiting_queue": 111
+    },
+    {
+     "seed": 80007,
+     "decisions": 1693,
+     "invalid_actions": 0,
+     "episode_return": 763.613,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3980.95,
+     "avg_wait_incl_unadmitted_min": 3625.82,
+     "critical_avg_wait_min": 4267.55,
+     "low_acuity_isolation_avg_wait_min": 15213.01,
+     "p90_wait_incl_unadmitted_min": 7775.77,
+     "icu_utilization": 0.8991,
+     "patients_still_waiting": 16,
+     "peak_waiting_queue": 160
+    },
+    {
+     "seed": 80008,
+     "decisions": 1358,
+     "invalid_actions": 0,
+     "episode_return": 701.753,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 1813.26,
+     "avg_wait_incl_unadmitted_min": 1928.67,
+     "critical_avg_wait_min": 1948.32,
+     "low_acuity_isolation_avg_wait_min": 17503.45,
+     "p90_wait_incl_unadmitted_min": 4768.88,
+     "icu_utilization": 0.8906,
+     "patients_still_waiting": 16,
+     "peak_waiting_queue": 56
+    },
+    {
+     "seed": 80009,
+     "decisions": 1286,
+     "invalid_actions": 0,
+     "episode_return": 730.591,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2537.21,
+     "avg_wait_incl_unadmitted_min": 2406.11,
+     "critical_avg_wait_min": 2897.99,
+     "low_acuity_isolation_avg_wait_min": 16664.74,
+     "p90_wait_incl_unadmitted_min": 9224.02,
+     "icu_utilization": 0.8877,
+     "patients_still_waiting": 32,
+     "peak_waiting_queue": 88
+    },
+    {
+     "seed": 80010,
+     "decisions": 1447,
+     "invalid_actions": 0,
+     "episode_return": 730.891,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2189.76,
+     "avg_wait_incl_unadmitted_min": 1966.3,
+     "critical_avg_wait_min": 2436.3,
+     "low_acuity_isolation_avg_wait_min": 12015.39,
+     "p90_wait_incl_unadmitted_min": 5019.93,
+     "icu_utilization": 0.8967,
+     "patients_still_waiting": 8,
+     "peak_waiting_queue": 71
+    },
+    {
+     "seed": 80011,
+     "decisions": 1335,
+     "invalid_actions": 0,
+     "episode_return": 727.451,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2817.1,
+     "avg_wait_incl_unadmitted_min": 2280.93,
+     "critical_avg_wait_min": 3153.5,
+     "low_acuity_isolation_avg_wait_min": 12475.32,
+     "p90_wait_incl_unadmitted_min": 6689.1,
+     "icu_utilization": 0.8435,
+     "patients_still_waiting": 21,
+     "peak_waiting_queue": 110
+    },
+    {
+     "seed": 80012,
+     "decisions": 1557,
+     "invalid_actions": 0,
+     "episode_return": 698.394,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3739.4,
+     "avg_wait_incl_unadmitted_min": 3586.36,
+     "critical_avg_wait_min": 3888.71,
+     "low_acuity_isolation_avg_wait_min": 15294.52,
+     "p90_wait_incl_unadmitted_min": 6038.7,
+     "icu_utilization": 0.8932,
+     "patients_still_waiting": 16,
+     "peak_waiting_queue": 111
+    },
+    {
+     "seed": 80013,
+     "decisions": 1393,
+     "invalid_actions": 0,
+     "episode_return": 718.024,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2926.05,
+     "avg_wait_incl_unadmitted_min": 2307.26,
+     "critical_avg_wait_min": 3400.4,
+     "low_acuity_isolation_avg_wait_min": 10887.89,
+     "p90_wait_incl_unadmitted_min": 5904.62,
+     "icu_utilization": 0.9117,
+     "patients_still_waiting": 5,
+     "peak_waiting_queue": 90
+    },
+    {
+     "seed": 80014,
+     "decisions": 1368,
+     "invalid_actions": 0,
+     "episode_return": 720.722,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 2767.23,
+     "avg_wait_incl_unadmitted_min": 2151.82,
+     "critical_avg_wait_min": 3338.64,
+     "low_acuity_isolation_avg_wait_min": 11891.29,
+     "p90_wait_incl_unadmitted_min": 6935.65,
+     "icu_utilization": 0.8045,
+     "patients_still_waiting": 8,
+     "peak_waiting_queue": 85
+    },
+    {
+     "seed": 80015,
+     "decisions": 1648,
+     "invalid_actions": 0,
+     "episode_return": 727.761,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 5212.66,
+     "avg_wait_incl_unadmitted_min": 3922.82,
+     "critical_avg_wait_min": 5839.41,
+     "low_acuity_isolation_avg_wait_min": 13238.93,
+     "p90_wait_incl_unadmitted_min": 11431.37,
+     "icu_utilization": 0.8786,
+     "patients_still_waiting": 37,
+     "peak_waiting_queue": 151
+    },
+    {
+     "seed": 80016,
+     "decisions": 1546,
+     "invalid_actions": 0,
+     "episode_return": 762.824,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3617.62,
+     "avg_wait_incl_unadmitted_min": 2740.84,
+     "critical_avg_wait_min": 4344.2,
+     "low_acuity_isolation_avg_wait_min": 10017.11,
+     "p90_wait_incl_unadmitted_min": 8132.95,
+     "icu_utilization": 0.8809,
+     "patients_still_waiting": 11,
+     "peak_waiting_queue": 124
+    },
+    {
+     "seed": 80017,
+     "decisions": 1597,
+     "invalid_actions": 0,
+     "episode_return": 736.776,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3844.69,
+     "avg_wait_incl_unadmitted_min": 3460.74,
+     "critical_avg_wait_min": 4137.66,
+     "low_acuity_isolation_avg_wait_min": 14465.48,
+     "p90_wait_incl_unadmitted_min": 6917.48,
+     "icu_utilization": 0.8906,
+     "patients_still_waiting": 10,
+     "peak_waiting_queue": 123
+    },
+    {
+     "seed": 80018,
+     "decisions": 1507,
+     "invalid_actions": 0,
+     "episode_return": 741.051,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 4505.35,
+     "avg_wait_incl_unadmitted_min": 3034.98,
+     "critical_avg_wait_min": 5727.12,
+     "low_acuity_isolation_avg_wait_min": 11446.35,
+     "p90_wait_incl_unadmitted_min": 9255.92,
+     "icu_utilization": 0.8981,
+     "patients_still_waiting": 24,
+     "peak_waiting_queue": 122
+    },
+    {
+     "seed": 80019,
+     "decisions": 1313,
+     "invalid_actions": 0,
+     "episode_return": 719.633,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 3153.37,
+     "avg_wait_incl_unadmitted_min": 2161.02,
+     "critical_avg_wait_min": 3795.12,
+     "low_acuity_isolation_avg_wait_min": 12124.97,
+     "p90_wait_incl_unadmitted_min": 8506.38,
+     "icu_utilization": 0.872,
+     "patients_still_waiting": 18,
+     "peak_waiting_queue": 79
+    }
+   ],
+   "random": [
+    {
+     "seed": 80000,
+     "decisions": 1048,
+     "invalid_actions": 447,
+     "episode_return": -172.401,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17798.28,
+     "avg_wait_incl_unadmitted_min": 18254.22,
+     "critical_avg_wait_min": 16723.33,
+     "low_acuity_isolation_avg_wait_min": 25705.57,
+     "p90_wait_incl_unadmitted_min": 38363.08,
+     "icu_utilization": 0.5923,
+     "patients_still_waiting": 381,
+     "peak_waiting_queue": 394
+    },
+    {
+     "seed": 80001,
+     "decisions": 1193,
+     "invalid_actions": 544,
+     "episode_return": -233.245,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17980.12,
+     "avg_wait_incl_unadmitted_min": 18065.73,
+     "critical_avg_wait_min": 17772.08,
+     "low_acuity_isolation_avg_wait_min": 28750.74,
+     "p90_wait_incl_unadmitted_min": 38765.1,
+     "icu_utilization": 0.5612,
+     "patients_still_waiting": 451,
+     "peak_waiting_queue": 461
+    },
+    {
+     "seed": 80002,
+     "decisions": 1357,
+     "invalid_actions": 555,
+     "episode_return": -181.715,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16920.71,
+     "avg_wait_incl_unadmitted_min": 17177.8,
+     "critical_avg_wait_min": 16179.21,
+     "low_acuity_isolation_avg_wait_min": 24250.02,
+     "p90_wait_incl_unadmitted_min": 37422.0,
+     "icu_utilization": 0.7039,
+     "patients_still_waiting": 468,
+     "peak_waiting_queue": 490
+    },
+    {
+     "seed": 80003,
+     "decisions": 1252,
+     "invalid_actions": 545,
+     "episode_return": -216.431,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17265.13,
+     "avg_wait_incl_unadmitted_min": 17659.93,
+     "critical_avg_wait_min": 16943.74,
+     "low_acuity_isolation_avg_wait_min": 29179.86,
+     "p90_wait_incl_unadmitted_min": 39247.58,
+     "icu_utilization": 0.6998,
+     "patients_still_waiting": 467,
+     "peak_waiting_queue": 477
+    },
+    {
+     "seed": 80004,
+     "decisions": 1260,
+     "invalid_actions": 545,
+     "episode_return": -187.612,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16228.85,
+     "avg_wait_incl_unadmitted_min": 16283.77,
+     "critical_avg_wait_min": 16191.83,
+     "low_acuity_isolation_avg_wait_min": 28268.63,
+     "p90_wait_incl_unadmitted_min": 37022.05,
+     "icu_utilization": 0.7428,
+     "patients_still_waiting": 421,
+     "peak_waiting_queue": 435
+    },
+    {
+     "seed": 80005,
+     "decisions": 1228,
+     "invalid_actions": 516,
+     "episode_return": -174.667,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 18634.41,
+     "avg_wait_incl_unadmitted_min": 18537.27,
+     "critical_avg_wait_min": 19107.31,
+     "low_acuity_isolation_avg_wait_min": 26822.77,
+     "p90_wait_incl_unadmitted_min": 41421.9,
+     "icu_utilization": 0.697,
+     "patients_still_waiting": 427,
+     "peak_waiting_queue": 464
+    },
+    {
+     "seed": 80006,
+     "decisions": 1233,
+     "invalid_actions": 525,
+     "episode_return": -198.13,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17167.18,
+     "avg_wait_incl_unadmitted_min": 17384.17,
+     "critical_avg_wait_min": 16473.27,
+     "low_acuity_isolation_avg_wait_min": 28928.47,
+     "p90_wait_incl_unadmitted_min": 38836.65,
+     "icu_utilization": 0.6407,
+     "patients_still_waiting": 457,
+     "peak_waiting_queue": 474
+    },
+    {
+     "seed": 80007,
+     "decisions": 1363,
+     "invalid_actions": 572,
+     "episode_return": -206.527,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16912.8,
+     "avg_wait_incl_unadmitted_min": 16976.69,
+     "critical_avg_wait_min": 16444.37,
+     "low_acuity_isolation_avg_wait_min": 29112.98,
+     "p90_wait_incl_unadmitted_min": 37901.88,
+     "icu_utilization": 0.7749,
+     "patients_still_waiting": 481,
+     "peak_waiting_queue": 498
+    },
+    {
+     "seed": 80008,
+     "decisions": 1214,
+     "invalid_actions": 449,
+     "episode_return": -100.156,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15850.36,
+     "avg_wait_incl_unadmitted_min": 15974.1,
+     "critical_avg_wait_min": 15646.87,
+     "low_acuity_isolation_avg_wait_min": 25163.26,
+     "p90_wait_incl_unadmitted_min": 35538.0,
+     "icu_utilization": 0.6482,
+     "patients_still_waiting": 349,
+     "peak_waiting_queue": 372
+    },
+    {
+     "seed": 80009,
+     "decisions": 1231,
+     "invalid_actions": 538,
+     "episode_return": -201.289,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16323.05,
+     "avg_wait_incl_unadmitted_min": 17206.51,
+     "critical_avg_wait_min": 14645.9,
+     "low_acuity_isolation_avg_wait_min": 27631.53,
+     "p90_wait_incl_unadmitted_min": 38333.98,
+     "icu_utilization": 0.7236,
+     "patients_still_waiting": 423,
+     "peak_waiting_queue": 452
+    },
+    {
+     "seed": 80010,
+     "decisions": 1220,
+     "invalid_actions": 501,
+     "episode_return": -150.462,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16663.87,
+     "avg_wait_incl_unadmitted_min": 16903.95,
+     "critical_avg_wait_min": 14992.18,
+     "low_acuity_isolation_avg_wait_min": 27949.26,
+     "p90_wait_incl_unadmitted_min": 38250.1,
+     "icu_utilization": 0.7469,
+     "patients_still_waiting": 404,
+     "peak_waiting_queue": 434
+    },
+    {
+     "seed": 80011,
+     "decisions": 1228,
+     "invalid_actions": 509,
+     "episode_return": -178.389,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15778.32,
+     "avg_wait_incl_unadmitted_min": 16145.31,
+     "critical_avg_wait_min": 15364.2,
+     "low_acuity_isolation_avg_wait_min": 23544.37,
+     "p90_wait_incl_unadmitted_min": 34728.88,
+     "icu_utilization": 0.5917,
+     "patients_still_waiting": 419,
+     "peak_waiting_queue": 441
+    },
+    {
+     "seed": 80012,
+     "decisions": 1227,
+     "invalid_actions": 537,
+     "episode_return": -215.111,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17877.36,
+     "avg_wait_incl_unadmitted_min": 17715.99,
+     "critical_avg_wait_min": 17308.36,
+     "low_acuity_isolation_avg_wait_min": 25138.02,
+     "p90_wait_incl_unadmitted_min": 38142.6,
+     "icu_utilization": 0.7118,
+     "patients_still_waiting": 453,
+     "peak_waiting_queue": 466
+    },
+    {
+     "seed": 80013,
+     "decisions": 1216,
+     "invalid_actions": 511,
+     "episode_return": -168.406,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16467.25,
+     "avg_wait_incl_unadmitted_min": 16680.04,
+     "critical_avg_wait_min": 16350.91,
+     "low_acuity_isolation_avg_wait_min": 27437.88,
+     "p90_wait_incl_unadmitted_min": 36594.15,
+     "icu_utilization": 0.6696,
+     "patients_still_waiting": 404,
+     "peak_waiting_queue": 418
+    },
+    {
+     "seed": 80014,
+     "decisions": 1205,
+     "invalid_actions": 493,
+     "episode_return": -170.527,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16767.57,
+     "avg_wait_incl_unadmitted_min": 16852.88,
+     "critical_avg_wait_min": 16096.78,
+     "low_acuity_isolation_avg_wait_min": 25117.67,
+     "p90_wait_incl_unadmitted_min": 35941.47,
+     "icu_utilization": 0.5224,
+     "patients_still_waiting": 416,
+     "peak_waiting_queue": 434
+    },
+    {
+     "seed": 80015,
+     "decisions": 1334,
+     "invalid_actions": 585,
+     "episode_return": -218.958,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17111.97,
+     "avg_wait_incl_unadmitted_min": 17291.22,
+     "critical_avg_wait_min": 15749.73,
+     "low_acuity_isolation_avg_wait_min": 27536.6,
+     "p90_wait_incl_unadmitted_min": 38361.95,
+     "icu_utilization": 0.726,
+     "patients_still_waiting": 468,
+     "peak_waiting_queue": 485
+    },
+    {
+     "seed": 80016,
+     "decisions": 1323,
+     "invalid_actions": 568,
+     "episode_return": -205.66,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16419.75,
+     "avg_wait_incl_unadmitted_min": 16842.7,
+     "critical_avg_wait_min": 15654.65,
+     "low_acuity_isolation_avg_wait_min": 25448.96,
+     "p90_wait_incl_unadmitted_min": 35708.52,
+     "icu_utilization": 0.7123,
+     "patients_still_waiting": 439,
+     "peak_waiting_queue": 471
+    },
+    {
+     "seed": 80017,
+     "decisions": 1307,
+     "invalid_actions": 552,
+     "episode_return": -194.217,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 16880.29,
+     "avg_wait_incl_unadmitted_min": 17589.54,
+     "critical_avg_wait_min": 16441.12,
+     "low_acuity_isolation_avg_wait_min": 26515.25,
+     "p90_wait_incl_unadmitted_min": 39297.77,
+     "icu_utilization": 0.6467,
+     "patients_still_waiting": 447,
+     "peak_waiting_queue": 463
+    },
+    {
+     "seed": 80018,
+     "decisions": 1267,
+     "invalid_actions": 539,
+     "episode_return": -212.369,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17830.41,
+     "avg_wait_incl_unadmitted_min": 17587.61,
+     "critical_avg_wait_min": 17142.78,
+     "low_acuity_isolation_avg_wait_min": 26478.59,
+     "p90_wait_incl_unadmitted_min": 37542.9,
+     "icu_utilization": 0.6828,
+     "patients_still_waiting": 478,
+     "peak_waiting_queue": 500
+    },
+    {
+     "seed": 80019,
+     "decisions": 1182,
+     "invalid_actions": 491,
+     "episode_return": -172.703,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 17376.44,
+     "avg_wait_incl_unadmitted_min": 17329.71,
+     "critical_avg_wait_min": 16524.51,
+     "low_acuity_isolation_avg_wait_min": 23666.75,
+     "p90_wait_incl_unadmitted_min": 38253.9,
+     "icu_utilization": 0.6276,
+     "patients_still_waiting": 433,
+     "peak_waiting_queue": 455
+    }
+   ],
+   "always_wait": [
+    {
+     "seed": 80000,
+     "decisions": 719,
+     "invalid_actions": 0,
+     "episode_return": -35.95,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31471.73,
+     "avg_wait_incl_unadmitted_min": 31694.28,
+     "critical_avg_wait_min": 31329.39,
+     "low_acuity_isolation_avg_wait_min": 34877.83,
+     "p90_wait_incl_unadmitted_min": 49640.7,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 719,
+     "peak_waiting_queue": 719
+    },
+    {
+     "seed": 80001,
+     "decisions": 826,
+     "invalid_actions": 0,
+     "episode_return": -41.3,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32062.21,
+     "avg_wait_incl_unadmitted_min": 32034.13,
+     "critical_avg_wait_min": 31660.33,
+     "low_acuity_isolation_avg_wait_min": 34429.17,
+     "p90_wait_incl_unadmitted_min": 49600.43,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 826,
+     "peak_waiting_queue": 826
+    },
+    {
+     "seed": 80002,
+     "decisions": 918,
+     "invalid_actions": 0,
+     "episode_return": -45.9,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31307.82,
+     "avg_wait_incl_unadmitted_min": 31556.94,
+     "critical_avg_wait_min": 30847.87,
+     "low_acuity_isolation_avg_wait_min": 29992.1,
+     "p90_wait_incl_unadmitted_min": 49475.37,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 918,
+     "peak_waiting_queue": 918
+    },
+    {
+     "seed": 80003,
+     "decisions": 862,
+     "invalid_actions": 0,
+     "episode_return": -43.1,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32556.63,
+     "avg_wait_incl_unadmitted_min": 31693.95,
+     "critical_avg_wait_min": 33344.86,
+     "low_acuity_isolation_avg_wait_min": 32140.8,
+     "p90_wait_incl_unadmitted_min": 48588.82,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 862,
+     "peak_waiting_queue": 862
+    },
+    {
+     "seed": 80004,
+     "decisions": 843,
+     "invalid_actions": 0,
+     "episode_return": -42.15,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32051.92,
+     "avg_wait_incl_unadmitted_min": 31513.57,
+     "critical_avg_wait_min": 32780.14,
+     "low_acuity_isolation_avg_wait_min": 32347.4,
+     "p90_wait_incl_unadmitted_min": 48444.38,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 843,
+     "peak_waiting_queue": 843
+    },
+    {
+     "seed": 80005,
+     "decisions": 839,
+     "invalid_actions": 0,
+     "episode_return": -41.95,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 33132.0,
+     "avg_wait_incl_unadmitted_min": 32642.44,
+     "critical_avg_wait_min": 34485.52,
+     "low_acuity_isolation_avg_wait_min": 33503.84,
+     "p90_wait_incl_unadmitted_min": 49590.6,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 839,
+     "peak_waiting_queue": 839
+    },
+    {
+     "seed": 80006,
+     "decisions": 848,
+     "invalid_actions": 0,
+     "episode_return": -42.4,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 30883.76,
+     "avg_wait_incl_unadmitted_min": 30659.7,
+     "critical_avg_wait_min": 30433.64,
+     "low_acuity_isolation_avg_wait_min": 31429.43,
+     "p90_wait_incl_unadmitted_min": 48330.05,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 848,
+     "peak_waiting_queue": 848
+    },
+    {
+     "seed": 80007,
+     "decisions": 924,
+     "invalid_actions": 0,
+     "episode_return": -46.2,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31810.56,
+     "avg_wait_incl_unadmitted_min": 31258.57,
+     "critical_avg_wait_min": 32215.88,
+     "low_acuity_isolation_avg_wait_min": 34757.92,
+     "p90_wait_incl_unadmitted_min": 48889.07,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 924,
+     "peak_waiting_queue": 924
+    },
+    {
+     "seed": 80008,
+     "decisions": 786,
+     "invalid_actions": 0,
+     "episode_return": -39.3,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32834.18,
+     "avg_wait_incl_unadmitted_min": 32690.28,
+     "critical_avg_wait_min": 32428.67,
+     "low_acuity_isolation_avg_wait_min": 31524.36,
+     "p90_wait_incl_unadmitted_min": 48950.83,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 786,
+     "peak_waiting_queue": 786
+    },
+    {
+     "seed": 80009,
+     "decisions": 834,
+     "invalid_actions": 0,
+     "episode_return": -41.7,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 30997.63,
+     "avg_wait_incl_unadmitted_min": 31038.44,
+     "critical_avg_wait_min": 30600.83,
+     "low_acuity_isolation_avg_wait_min": 32409.4,
+     "p90_wait_incl_unadmitted_min": 48493.82,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 834,
+     "peak_waiting_queue": 834
+    },
+    {
+     "seed": 80010,
+     "decisions": 821,
+     "invalid_actions": 0,
+     "episode_return": -41.05,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32658.25,
+     "avg_wait_incl_unadmitted_min": 31993.32,
+     "critical_avg_wait_min": 33233.56,
+     "low_acuity_isolation_avg_wait_min": 32321.13,
+     "p90_wait_incl_unadmitted_min": 49460.52,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 821,
+     "peak_waiting_queue": 821
+    },
+    {
+     "seed": 80011,
+     "decisions": 830,
+     "invalid_actions": 0,
+     "episode_return": -41.5,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 29596.59,
+     "avg_wait_incl_unadmitted_min": 30418.38,
+     "critical_avg_wait_min": 29122.47,
+     "low_acuity_isolation_avg_wait_min": 31487.64,
+     "p90_wait_incl_unadmitted_min": 48345.83,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 830,
+     "peak_waiting_queue": 830
+    },
+    {
+     "seed": 80012,
+     "decisions": 843,
+     "invalid_actions": 0,
+     "episode_return": -42.15,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32781.61,
+     "avg_wait_incl_unadmitted_min": 32275.66,
+     "critical_avg_wait_min": 33615.97,
+     "low_acuity_isolation_avg_wait_min": 30577.09,
+     "p90_wait_incl_unadmitted_min": 49245.33,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 843,
+     "peak_waiting_queue": 843
+    },
+    {
+     "seed": 80013,
+     "decisions": 815,
+     "invalid_actions": 0,
+     "episode_return": -40.75,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32524.35,
+     "avg_wait_incl_unadmitted_min": 32628.54,
+     "critical_avg_wait_min": 31741.18,
+     "low_acuity_isolation_avg_wait_min": 32272.44,
+     "p90_wait_incl_unadmitted_min": 49942.08,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 815,
+     "peak_waiting_queue": 815
+    },
+    {
+     "seed": 80014,
+     "decisions": 813,
+     "invalid_actions": 0,
+     "episode_return": -40.65,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 30976.11,
+     "avg_wait_incl_unadmitted_min": 31344.22,
+     "critical_avg_wait_min": 29803.04,
+     "low_acuity_isolation_avg_wait_min": 32454.12,
+     "p90_wait_incl_unadmitted_min": 48403.9,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 813,
+     "peak_waiting_queue": 813
+    },
+    {
+     "seed": 80015,
+     "decisions": 905,
+     "invalid_actions": 0,
+     "episode_return": -45.25,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31759.88,
+     "avg_wait_incl_unadmitted_min": 31796.46,
+     "critical_avg_wait_min": 31914.72,
+     "low_acuity_isolation_avg_wait_min": 32310.43,
+     "p90_wait_incl_unadmitted_min": 49422.83,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 905,
+     "peak_waiting_queue": 905
+    },
+    {
+     "seed": 80016,
+     "decisions": 887,
+     "invalid_actions": 0,
+     "episode_return": -44.35,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 30987.15,
+     "avg_wait_incl_unadmitted_min": 31442.2,
+     "critical_avg_wait_min": 30432.36,
+     "low_acuity_isolation_avg_wait_min": 30970.57,
+     "p90_wait_incl_unadmitted_min": 49678.5,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 887,
+     "peak_waiting_queue": 887
+    },
+    {
+     "seed": 80017,
+     "decisions": 881,
+     "invalid_actions": 0,
+     "episode_return": -44.05,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31691.51,
+     "avg_wait_incl_unadmitted_min": 32152.3,
+     "critical_avg_wait_min": 31555.34,
+     "low_acuity_isolation_avg_wait_min": 32630.8,
+     "p90_wait_incl_unadmitted_min": 48688.53,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 881,
+     "peak_waiting_queue": 881
+    },
+    {
+     "seed": 80018,
+     "decisions": 878,
+     "invalid_actions": 0,
+     "episode_return": -43.9,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 30874.11,
+     "avg_wait_incl_unadmitted_min": 31140.46,
+     "critical_avg_wait_min": 30711.18,
+     "low_acuity_isolation_avg_wait_min": 30816.69,
+     "p90_wait_incl_unadmitted_min": 49462.52,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 878,
+     "peak_waiting_queue": 878
+    },
+    {
+     "seed": 80019,
+     "decisions": 816,
+     "invalid_actions": 0,
+     "episode_return": -40.8,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31323.5,
+     "avg_wait_incl_unadmitted_min": 31344.36,
+     "critical_avg_wait_min": 31293.02,
+     "low_acuity_isolation_avg_wait_min": 28378.73,
+     "p90_wait_incl_unadmitted_min": 48799.18,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 816,
+     "peak_waiting_queue": 816
+    }
+   ]
+  },
+  "severe_surge": {
+   "b1": [
+    {
+     "seed": 80000,
+     "decisions": 2332,
+     "invalid_actions": 0,
+     "episode_return": 605.287,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13993.93,
+     "avg_wait_incl_unadmitted_min": 13138.82,
+     "critical_avg_wait_min": 14656.96,
+     "low_acuity_isolation_avg_wait_min": 17447.5,
+     "p90_wait_incl_unadmitted_min": 22000.6,
+     "icu_utilization": 0.9686,
+     "patients_still_waiting": 478,
+     "peak_waiting_queue": 654
+    },
+    {
+     "seed": 80001,
+     "decisions": 2338,
+     "invalid_actions": 0,
+     "episode_return": 621.034,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 12914.38,
+     "avg_wait_incl_unadmitted_min": 12500.6,
+     "critical_avg_wait_min": 13561.39,
+     "low_acuity_isolation_avg_wait_min": 21292.62,
+     "p90_wait_incl_unadmitted_min": 21220.42,
+     "icu_utilization": 0.9735,
+     "patients_still_waiting": 457,
+     "peak_waiting_queue": 635
+    },
+    {
+     "seed": 80002,
+     "decisions": 2450,
+     "invalid_actions": 0,
+     "episode_return": 585.476,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15074.2,
+     "avg_wait_incl_unadmitted_min": 14481.29,
+     "critical_avg_wait_min": 15574.96,
+     "low_acuity_isolation_avg_wait_min": 20759.79,
+     "p90_wait_incl_unadmitted_min": 24149.75,
+     "icu_utilization": 0.9853,
+     "patients_still_waiting": 594,
+     "peak_waiting_queue": 772
+    },
+    {
+     "seed": 80003,
+     "decisions": 2425,
+     "invalid_actions": 0,
+     "episode_return": 582.432,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14518.13,
+     "avg_wait_incl_unadmitted_min": 14400.63,
+     "critical_avg_wait_min": 14714.67,
+     "low_acuity_isolation_avg_wait_min": 22482.83,
+     "p90_wait_incl_unadmitted_min": 24153.68,
+     "icu_utilization": 0.9799,
+     "patients_still_waiting": 585,
+     "peak_waiting_queue": 762
+    },
+    {
+     "seed": 80004,
+     "decisions": 2319,
+     "invalid_actions": 0,
+     "episode_return": 585.093,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14182.28,
+     "avg_wait_incl_unadmitted_min": 13751.28,
+     "critical_avg_wait_min": 14561.08,
+     "low_acuity_isolation_avg_wait_min": 19265.98,
+     "p90_wait_incl_unadmitted_min": 23008.65,
+     "icu_utilization": 0.9759,
+     "patients_still_waiting": 480,
+     "peak_waiting_queue": 660
+    },
+    {
+     "seed": 80005,
+     "decisions": 2265,
+     "invalid_actions": 0,
+     "episode_return": 582.961,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13995.93,
+     "avg_wait_incl_unadmitted_min": 13527.34,
+     "critical_avg_wait_min": 14247.21,
+     "low_acuity_isolation_avg_wait_min": 21337.73,
+     "p90_wait_incl_unadmitted_min": 22718.68,
+     "icu_utilization": 0.9828,
+     "patients_still_waiting": 496,
+     "peak_waiting_queue": 671
+    },
+    {
+     "seed": 80006,
+     "decisions": 2380,
+     "invalid_actions": 0,
+     "episode_return": 594.085,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13829.74,
+     "avg_wait_incl_unadmitted_min": 13722.35,
+     "critical_avg_wait_min": 14169.05,
+     "low_acuity_isolation_avg_wait_min": 23892.09,
+     "p90_wait_incl_unadmitted_min": 23337.22,
+     "icu_utilization": 0.9695,
+     "patients_still_waiting": 579,
+     "peak_waiting_queue": 761
+    },
+    {
+     "seed": 80007,
+     "decisions": 2454,
+     "invalid_actions": 0,
+     "episode_return": 577.689,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14756.46,
+     "avg_wait_incl_unadmitted_min": 14623.09,
+     "critical_avg_wait_min": 14739.78,
+     "low_acuity_isolation_avg_wait_min": 21024.68,
+     "p90_wait_incl_unadmitted_min": 24847.6,
+     "icu_utilization": 0.9787,
+     "patients_still_waiting": 617,
+     "peak_waiting_queue": 802
+    },
+    {
+     "seed": 80008,
+     "decisions": 2336,
+     "invalid_actions": 0,
+     "episode_return": 581.465,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13476.32,
+     "avg_wait_incl_unadmitted_min": 13440.97,
+     "critical_avg_wait_min": 13634.56,
+     "low_acuity_isolation_avg_wait_min": 20387.14,
+     "p90_wait_incl_unadmitted_min": 22363.12,
+     "icu_utilization": 0.965,
+     "patients_still_waiting": 512,
+     "peak_waiting_queue": 697
+    },
+    {
+     "seed": 80009,
+     "decisions": 2355,
+     "invalid_actions": 0,
+     "episode_return": 605.112,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14214.07,
+     "avg_wait_incl_unadmitted_min": 13653.86,
+     "critical_avg_wait_min": 14772.21,
+     "low_acuity_isolation_avg_wait_min": 23353.43,
+     "p90_wait_incl_unadmitted_min": 22791.53,
+     "icu_utilization": 0.9676,
+     "patients_still_waiting": 486,
+     "peak_waiting_queue": 664
+    }
+   ],
+   "h1": [
+    {
+     "seed": 80000,
+     "decisions": 2347,
+     "invalid_actions": 0,
+     "episode_return": 599.957,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13807.71,
+     "avg_wait_incl_unadmitted_min": 13205.3,
+     "critical_avg_wait_min": 14268.49,
+     "low_acuity_isolation_avg_wait_min": 17447.5,
+     "p90_wait_incl_unadmitted_min": 22198.7,
+     "icu_utilization": 0.9368,
+     "patients_still_waiting": 480,
+     "peak_waiting_queue": 656
+    },
+    {
+     "seed": 80001,
+     "decisions": 2343,
+     "invalid_actions": 0,
+     "episode_return": 613.819,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 12866.47,
+     "avg_wait_incl_unadmitted_min": 12714.13,
+     "critical_avg_wait_min": 13358.6,
+     "low_acuity_isolation_avg_wait_min": 22574.29,
+     "p90_wait_incl_unadmitted_min": 21174.43,
+     "icu_utilization": 0.9314,
+     "patients_still_waiting": 458,
+     "peak_waiting_queue": 639
+    },
+    {
+     "seed": 80002,
+     "decisions": 2448,
+     "invalid_actions": 0,
+     "episode_return": 574.943,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15003.47,
+     "avg_wait_incl_unadmitted_min": 14675.64,
+     "critical_avg_wait_min": 15312.91,
+     "low_acuity_isolation_avg_wait_min": 20706.17,
+     "p90_wait_incl_unadmitted_min": 24364.67,
+     "icu_utilization": 0.9428,
+     "patients_still_waiting": 600,
+     "peak_waiting_queue": 775
+    },
+    {
+     "seed": 80003,
+     "decisions": 2435,
+     "invalid_actions": 0,
+     "episode_return": 575.193,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14339.41,
+     "avg_wait_incl_unadmitted_min": 14554.79,
+     "critical_avg_wait_min": 14297.6,
+     "low_acuity_isolation_avg_wait_min": 22398.84,
+     "p90_wait_incl_unadmitted_min": 23978.02,
+     "icu_utilization": 0.9555,
+     "patients_still_waiting": 583,
+     "peak_waiting_queue": 763
+    },
+    {
+     "seed": 80004,
+     "decisions": 2325,
+     "invalid_actions": 0,
+     "episode_return": 583.487,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14061.47,
+     "avg_wait_incl_unadmitted_min": 13778.83,
+     "critical_avg_wait_min": 14310.9,
+     "low_acuity_isolation_avg_wait_min": 19298.11,
+     "p90_wait_incl_unadmitted_min": 23000.2,
+     "icu_utilization": 0.9456,
+     "patients_still_waiting": 477,
+     "peak_waiting_queue": 656
+    },
+    {
+     "seed": 80005,
+     "decisions": 2294,
+     "invalid_actions": 0,
+     "episode_return": 573.682,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13723.11,
+     "avg_wait_incl_unadmitted_min": 13700.79,
+     "critical_avg_wait_min": 13529.42,
+     "low_acuity_isolation_avg_wait_min": 23321.8,
+     "p90_wait_incl_unadmitted_min": 22769.8,
+     "icu_utilization": 0.9362,
+     "patients_still_waiting": 499,
+     "peak_waiting_queue": 673
+    },
+    {
+     "seed": 80006,
+     "decisions": 2396,
+     "invalid_actions": 0,
+     "episode_return": 589.386,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13774.87,
+     "avg_wait_incl_unadmitted_min": 13783.34,
+     "critical_avg_wait_min": 13971.31,
+     "low_acuity_isolation_avg_wait_min": 24832.3,
+     "p90_wait_incl_unadmitted_min": 23375.87,
+     "icu_utilization": 0.9334,
+     "patients_still_waiting": 584,
+     "peak_waiting_queue": 764
+    },
+    {
+     "seed": 80007,
+     "decisions": 2460,
+     "invalid_actions": 0,
+     "episode_return": 572.469,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14645.64,
+     "avg_wait_incl_unadmitted_min": 14724.72,
+     "critical_avg_wait_min": 14431.92,
+     "low_acuity_isolation_avg_wait_min": 21542.68,
+     "p90_wait_incl_unadmitted_min": 24794.27,
+     "icu_utilization": 0.9444,
+     "patients_still_waiting": 616,
+     "peak_waiting_queue": 803
+    },
+    {
+     "seed": 80008,
+     "decisions": 2345,
+     "invalid_actions": 0,
+     "episode_return": 578.337,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13385.18,
+     "avg_wait_incl_unadmitted_min": 13526.06,
+     "critical_avg_wait_min": 13425.65,
+     "low_acuity_isolation_avg_wait_min": 21072.39,
+     "p90_wait_incl_unadmitted_min": 22287.17,
+     "icu_utilization": 0.9459,
+     "patients_still_waiting": 510,
+     "peak_waiting_queue": 698
+    },
+    {
+     "seed": 80009,
+     "decisions": 2360,
+     "invalid_actions": 0,
+     "episode_return": 597.247,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14087.96,
+     "avg_wait_incl_unadmitted_min": 13849.81,
+     "critical_avg_wait_min": 14335.44,
+     "low_acuity_isolation_avg_wait_min": 24458.97,
+     "p90_wait_incl_unadmitted_min": 22890.73,
+     "icu_utilization": 0.9446,
+     "patients_still_waiting": 486,
+     "peak_waiting_queue": 671
+    }
+   ],
+   "h2": [
+    {
+     "seed": 80000,
+     "decisions": 2320,
+     "invalid_actions": 0,
+     "episode_return": 583.237,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14083.02,
+     "avg_wait_incl_unadmitted_min": 13236.16,
+     "critical_avg_wait_min": 14754.21,
+     "low_acuity_isolation_avg_wait_min": 17591.37,
+     "p90_wait_incl_unadmitted_min": 22927.42,
+     "icu_utilization": 0.9686,
+     "patients_still_waiting": 521,
+     "peak_waiting_queue": 654
+    },
+    {
+     "seed": 80001,
+     "decisions": 2338,
+     "invalid_actions": 0,
+     "episode_return": 621.034,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 12914.38,
+     "avg_wait_incl_unadmitted_min": 12500.6,
+     "critical_avg_wait_min": 13561.39,
+     "low_acuity_isolation_avg_wait_min": 21292.62,
+     "p90_wait_incl_unadmitted_min": 21220.42,
+     "icu_utilization": 0.9735,
+     "patients_still_waiting": 457,
+     "peak_waiting_queue": 635
+    },
+    {
+     "seed": 80002,
+     "decisions": 2451,
+     "invalid_actions": 0,
+     "episode_return": 586.476,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15077.4,
+     "avg_wait_incl_unadmitted_min": 14474.3,
+     "critical_avg_wait_min": 15589.27,
+     "low_acuity_isolation_avg_wait_min": 20653.09,
+     "p90_wait_incl_unadmitted_min": 24149.75,
+     "icu_utilization": 0.9853,
+     "patients_still_waiting": 593,
+     "peak_waiting_queue": 772
+    },
+    {
+     "seed": 80003,
+     "decisions": 2428,
+     "invalid_actions": 0,
+     "episode_return": 584.475,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14539.9,
+     "avg_wait_incl_unadmitted_min": 14406.52,
+     "critical_avg_wait_min": 14760.59,
+     "low_acuity_isolation_avg_wait_min": 23487.59,
+     "p90_wait_incl_unadmitted_min": 24150.8,
+     "icu_utilization": 0.9799,
+     "patients_still_waiting": 582,
+     "peak_waiting_queue": 762
+    },
+    {
+     "seed": 80004,
+     "decisions": 2321,
+     "invalid_actions": 0,
+     "episode_return": 586.944,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14212.22,
+     "avg_wait_incl_unadmitted_min": 13699.74,
+     "critical_avg_wait_min": 14656.96,
+     "low_acuity_isolation_avg_wait_min": 18897.67,
+     "p90_wait_incl_unadmitted_min": 22998.82,
+     "icu_utilization": 0.976,
+     "patients_still_waiting": 478,
+     "peak_waiting_queue": 660
+    },
+    {
+     "seed": 80005,
+     "decisions": 2265,
+     "invalid_actions": 0,
+     "episode_return": 582.961,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13995.93,
+     "avg_wait_incl_unadmitted_min": 13527.34,
+     "critical_avg_wait_min": 14247.21,
+     "low_acuity_isolation_avg_wait_min": 21337.73,
+     "p90_wait_incl_unadmitted_min": 22718.68,
+     "icu_utilization": 0.9828,
+     "patients_still_waiting": 496,
+     "peak_waiting_queue": 671
+    },
+    {
+     "seed": 80006,
+     "decisions": 2380,
+     "invalid_actions": 0,
+     "episode_return": 594.085,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13829.74,
+     "avg_wait_incl_unadmitted_min": 13722.35,
+     "critical_avg_wait_min": 14169.05,
+     "low_acuity_isolation_avg_wait_min": 23892.09,
+     "p90_wait_incl_unadmitted_min": 23337.22,
+     "icu_utilization": 0.9695,
+     "patients_still_waiting": 579,
+     "peak_waiting_queue": 761
+    },
+    {
+     "seed": 80007,
+     "decisions": 2454,
+     "invalid_actions": 0,
+     "episode_return": 577.689,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14756.46,
+     "avg_wait_incl_unadmitted_min": 14623.09,
+     "critical_avg_wait_min": 14739.78,
+     "low_acuity_isolation_avg_wait_min": 21024.68,
+     "p90_wait_incl_unadmitted_min": 24847.6,
+     "icu_utilization": 0.9787,
+     "patients_still_waiting": 617,
+     "peak_waiting_queue": 802
+    },
+    {
+     "seed": 80008,
+     "decisions": 2336,
+     "invalid_actions": 0,
+     "episode_return": 581.465,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13476.32,
+     "avg_wait_incl_unadmitted_min": 13440.97,
+     "critical_avg_wait_min": 13634.56,
+     "low_acuity_isolation_avg_wait_min": 20387.14,
+     "p90_wait_incl_unadmitted_min": 22363.12,
+     "icu_utilization": 0.965,
+     "patients_still_waiting": 512,
+     "peak_waiting_queue": 697
+    },
+    {
+     "seed": 80009,
+     "decisions": 2355,
+     "invalid_actions": 0,
+     "episode_return": 605.112,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14214.07,
+     "avg_wait_incl_unadmitted_min": 13653.86,
+     "critical_avg_wait_min": 14772.21,
+     "low_acuity_isolation_avg_wait_min": 23353.43,
+     "p90_wait_incl_unadmitted_min": 22791.53,
+     "icu_utilization": 0.9676,
+     "patients_still_waiting": 486,
+     "peak_waiting_queue": 664
+    }
+   ],
+   "h3": [
+    {
+     "seed": 80000,
+     "decisions": 2349,
+     "invalid_actions": 0,
+     "episode_return": 602.457,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13821.86,
+     "avg_wait_incl_unadmitted_min": 13200.85,
+     "critical_avg_wait_min": 14298.7,
+     "low_acuity_isolation_avg_wait_min": 17521.15,
+     "p90_wait_incl_unadmitted_min": 22275.75,
+     "icu_utilization": 0.9368,
+     "patients_still_waiting": 478,
+     "peak_waiting_queue": 656
+    },
+    {
+     "seed": 80001,
+     "decisions": 2343,
+     "invalid_actions": 0,
+     "episode_return": 613.819,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 12866.47,
+     "avg_wait_incl_unadmitted_min": 12714.13,
+     "critical_avg_wait_min": 13358.6,
+     "low_acuity_isolation_avg_wait_min": 22574.29,
+     "p90_wait_incl_unadmitted_min": 21174.43,
+     "icu_utilization": 0.9314,
+     "patients_still_waiting": 458,
+     "peak_waiting_queue": 639
+    },
+    {
+     "seed": 80002,
+     "decisions": 2448,
+     "invalid_actions": 0,
+     "episode_return": 574.943,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 15003.47,
+     "avg_wait_incl_unadmitted_min": 14675.64,
+     "critical_avg_wait_min": 15312.91,
+     "low_acuity_isolation_avg_wait_min": 20706.17,
+     "p90_wait_incl_unadmitted_min": 24364.67,
+     "icu_utilization": 0.9428,
+     "patients_still_waiting": 600,
+     "peak_waiting_queue": 775
+    },
+    {
+     "seed": 80003,
+     "decisions": 2434,
+     "invalid_actions": 0,
+     "episode_return": 574.488,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14334.24,
+     "avg_wait_incl_unadmitted_min": 14568.45,
+     "critical_avg_wait_min": 14282.63,
+     "low_acuity_isolation_avg_wait_min": 22118.27,
+     "p90_wait_incl_unadmitted_min": 24093.5,
+     "icu_utilization": 0.9554,
+     "patients_still_waiting": 584,
+     "peak_waiting_queue": 763
+    },
+    {
+     "seed": 80004,
+     "decisions": 2324,
+     "invalid_actions": 0,
+     "episode_return": 583.849,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14054.92,
+     "avg_wait_incl_unadmitted_min": 13760.6,
+     "critical_avg_wait_min": 14312.23,
+     "low_acuity_isolation_avg_wait_min": 18563.91,
+     "p90_wait_incl_unadmitted_min": 22929.18,
+     "icu_utilization": 0.9457,
+     "patients_still_waiting": 478,
+     "peak_waiting_queue": 658
+    },
+    {
+     "seed": 80005,
+     "decisions": 2298,
+     "invalid_actions": 0,
+     "episode_return": 576.501,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13762.19,
+     "avg_wait_incl_unadmitted_min": 13665.46,
+     "critical_avg_wait_min": 13622.77,
+     "low_acuity_isolation_avg_wait_min": 22807.2,
+     "p90_wait_incl_unadmitted_min": 22718.68,
+     "icu_utilization": 0.9363,
+     "patients_still_waiting": 495,
+     "peak_waiting_queue": 672
+    },
+    {
+     "seed": 80006,
+     "decisions": 2396,
+     "invalid_actions": 0,
+     "episode_return": 589.386,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13774.87,
+     "avg_wait_incl_unadmitted_min": 13783.34,
+     "critical_avg_wait_min": 13971.31,
+     "low_acuity_isolation_avg_wait_min": 24832.3,
+     "p90_wait_incl_unadmitted_min": 23375.87,
+     "icu_utilization": 0.9334,
+     "patients_still_waiting": 584,
+     "peak_waiting_queue": 764
+    },
+    {
+     "seed": 80007,
+     "decisions": 2460,
+     "invalid_actions": 0,
+     "episode_return": 572.469,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14645.64,
+     "avg_wait_incl_unadmitted_min": 14724.72,
+     "critical_avg_wait_min": 14431.92,
+     "low_acuity_isolation_avg_wait_min": 21542.68,
+     "p90_wait_incl_unadmitted_min": 24794.27,
+     "icu_utilization": 0.9444,
+     "patients_still_waiting": 616,
+     "peak_waiting_queue": 803
+    },
+    {
+     "seed": 80008,
+     "decisions": 2345,
+     "invalid_actions": 0,
+     "episode_return": 577.645,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 13397.91,
+     "avg_wait_incl_unadmitted_min": 13505.78,
+     "critical_avg_wait_min": 13477.63,
+     "low_acuity_isolation_avg_wait_min": 20387.14,
+     "p90_wait_incl_unadmitted_min": 22279.57,
+     "icu_utilization": 0.9459,
+     "patients_still_waiting": 511,
+     "peak_waiting_queue": 699
+    },
+    {
+     "seed": 80009,
+     "decisions": 2360,
+     "invalid_actions": 0,
+     "episode_return": 597.247,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 14087.96,
+     "avg_wait_incl_unadmitted_min": 13849.81,
+     "critical_avg_wait_min": 14335.44,
+     "low_acuity_isolation_avg_wait_min": 24458.97,
+     "p90_wait_incl_unadmitted_min": 22890.73,
+     "icu_utilization": 0.9446,
+     "patients_still_waiting": 486,
+     "peak_waiting_queue": 671
+    }
+   ],
+   "random": [
+    {
+     "seed": 80000,
+     "decisions": 2079,
+     "invalid_actions": 919,
+     "episode_return": -404.416,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 19140.6,
+     "avg_wait_incl_unadmitted_min": 18654.73,
+     "critical_avg_wait_min": 19537.91,
+     "low_acuity_isolation_avg_wait_min": 24986.15,
+     "p90_wait_incl_unadmitted_min": 39192.33,
+     "icu_utilization": 0.8676,
+     "patients_still_waiting": 837,
+     "peak_waiting_queue": 860
+    },
+    {
+     "seed": 80001,
+     "decisions": 2087,
+     "invalid_actions": 917,
+     "episode_return": -378.949,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 18825.33,
+     "avg_wait_incl_unadmitted_min": 18411.82,
+     "critical_avg_wait_min": 19742.63,
+     "low_acuity_isolation_avg_wait_min": 28096.08,
+     "p90_wait_incl_unadmitted_min": 39771.97,
+     "icu_utilization": 0.8238,
+     "patients_still_waiting": 801,
+     "peak_waiting_queue": 836
+    },
+    {
+     "seed": 80002,
+     "decisions": 2183,
+     "invalid_actions": 1049,
+     "episode_return": -527.278,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 20358.53,
+     "avg_wait_incl_unadmitted_min": 19416.33,
+     "critical_avg_wait_min": 21187.73,
+     "low_acuity_isolation_avg_wait_min": 26701.73,
+     "p90_wait_incl_unadmitted_min": 40049.38,
+     "icu_utilization": 0.8985,
+     "patients_still_waiting": 954,
+     "peak_waiting_queue": 970
+    },
+    {
+     "seed": 80003,
+     "decisions": 2177,
+     "invalid_actions": 1015,
+     "episode_return": -494.125,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 19569.41,
+     "avg_wait_incl_unadmitted_min": 19236.85,
+     "critical_avg_wait_min": 19929.27,
+     "low_acuity_isolation_avg_wait_min": 30014.02,
+     "p90_wait_incl_unadmitted_min": 39807.67,
+     "icu_utilization": 0.8916,
+     "patients_still_waiting": 928,
+     "peak_waiting_queue": 955
+    },
+    {
+     "seed": 80004,
+     "decisions": 2021,
+     "invalid_actions": 941,
+     "episode_return": -452.447,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 20395.29,
+     "avg_wait_incl_unadmitted_min": 20230.03,
+     "critical_avg_wait_min": 20663.53,
+     "low_acuity_isolation_avg_wait_min": 30354.29,
+     "p90_wait_incl_unadmitted_min": 41579.05,
+     "icu_utilization": 0.8662,
+     "patients_still_waiting": 873,
+     "peak_waiting_queue": 906
+    },
+    {
+     "seed": 80005,
+     "decisions": 2028,
+     "invalid_actions": 918,
+     "episode_return": -420.591,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 19599.54,
+     "avg_wait_incl_unadmitted_min": 19321.93,
+     "critical_avg_wait_min": 19699.23,
+     "low_acuity_isolation_avg_wait_min": 30524.38,
+     "p90_wait_incl_unadmitted_min": 41243.63,
+     "icu_utilization": 0.8387,
+     "patients_still_waiting": 856,
+     "peak_waiting_queue": 883
+    },
+    {
+     "seed": 80006,
+     "decisions": 2162,
+     "invalid_actions": 980,
+     "episode_return": -456.663,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 18963.42,
+     "avg_wait_incl_unadmitted_min": 18913.15,
+     "critical_avg_wait_min": 19372.77,
+     "low_acuity_isolation_avg_wait_min": 28741.07,
+     "p90_wait_incl_unadmitted_min": 39434.42,
+     "icu_utilization": 0.8635,
+     "patients_still_waiting": 914,
+     "peak_waiting_queue": 948
+    },
+    {
+     "seed": 80007,
+     "decisions": 2234,
+     "invalid_actions": 1018,
+     "episode_return": -467.135,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 19422.43,
+     "avg_wait_incl_unadmitted_min": 18917.92,
+     "critical_avg_wait_min": 20319.01,
+     "low_acuity_isolation_avg_wait_min": 26394.35,
+     "p90_wait_incl_unadmitted_min": 39865.27,
+     "icu_utilization": 0.8447,
+     "patients_still_waiting": 928,
+     "peak_waiting_queue": 956
+    },
+    {
+     "seed": 80008,
+     "decisions": 2088,
+     "invalid_actions": 935,
+     "episode_return": -419.946,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 18924.95,
+     "avg_wait_incl_unadmitted_min": 18754.67,
+     "critical_avg_wait_min": 19522.31,
+     "low_acuity_isolation_avg_wait_min": 27146.8,
+     "p90_wait_incl_unadmitted_min": 40146.52,
+     "icu_utilization": 0.8641,
+     "patients_still_waiting": 857,
+     "peak_waiting_queue": 883
+    },
+    {
+     "seed": 80009,
+     "decisions": 2105,
+     "invalid_actions": 921,
+     "episode_return": -391.143,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 19065.73,
+     "avg_wait_incl_unadmitted_min": 18780.05,
+     "critical_avg_wait_min": 19300.6,
+     "low_acuity_isolation_avg_wait_min": 29157.87,
+     "p90_wait_incl_unadmitted_min": 39610.35,
+     "icu_utilization": 0.8802,
+     "patients_still_waiting": 833,
+     "peak_waiting_queue": 859
+    }
+   ],
+   "always_wait": [
+    {
+     "seed": 80000,
+     "decisions": 1466,
+     "invalid_actions": 0,
+     "episode_return": -73.3,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31715.61,
+     "avg_wait_incl_unadmitted_min": 31740.3,
+     "critical_avg_wait_min": 31576.8,
+     "low_acuity_isolation_avg_wait_min": 30149.18,
+     "p90_wait_incl_unadmitted_min": 48694.2,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1466,
+     "peak_waiting_queue": 1466
+    },
+    {
+     "seed": 80001,
+     "decisions": 1453,
+     "invalid_actions": 0,
+     "episode_return": -72.65,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31781.77,
+     "avg_wait_incl_unadmitted_min": 31883.47,
+     "critical_avg_wait_min": 31504.87,
+     "low_acuity_isolation_avg_wait_min": 32467.48,
+     "p90_wait_incl_unadmitted_min": 49635.18,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1453,
+     "peak_waiting_queue": 1453
+    },
+    {
+     "seed": 80002,
+     "decisions": 1574,
+     "invalid_actions": 0,
+     "episode_return": -78.7,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32204.41,
+     "avg_wait_incl_unadmitted_min": 31856.18,
+     "critical_avg_wait_min": 32710.57,
+     "low_acuity_isolation_avg_wait_min": 30155.44,
+     "p90_wait_incl_unadmitted_min": 49402.55,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1574,
+     "peak_waiting_queue": 1574
+    },
+    {
+     "seed": 80003,
+     "decisions": 1559,
+     "invalid_actions": 0,
+     "episode_return": -77.95,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31844.08,
+     "avg_wait_incl_unadmitted_min": 31691.98,
+     "critical_avg_wait_min": 31825.79,
+     "low_acuity_isolation_avg_wait_min": 32147.14,
+     "p90_wait_incl_unadmitted_min": 49105.55,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1559,
+     "peak_waiting_queue": 1559
+    },
+    {
+     "seed": 80004,
+     "decisions": 1453,
+     "invalid_actions": 0,
+     "episode_return": -72.65,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32404.02,
+     "avg_wait_incl_unadmitted_min": 32251.9,
+     "critical_avg_wait_min": 32622.08,
+     "low_acuity_isolation_avg_wait_min": 33855.87,
+     "p90_wait_incl_unadmitted_min": 49522.73,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1453,
+     "peak_waiting_queue": 1453
+    },
+    {
+     "seed": 80005,
+     "decisions": 1449,
+     "invalid_actions": 0,
+     "episode_return": -72.45,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31935.07,
+     "avg_wait_incl_unadmitted_min": 31706.15,
+     "critical_avg_wait_min": 32234.65,
+     "low_acuity_isolation_avg_wait_min": 33547.56,
+     "p90_wait_incl_unadmitted_min": 48495.13,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1449,
+     "peak_waiting_queue": 1449
+    },
+    {
+     "seed": 80006,
+     "decisions": 1545,
+     "invalid_actions": 0,
+     "episode_return": -77.25,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 30977.76,
+     "avg_wait_incl_unadmitted_min": 30887.02,
+     "critical_avg_wait_min": 30812.8,
+     "low_acuity_isolation_avg_wait_min": 32510.11,
+     "p90_wait_incl_unadmitted_min": 48018.75,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1545,
+     "peak_waiting_queue": 1545
+    },
+    {
+     "seed": 80007,
+     "decisions": 1588,
+     "invalid_actions": 0,
+     "episode_return": -79.4,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31701.33,
+     "avg_wait_incl_unadmitted_min": 31596.72,
+     "critical_avg_wait_min": 31918.13,
+     "low_acuity_isolation_avg_wait_min": 31115.84,
+     "p90_wait_incl_unadmitted_min": 48977.67,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1588,
+     "peak_waiting_queue": 1588
+    },
+    {
+     "seed": 80008,
+     "decisions": 1479,
+     "invalid_actions": 0,
+     "episode_return": -73.95,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 31711.71,
+     "avg_wait_incl_unadmitted_min": 31626.11,
+     "critical_avg_wait_min": 31636.02,
+     "low_acuity_isolation_avg_wait_min": 30846.95,
+     "p90_wait_incl_unadmitted_min": 49693.0,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1479,
+     "peak_waiting_queue": 1479
+    },
+    {
+     "seed": 80009,
+     "decisions": 1475,
+     "invalid_actions": 0,
+     "episode_return": -73.75,
+     "constraint_violations": 0,
+     "acuity_weighted_avg_wait_min": 32104.03,
+     "avg_wait_incl_unadmitted_min": 32267.18,
+     "critical_avg_wait_min": 31769.43,
+     "low_acuity_isolation_avg_wait_min": 34953.38,
+     "p90_wait_incl_unadmitted_min": 49437.23,
+     "icu_utilization": 0.0,
+     "patients_still_waiting": 1475,
+     "peak_waiting_queue": 1475
+    }
+   ]
+  }
+ }
+}

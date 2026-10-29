@@ -22,6 +22,8 @@ from gymnasium import spaces
 
 from ml.los.predictor import LOSPredictor
 from simulator.hospital.allocation_rules import AllocationDecision, allocation_for_bed_type
+from rl.environment.rewards import (DEFAULT_ACUITY_WEIGHTS, QueueCostTracker,
+                                    validate_weights)
 from simulator.hospital.engine import SimulationEngine
 from simulator.hospital.loader import load_hospital_state, load_patients
 from simulator.hospital.state import HospitalState
@@ -41,13 +43,19 @@ OBSERVATION_FEATURES = (
     "step_down_beds_available",
     "ward_beds_available",
     "ventilators_available",
-    "waiting_queue_size",          # waiting / patients in the episode
+    "waiting_queue_size",          # log1p(waiting) / log1p(200), capped at 1
     "icu_isolation_beds_available",        # available / total isolation-capable, per tier
     "step_down_isolation_beds_available",
     "ward_isolation_beds_available",
     "critical_share_of_queue",     # waiting patients with acuity >= 4 / waiting patients
 )
 N_OBSERVATIONS = len(OBSERVATION_FEATURES)
+
+# Waiting-queue feature: log scale so that 3, 11 and 118 waiting patients stay
+# distinguishable, and so the value does not depend on the size of the episode.
+QUEUE_LOG_CAP = 200
+
+REWARD_MODES = ("legacy", "queue_cost")
 
 
 class CareGridHospitalEnv(gym.Env):
@@ -73,6 +81,9 @@ class CareGridHospitalEnv(gym.Env):
         invalid_action_penalty: float = 1.0,
         admission_reward: float = 1.0,
         patient_source: Optional[Callable[[np.random.Generator], list]] = None,
+        reward_mode: str = "legacy",
+        acuity_weights: Optional[dict] = None,
+        reward_scale: float = 10.0,
     ) -> None:
         super().__init__()
         project_root = Path(__file__).resolve().parents[2]
@@ -87,6 +98,15 @@ class CareGridHospitalEnv(gym.Env):
         self.invalid_action_penalty = float(invalid_action_penalty)
         self.admission_reward = float(admission_reward)
         self.patient_source = patient_source
+        if reward_mode not in REWARD_MODES:
+            raise ValueError(f"reward_mode must be one of {REWARD_MODES}, got {reward_mode!r}")
+        if reward_scale <= 0:
+            raise ValueError("reward_scale must be positive")
+        self.reward_mode = reward_mode
+        self.acuity_weights = validate_weights(acuity_weights)
+        self.reward_scale = float(reward_scale)
+        self._tracker = QueueCostTracker(self.acuity_weights)
+        self._user_tick: Optional[Callable] = None
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
             low=0.0, high=1.0, shape=(N_OBSERVATIONS,), dtype=np.float32)
@@ -107,6 +127,28 @@ class CareGridHospitalEnv(gym.Env):
         if self._current_patient_id is None:
             return None
         return self._patients.get(self._current_patient_id)
+
+    def _on_tick(self, state: HospitalState) -> None:
+        """Engine hook: charge the queue cost, then forward to the caller's own hook
+        (e.g. a MetricsCollector given through reset(options={'on_tick': ...}))."""
+        if self.reward_mode == "queue_cost":
+            self._tracker.update(state, self._patients)
+        if self._user_tick is not None:
+            self._user_tick(state)
+
+    def valid_actions(self) -> np.ndarray:
+        """Boolean mask over the 4 actions for the CURRENT patient: True where the hard
+        rules (tier for the acuity, isolation bed, ventilator, bed free) allow it.
+        WAIT is always valid. Use it to mask Q-values when acting (never to train)."""
+        mask = np.zeros(4, dtype=bool)
+        mask[WAIT_ACTION] = True
+        patient = self.current_patient
+        if patient is None or self.state is None:
+            return mask
+        for index, bed_type in enumerate(BED_ACTIONS):
+            decision, _ = allocation_for_bed_type(patient, self.state, bed_type)
+            mask[index] = decision is not None
+        return mask
 
     def _ensure_predictor(self) -> Any:
         if self.los_predictor is None:
@@ -141,8 +183,9 @@ class CareGridHospitalEnv(gym.Env):
         self._patients = {patient.patient_id: patient for patient in loaded_patients}
         self._los_estimates = self._estimate_los(loaded_patients)
         self.engine = SimulationEngine(self.state, list(self._patients.values()))
-        self.engine.enable_external_decisions(
-            on_tick=(options or {}).get("on_tick"))
+        self._user_tick = (options or {}).get("on_tick")
+        self._tracker.reset()
+        self.engine.enable_external_decisions(on_tick=self._on_tick)
         self.engine.seed_arrivals()
         self._start_time = min(p.arrival_time for p in self._patients.values())
         self._end_time = self._start_time + timedelta(days=self.max_episode_days)
@@ -203,6 +246,14 @@ class CareGridHospitalEnv(gym.Env):
             "decision_count": self._decision_count,
         }
         self._advance_to_decision()
+        if self.reward_mode == "queue_cost":
+            if self._done:
+                self._tracker.close(self._end_time)
+            cost = self._tracker.pop()
+            reward = -cost / self.reward_scale
+            if invalid_reason is not None:
+                reward -= self.invalid_action_penalty
+            self._last_info["queue_cost"] = cost
         terminated = self._done and not self._last_info.get("time_limit_reached", False)
         truncated = self._done and self._last_info.get("time_limit_reached", False)
         return self._observation(), float(reward), terminated, truncated, self._info()
@@ -253,7 +304,7 @@ class CareGridHospitalEnv(gym.Env):
         vents = [e for e in self.state.equipment.values() if e.type == "VENTILATOR"]
         available_vents = sum(e.status == "AVAILABLE" for e in vents)
         values.append(available_vents / len(vents) if vents else 0.0)
-        values.append(min(len(self.state.waiting_queue) / max(len(self._patients), 1), 1.0))
+        values.append(min(float(np.log1p(len(self.state.waiting_queue))) / np.log1p(QUEUE_LOG_CAP), 1.0))
         for bed_type in BED_ACTIONS:
             iso_beds = [b for b in self.state.beds_by_type(bed_type) if b.isolation_capable]
             free = sum(b.status == "AVAILABLE" for b in iso_beds)

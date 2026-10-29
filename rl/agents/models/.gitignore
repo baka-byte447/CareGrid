@@ -1,0 +1,5 @@
+# trained weights, logs and monitor files stay local; metadata.json and val_log.csv are committed
+*.zip
+*.tfevents*
+monitor*.csv
+logs/

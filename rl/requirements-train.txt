@@ -1,0 +1,7 @@
+# Extra packages needed ONLY to train / evaluate DQN agents (Phase 8).
+# Not part of requirements-dev.txt: torch is large, and everyone else must still be able to
+# run the whole test suite without it (the SB3 tests skip themselves).
+# CPU-only torch (smaller, and faster for this small network):
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+stable-baselines3>=2.7,<3
+torch>=2.8

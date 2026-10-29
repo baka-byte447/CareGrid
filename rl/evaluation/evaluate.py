@@ -23,6 +23,7 @@ from typing import Any, Dict, List, Optional, Sequence
 import numpy as np
 
 from rl.environment.hospital_env import CareGridHospitalEnv
+from rl.environment.rewards import DEFAULT_ACUITY_WEIGHTS
 from rl.evaluation.policies import BASELINES, Policy
 from simulator.metrics.collector import MetricsCollector
 from simulator.metrics.summary import compute_metrics
@@ -36,17 +37,50 @@ SUMMARY_KEYS = (
     "icu_utilization", "step_down_utilization", "ward_utilization",
     "overall_bed_utilization", "bed_turnover_per_bed_per_day",
     "patients_still_waiting", "peak_waiting_queue",
+    "acuity_weighted_avg_wait_min", "critical_avg_wait_min", "low_acuity_isolation_avg_wait_min",
 )
+
+
+def wait_group_metrics(patients, as_of, weights=None) -> Dict[str, Any]:
+    """Waiting-time metrics that depend on WHO waited (all censored at `as_of`: a patient
+    never admitted counts as waiting until then, identically for every policy).
+
+    acuity_weighted_avg_wait_min   sum(w * wait) / sum(w): the training objective
+    critical_avg_wait_min          acuity 4-5
+    low_acuity_isolation_avg_wait_min   acuity 1-2 needing isolation (None if none exist)"""
+    weights = weights or DEFAULT_ACUITY_WEIGHTS
+    rows = []
+    for p in patients:
+        if p.arrival_time > as_of:
+            continue
+        end = p.admission_time if p.admission_time is not None else as_of
+        rows.append((p, max((end - p.arrival_time).total_seconds() / 60.0, 0.0)))
+
+    def mean(selected):
+        return round(sum(w for _, w in selected) / len(selected), 2) if selected else None
+
+    total_w = sum(weights[p.acuity] for p, _ in rows)
+    weighted = (sum(weights[p.acuity] * w for p, w in rows) / total_w) if total_w else 0.0
+    return {
+        "acuity_weighted_avg_wait_min": round(weighted, 2),
+        "critical_avg_wait_min": mean([r for r in rows if r[0].acuity >= 4]),
+        "low_acuity_isolation_avg_wait_min": mean(
+            [r for r in rows if r[0].acuity <= 2 and r[0].isolation_required]),
+    }
 
 
 def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7.0,
                     los_predictor: Any = None, name: str = "policy",
-                    data_dir: Optional[str] = None) -> Dict[str, Any]:
+                    data_dir: Optional[str] = None,
+                    record_actions: bool = False) -> Dict[str, Any]:
     """Run one episode over `patients` and return the standard metrics.
 
     The episode lasts until `drain_days` after the last arrival; patients still
     waiting then are reported as such. Utilization is measured between the first and
-    last arrival (same window as experiments/run_experiment.py)."""
+    last arrival (same window as experiments/run_experiment.py).
+
+    record_actions=True adds result['action_counts']: for each acuity '1'..'5' how often
+    each action [ICU, STEP_DOWN, WARD, WAIT] was chosen (what the policy actually does)."""
     arrivals = [p.arrival_time for p in patients]
     start, last = min(arrivals), max(arrivals)
     horizon_days = (last - start).total_seconds() / 86400 + drain_days
@@ -57,21 +91,29 @@ def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7
     obs, _ = env.reset(seed=0, options={"patients": list(patients),
                                         "on_tick": collector.on_tick})
     total_reward, decisions, invalid = 0.0, 0, 0
+    action_counts = {str(a): [0, 0, 0, 0] for a in range(1, 6)}
     while True:
-        obs, reward, terminated, truncated, info = env.step(policy(obs, env))
+        action = policy(obs, env)
+        if record_actions and env.current_patient is not None:
+            action_counts[str(env.current_patient.acuity)][int(action)] += 1
+        obs, reward, terminated, truncated, info = env.step(action)
         total_reward += reward
         decisions += 1
         invalid += info.get("invalid_reason") is not None
         if terminated or truncated:
             break
+    as_of = start + timedelta(days=horizon_days)
+    metrics = compute_metrics(env.engine, collector, as_of=as_of)
+    metrics.update(wait_group_metrics(env.engine.patients.values(), as_of))
     result = {
         "policy": name,
         "decisions": decisions,
         "invalid_actions": int(invalid),
         "episode_return": round(total_reward, 3),
-        "metrics": compute_metrics(env.engine, collector,
-                                   as_of=start + timedelta(days=horizon_days)),
+        "metrics": metrics,
     }
+    if record_actions:
+        result["action_counts"] = action_counts
     env.close()
     return result
 
@@ -90,6 +132,8 @@ def evaluate_on_streams(policy: Policy, *, seeds: Sequence[int] = tuple(EVAL_SEE
 
     def agg(values):
         arr = np.array([v for v in values if v is not None], dtype=float)
+        if arr.size == 0:
+            return {"mean": None, "std": None}
         return {"mean": round(float(arr.mean()), 4), "std": round(float(arr.std()), 4)}
 
     summary = {k: agg(r["metrics"][k] for r in runs) for k in SUMMARY_KEYS}
@@ -116,7 +160,10 @@ def main() -> None:
     print(f"Policy: {args.policy} | scenario: {args.mode} | {args.days:g} days | "
           f"{result['streams']} held-out streams (seeds {seeds[0]}..{seeds[-1]})")
     for key, v in result["summary"].items():
-        print(f"  {key:34s} {v['mean']:>12.3f}  (std {v['std']:.3f})")
+        if v["mean"] is None:
+            print(f"  {key:34s} {'n/a':>12s}")
+        else:
+            print(f"  {key:34s} {v['mean']:>12.3f}  (std {v['std']:.3f})")
     if args.save:
         RESULTS_DIR.mkdir(parents=True, exist_ok=True)
         out = RESULTS_DIR / f"eval__{args.policy}__{args.mode}__{datetime.now():%Y%m%d_%H%M%S}.json"

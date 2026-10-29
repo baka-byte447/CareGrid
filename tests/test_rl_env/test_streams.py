@@ -5,7 +5,8 @@ import pytest
 from ml.los.data import TEST_SEED, TRAIN_SEED
 from simulator.patients.streams import (DEMO_DATASET_SEED, EVAL_SEEDS, LOS_TEST_SEED,
                                         LOS_TRAIN_SEED, RESERVED_SEEDS, TRAIN_SEEDS,
-                                        StreamSampler, generate_stream)
+                                        VAL_SEEDS, MixedStreamSampler, StreamSampler,
+                                        generate_stream)
 
 
 def signature(patients):
@@ -18,6 +19,10 @@ def test_seed_ranges_are_disjoint_from_every_other_dataset():
     assert not RESERVED_SEEDS.intersection(TRAIN_SEEDS)
     assert not RESERVED_SEEDS.intersection(EVAL_SEEDS)
     assert not set(TRAIN_SEEDS).intersection(EVAL_SEEDS)
+    # validation seeds (model selection) must be disjoint from everything else
+    assert not RESERVED_SEEDS.intersection(VAL_SEEDS)
+    assert not set(VAL_SEEDS).intersection(TRAIN_SEEDS)
+    assert not set(VAL_SEEDS).intersection(EVAL_SEEDS)
 
 
 def test_streams_are_reproducible_and_differ_between_seeds():
@@ -62,3 +67,43 @@ def test_sampler_is_deterministic_for_a_given_random_generator():
     other = signature(s(np.random.default_rng(8)))
     assert first == again
     assert first != other
+
+
+# ---------- MixedStreamSampler ----------
+
+def test_mixed_sampler_is_deterministic_for_a_given_generator():
+    s = MixedStreamSampler({"normal": 0.7, "moderate_surge": 0.3}, days=2)
+    a = signature(s(np.random.default_rng(3)))
+    b = signature(s(np.random.default_rng(3)))
+    assert a == b
+
+
+def test_mixed_sampler_follows_the_requested_scenario_mix():
+    s = MixedStreamSampler({"normal": 0.7, "moderate_surge": 0.3}, days=0.2)
+    rng = np.random.default_rng(0)
+    modes = []
+    for _ in range(400):
+        s(rng)
+        modes.append(s.last_mode)
+    share = modes.count("normal") / len(modes)
+    assert abs(share - 0.7) < 0.07
+    assert set(modes) == {"normal", "moderate_surge"}
+
+
+def test_mixed_sampler_weights_are_normalised():
+    s = MixedStreamSampler({"normal": 7, "moderate_surge": 3}, days=1)
+    assert s.probs.sum() == pytest.approx(1.0)
+    assert s.probs[0] == pytest.approx(0.7)
+
+
+@pytest.mark.parametrize("weights", [{}, {"chaos": 1.0}, {"normal": 0.0}, {"normal": -1.0}])
+def test_mixed_sampler_rejects_bad_weights(weights):
+    with pytest.raises(ValueError):
+        MixedStreamSampler(weights)
+
+
+def test_mixed_sampler_rejects_reserved_or_empty_seeds():
+    with pytest.raises(ValueError, match="reserved"):
+        MixedStreamSampler({"normal": 1.0}, seeds=[10_000, 1001])
+    with pytest.raises(ValueError):
+        MixedStreamSampler({"normal": 1.0}, seeds=[])

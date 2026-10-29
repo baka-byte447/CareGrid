@@ -3,3 +3,5 @@
 *.tfevents*
 monitor*.csv
 logs/
+*.pkl
+resume_state.json*

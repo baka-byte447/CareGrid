@@ -320,6 +320,8 @@ class CareGridHospitalEnv(gym.Env):
             info["simulation_time"] = self.state.current_time.isoformat() if self.state.current_time else None
             info["waiting_count"] = len(self.state.waiting_queue)
             info["admitted_count"] = self.engine.admitted_count if self.engine else 0
+        # which actions are valid for the NEXT decision (used for masked Bellman targets)
+        info["next_valid_actions"] = self.valid_actions().tolist()
         return info
 
     def render(self):

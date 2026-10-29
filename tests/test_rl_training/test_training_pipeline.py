@@ -116,3 +116,39 @@ def test_checkpoints_before_the_burn_in_never_become_best(tmp_path):
     rows = list(csv.DictReader(open(tmp_path / "tiny" / "val_log.csv")))
     assert any(int(r["timesteps"]) < min_step for r in rows)        # early checkpoints were logged ...
     assert meta["best_step"] >= min_step                            # ... but cannot be selected
+
+
+def test_interrupted_training_resumes_from_its_checkpoint(tmp_path, monkeypatch):
+    """The training machine can be restarted at any time: a run must continue, not start over."""
+    import rl.training.callbacks as cb
+
+    cfg = tiny_config(tmp_path, total_timesteps=1_800, val_every_steps=400, exploration_fraction=0.3)
+    calls = {"n": 0}
+    real = cb.ValidationCallback.validate
+
+    def dying_validate(self):
+        calls["n"] += 1
+        if calls["n"] == 3:
+            raise KeyboardInterrupt("simulated machine restart")
+        return real(self)
+
+    monkeypatch.setattr(cb.ValidationCallback, "validate", dying_validate)
+    with pytest.raises(KeyboardInterrupt):
+        train(cfg, predictor=FakePredictor())
+    run = tmp_path / "tiny"
+    state = json.loads((run / "resume_state.json").read_text())
+    assert 400 <= state["num_timesteps"] < 1_800 and (run / "resume.zip").exists()
+    rows_before = len(list(csv.DictReader(open(run / "val_log.csv"))))
+
+    monkeypatch.setattr(cb.ValidationCallback, "validate", real)
+    meta = train(cfg, predictor=FakePredictor(), resume=True)
+    assert meta["resumed_from_step"] == state["num_timesteps"]
+    rows = list(csv.DictReader(open(run / "val_log.csv")))
+    assert len(rows) > rows_before and int(rows[-1]["timesteps"]) >= 1_800     # history kept, continued
+    assert not (run / "resume.zip").exists()                                    # cleaned up when done
+    assert (run / "best.zip").exists() and (run / "metadata.json").exists()
+
+
+def test_resume_without_a_checkpoint_just_starts_a_new_run(tmp_path):
+    meta = train(tiny_config(tmp_path, total_timesteps=600, val_every_steps=300), FakePredictor(), resume=True)
+    assert meta["resumed_from_step"] is None

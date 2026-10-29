@@ -38,11 +38,34 @@ def _versions() -> dict:
             "numpy": np.__version__, "scikit_learn": sklearn.__version__}
 
 
-def train(config: DQNConfig, predictor=None) -> dict:
+def _learning_rate(config: DQNConfig):
+    """Constant, or linearly annealed learning_rate -> learning_rate_final over the run
+    (SB3 passes the remaining training progress, 1.0 at the start and 0.0 at the end)."""
+    if config.learning_rate_final is None:
+        return config.learning_rate
+    start, end = config.learning_rate, config.learning_rate_final
+    return lambda progress_remaining: end + (start - end) * progress_remaining
+
+
+def _new_model(algorithm, env, config: DQNConfig):
+    return algorithm(
+        "MlpPolicy", env,
+        learning_rate=_learning_rate(config), buffer_size=config.buffer_size,
+        learning_starts=config.learning_starts, batch_size=config.batch_size, tau=config.tau,
+        gamma=config.gamma, train_freq=config.train_freq, gradient_steps=config.gradient_steps,
+        target_update_interval=config.target_update_interval,
+        exploration_fraction=config.exploration_fraction,
+        exploration_initial_eps=config.exploration_initial_eps,
+        exploration_final_eps=config.exploration_final_eps, max_grad_norm=config.max_grad_norm,
+        policy_kwargs={"net_arch": list(config.net_arch)}, seed=config.seed, device="cpu", verbose=1)
+
+
+def train(config: DQNConfig, predictor=None, resume: bool = False) -> dict:
     import torch
     from stable_baselines3 import DQN
 
     from ml.los.predictor import LOSPredictor
+    from rl.agents.masked_dqn import MaskedDQN
     from rl.agents.sb3_utils import sb3_q_fn
     from rl.evaluation.policies import (always_wait_policy, combined_heuristic_policy,
                                         lowest_tier_first_policy, make_random_policy,
@@ -59,22 +82,28 @@ def train(config: DQNConfig, predictor=None) -> dict:
 
     predictor = predictor or LOSPredictor.load()
     env = make_training_env(config, predictor)
-    model = DQN(
-        "MlpPolicy", env,
-        learning_rate=config.learning_rate, buffer_size=config.buffer_size,
-        learning_starts=config.learning_starts, batch_size=config.batch_size, tau=config.tau,
-        gamma=config.gamma, train_freq=config.train_freq, gradient_steps=config.gradient_steps,
-        target_update_interval=config.target_update_interval,
-        exploration_fraction=config.exploration_fraction,
-        exploration_initial_eps=config.exploration_initial_eps,
-        exploration_final_eps=config.exploration_final_eps, max_grad_norm=config.max_grad_norm,
-        policy_kwargs={"net_arch": list(config.net_arch)}, seed=config.seed, device="cpu", verbose=1)
+    algorithm = MaskedDQN if config.masked_targets else DQN
+    resume_state = None
+    state_file = run_dir / "resume_state.json"
+    if resume and state_file.exists() and (run_dir / "resume.zip").exists() \
+            and (run_dir / "resume_buffer.pkl").exists():
+        resume_state = json.loads(state_file.read_text())
+    if resume_state is not None:
+        model = algorithm.load(run_dir / "resume.zip", env=env, device="cpu")
+        model.load_replay_buffer(run_dir / "resume_buffer.pkl")
+        print(f"[resume] continuing {config.run_name} from step {model.num_timesteps:,d}", flush=True)
+    else:
+        model = _new_model(algorithm, env, config)
 
     callback = ValidationCallback(config, predictor, run_dir)
+    if resume_state is not None:
+        callback.restore(resume_state)
     started = datetime.now()
     t0 = time.time()
-    model.learn(total_timesteps=config.total_timesteps, callback=callback, progress_bar=False)
-    duration = time.time() - t0
+    remaining = max(config.total_timesteps - int(model.num_timesteps), 0)
+    model.learn(total_timesteps=remaining, callback=callback, progress_bar=False,
+                reset_num_timesteps=resume_state is None)
+    duration = time.time() - t0 + (callback._elapsed_before if resume_state is not None else 0.0)
     if not callback.history or callback.history[-1]["timesteps"] != int(model.num_timesteps):
         callback.validate()                               # always score the final network too
     model.save(run_dir / "last.zip")
@@ -92,6 +121,7 @@ def train(config: DQNConfig, predictor=None) -> dict:
         "started_at": started.isoformat(timespec="seconds"),
         "duration_seconds": round(duration, 1),
         "steps_per_second": round(config.total_timesteps / max(duration, 1e-9), 1),
+        "resumed_from_step": None if resume_state is None else int(resume_state["num_timesteps"]),
         "best_val_score_during_training": round(callback.best_score, 4),
         "best_step": callback.best_step,
         "final_validation_streams": n,
@@ -99,6 +129,8 @@ def train(config: DQNConfig, predictor=None) -> dict:
         "baseline_validation": context,
     }
     (run_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
+    for leftover in ("resume.zip", "resume_buffer.pkl", "resume_state.json"):    # run is complete
+        (run_dir / leftover).unlink(missing_ok=True)
     print(f"\nSaved {run_dir}  (best step {callback.best_step:,d}, validation score "
           f"{final_val['val_score']:.2f} vs B1 {context['b1_rule']['val_score']:.2f}, "
           f"H1 {context['h1_lowest_tier']['val_score']:.2f})", flush=True)
@@ -118,6 +150,13 @@ def main() -> None:
     ap.add_argument("--out-dir", default="rl/agents/models")
     ap.add_argument("--learning-rate", type=float, default=None)
     ap.add_argument("--gamma", type=float, default=None)
+    ap.add_argument("--learning-rate-final", type=float, default=None, help="enables linear LR decay")
+    ap.add_argument("--reward-scale", type=float, default=None)
+    ap.add_argument("--unmasked-targets", action="store_true", help="plain SB3 DQN (ablation)")
+    ap.add_argument("--resume", action="store_true",
+                    help="continue an interrupted run from its last checkpoint (written every --val-every steps)")
+    ap.add_argument("--invalid-penalty", type=float, default=None,
+                    help="keep proportional to --reward-scale (0.1 at scale 10)")
     ap.add_argument("--target-update-interval", type=int, default=None)
     ap.add_argument("--buffer-size", type=int, default=None)
     ap.add_argument("--batch-size", type=int, default=None)
@@ -130,17 +169,21 @@ def main() -> None:
     overrides = {"run_name": args.run_name, "seed": args.seed, "out_dir": args.out_dir}
     for flag, field_name in (("timesteps", "total_timesteps"), ("learning_rate", "learning_rate"),
                              ("gamma", "gamma"), ("target_update_interval", "target_update_interval"),
+                             ("learning_rate_final", "learning_rate_final"), ("reward_scale", "reward_scale"),
+                             ("invalid_penalty", "invalid_action_penalty"),
                              ("buffer_size", "buffer_size"), ("batch_size", "batch_size"),
                              ("exploration_fraction", "exploration_fraction"), ("val_every", "val_every_steps")):
         value = getattr(args, flag)
         if value is not None:
             overrides[field_name] = value
+    if args.unmasked_targets:
+        overrides["masked_targets"] = False
     if args.net_arch:
         overrides["net_arch"] = tuple(int(x) for x in args.net_arch.split(","))
     if args.mode_weights:
         overrides["mode_weights"] = _parse_weights(args.mode_weights)
     config = DQNConfig.smoke(**overrides) if args.smoke else DQNConfig(**overrides)
-    train(config)
+    train(config, resume=args.resume)
 
 
 if __name__ == "__main__":

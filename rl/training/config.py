@@ -5,7 +5,7 @@ One dataclass holds every number that defines a training run, so a run is fully 
 by its metadata.json. Defaults are the values chosen in the Phase 8 plan (decisions D5-D12).
 """
 from dataclasses import asdict, dataclass, field
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from rl.environment.rewards import DEFAULT_ACUITY_WEIGHTS
 
@@ -20,6 +20,7 @@ class DQNConfig:
     # --- algorithm (stable-baselines3 DQN) ---
     net_arch: Tuple[int, ...] = (128, 128)
     learning_rate: float = 3e-4
+    learning_rate_final: Optional[float] = None   # if set: linear decay learning_rate -> this value
     buffer_size: int = 500_000
     learning_starts: int = 10_000
     batch_size: int = 128
@@ -32,6 +33,7 @@ class DQNConfig:
     exploration_final_eps: float = 0.05
     exploration_fraction: float = 0.3
     max_grad_norm: float = 10.0
+    masked_targets: bool = True           # MaskedDQN: Bellman max over valid next actions only
 
     # --- environment / reward ---
     mode_weights: Dict[str, float] = field(

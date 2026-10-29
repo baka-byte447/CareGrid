@@ -12,6 +12,7 @@ barely trained, and an almost-random network can act like a fixed heuristic by c
 score well on a handful of validation streams. Every checkpoint is still logged.
 """
 import csv
+import json
 from pathlib import Path
 from typing import Any, Callable, Dict, List
 
@@ -60,9 +61,40 @@ class ValidationCallback(BaseCallback):
         self._header_written = False
 
     def _on_training_start(self) -> None:
+        import time
+        self._t_start = time.time()
         self.run_dir.mkdir(parents=True, exist_ok=True)
-        if self._log_path.exists():
+        if self._log_path.exists() and not self.resumed:
             self._log_path.unlink()
+
+    # ---- resumable checkpoints (the training machine may be restarted at any time) ----
+
+    resumed = False
+
+    def save_resume_state(self, elapsed_seconds: float = 0.0) -> None:
+        """Model + replay buffer first, then the small state file that marks them as complete."""
+        self.model.save(self.run_dir / "resume.zip")
+        self.model.save_replay_buffer(self.run_dir / "resume_buffer.pkl")
+        state = {"num_timesteps": int(self.num_timesteps), "best_score": self.best_score,
+                 "best_step": self.best_step, "next_eval": self._next_eval,
+                 "elapsed_seconds": float(elapsed_seconds + self._elapsed())}
+        tmp = self.run_dir / "resume_state.json.tmp"
+        tmp.write_text(json.dumps(state))
+        tmp.replace(self.run_dir / "resume_state.json")
+
+    def restore(self, state: dict) -> None:
+        self.best_score = state["best_score"] if state["best_score"] is not None else float("inf")
+        self.best_step = int(state["best_step"])
+        self._next_eval = int(state["next_eval"])
+        self._header_written = self._log_path.exists()
+        self.resumed = True
+        self._elapsed_before = float(state.get("elapsed_seconds", 0.0))
+
+    _elapsed_before = 0.0
+
+    def _elapsed(self) -> float:
+        import time
+        return time.time() - getattr(self, "_t_start", time.time())
 
     def validate(self) -> Dict[str, Any]:
         policy = masked_greedy_policy(sb3_q_fn(self.model))
@@ -92,4 +124,5 @@ class ValidationCallback(BaseCallback):
         if self.num_timesteps >= self._next_eval:
             self.validate()
             self._next_eval += self.config.val_every_steps
+            self.save_resume_state(self._elapsed_before)
         return True

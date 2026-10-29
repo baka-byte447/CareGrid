@@ -1,0 +1,176 @@
+{
+  "run_name": "smoke",
+  "seed": 0,
+  "config": {
+    "run_name": "smoke",
+    "seed": 0,
+    "out_dir": "rl/agents/models",
+    "total_timesteps": 20000,
+    "net_arch": [
+      128,
+      128
+    ],
+    "learning_rate": 0.0003,
+    "buffer_size": 50000,
+    "learning_starts": 1000,
+    "batch_size": 64,
+    "tau": 1.0,
+    "target_update_interval": 500,
+    "train_freq": 4,
+    "gradient_steps": 1,
+    "gamma": 0.995,
+    "exploration_initial_eps": 1.0,
+    "exploration_final_eps": 0.05,
+    "exploration_fraction": 0.5,
+    "max_grad_norm": 10.0,
+    "mode_weights": {
+      "normal": 0.7,
+      "moderate_surge": 0.3
+    },
+    "stream_days": 5.0,
+    "drain_days": 2.0,
+    "reward_scale": 10.0,
+    "invalid_action_penalty": 0.1,
+    "acuity_weights": {
+      "1": 1.0,
+      "2": 1.0,
+      "3": 2.0,
+      "4": 4.0,
+      "5": 8.0
+    },
+    "val_every_steps": 5000,
+    "val_streams_during_training": 3,
+    "final_val_streams": 3
+  },
+  "versions": {
+    "python": "3.13.3",
+    "torch": "2.15.0+cpu",
+    "stable_baselines3": "2.9.2",
+    "gymnasium": "1.2.0",
+    "numpy": "2.5.4",
+    "scikit_learn": "1.9.1"
+  },
+  "git_commit": "b75bc03a28fd6871143d36117c62d89e5f81e5fe",
+  "started_at": "2026-10-29T12:12:05",
+  "duration_seconds": 32.5,
+  "steps_per_second": 615.6,
+  "best_val_score_during_training": 1675.637,
+  "best_step": 20000,
+  "final_validation_streams": 3,
+  "best_checkpoint_validation": {
+    "val_score": 1675.637,
+    "normal": {
+      "weighted_wait": 1157.41,
+      "avg_wait": 1058.9333,
+      "critical_wait": 1160.74,
+      "still_waiting": 17.3333,
+      "icu_util": 0.1742,
+      "invalid_actions": 0.0
+    },
+    "moderate_surge": {
+      "weighted_wait": 2884.8333,
+      "avg_wait": 2825.1667,
+      "critical_wait": 2774.4333,
+      "still_waiting": 79.6667,
+      "icu_util": 0.1927,
+      "invalid_actions": 0.0
+    }
+  },
+  "baseline_validation": {
+    "b1_rule": {
+      "val_score": 287.3123,
+      "normal": {
+        "weighted_wait": 178.7533,
+        "avg_wait": 379.95,
+        "critical_wait": 32.8367,
+        "still_waiting": 3.3333,
+        "icu_util": 0.5434,
+        "invalid_actions": 0.0
+      },
+      "moderate_surge": {
+        "weighted_wait": 540.6167,
+        "avg_wait": 542.9867,
+        "critical_wait": 531.43,
+        "still_waiting": 7.3333,
+        "icu_util": 0.7426,
+        "invalid_actions": 0.0
+      }
+    },
+    "h1_lowest_tier": {
+      "val_score": 223.7593,
+      "normal": {
+        "weighted_wait": 196.8833,
+        "avg_wait": 438.1567,
+        "critical_wait": 0.0,
+        "still_waiting": 3.6667,
+        "icu_util": 0.1754,
+        "invalid_actions": 0.0
+      },
+      "moderate_surge": {
+        "weighted_wait": 286.47,
+        "avg_wait": 531.7,
+        "critical_wait": 49.6433,
+        "still_waiting": 6.6667,
+        "icu_util": 0.326,
+        "invalid_actions": 0.0
+      }
+    },
+    "h3_combined": {
+      "val_score": 223.7593,
+      "normal": {
+        "weighted_wait": 196.8833,
+        "avg_wait": 438.1567,
+        "critical_wait": 0.0,
+        "still_waiting": 3.6667,
+        "icu_util": 0.1754,
+        "invalid_actions": 0.0
+      },
+      "moderate_surge": {
+        "weighted_wait": 286.47,
+        "avg_wait": 531.7,
+        "critical_wait": 49.6433,
+        "still_waiting": 6.6667,
+        "icu_util": 0.326,
+        "invalid_actions": 0.0
+      }
+    },
+    "random": {
+      "val_score": 3859.6477,
+      "normal": {
+        "weighted_wait": 3963.0967,
+        "avg_wait": 4173.3467,
+        "critical_wait": 3988.8633,
+        "still_waiting": 55.6667,
+        "icu_util": 0.1793,
+        "invalid_actions": 43.0
+      },
+      "moderate_surge": {
+        "weighted_wait": 3618.2667,
+        "avg_wait": 3831.1133,
+        "critical_wait": 3630.06,
+        "still_waiting": 84.3333,
+        "icu_util": 0.2412,
+        "invalid_actions": 70.6667
+      }
+    },
+    "always_wait": {
+      "val_score": 6487.263,
+      "normal": {
+        "weighted_wait": 6500.41,
+        "avg_wait": 6505.08,
+        "critical_wait": 6593.1067,
+        "still_waiting": 89.6667,
+        "icu_util": 0.0,
+        "invalid_actions": 0.0
+      },
+      "moderate_surge": {
+        "weighted_wait": 6456.5867,
+        "avg_wait": 6477.6567,
+        "critical_wait": 6499.8867,
+        "still_waiting": 149.0,
+        "icu_util": 0.0,
+        "invalid_actions": 0.0
+      }
+    }
+  }
+}

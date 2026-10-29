@@ -10,6 +10,7 @@ Seed discipline (all disjoint, enforced by tests):
     42                  data/synthetic/patients.csv (the demo dataset)
     1001 / 2002         LOS-model training / test data (ml/los/data.py)
     TRAIN_SEEDS         RL training episodes
+    VAL_SEEDS           RL validation (model selection / hyperparameter tuning)
     EVAL_SEEDS          RL evaluation (never used for training or tuning)
 
 The generator file is loaded by path and left unmodified.
@@ -33,7 +34,8 @@ LOS_TEST_SEED = 2002
 RESERVED_SEEDS = frozenset({DEMO_DATASET_SEED, LOS_TRAIN_SEED, LOS_TEST_SEED})
 
 TRAIN_SEEDS = range(10_000, 10_500)     # 500 distinct training streams
-EVAL_SEEDS = range(90_000, 90_050)      # 50 held-out evaluation streams
+VAL_SEEDS = range(80_000, 80_020)       # 20 validation streams (checkpoint / config selection)
+EVAL_SEEDS = range(90_000, 90_050)      # 50 held-out evaluation streams (final claim only)
 
 STREAM_START = datetime(2026, 1, 1, 8, 0, 0)
 _MAX_RATE_PER_HOUR = 3.0                # above every scenario rate in the generator
@@ -81,3 +83,35 @@ class StreamSampler:
     def __call__(self, rng: np.random.Generator) -> List[Patient]:
         self.last_seed = int(self.seeds[int(rng.integers(len(self.seeds)))])
         return generate_stream(self.last_seed, self.days, self.mode)
+
+
+class MixedStreamSampler:
+    """Like StreamSampler, but every reset() also draws the SCENARIO at random, e.g.
+    70% normal / 30% moderate_surge, so one agent sees both quiet and busy hospitals."""
+
+    def __init__(self, mode_weights: dict, seeds: Sequence[int] = TRAIN_SEEDS,
+                 days: float = 30.0):
+        if not mode_weights:
+            raise ValueError("mode_weights must not be empty")
+        bad = [m for m in mode_weights if m not in MODES]
+        if bad:
+            raise ValueError(f"Unknown modes {bad}. Choose from {MODES}")
+        if any(w <= 0 for w in mode_weights.values()):
+            raise ValueError("mode weights must be positive")
+        seeds = list(seeds)
+        if not seeds:
+            raise ValueError("seeds must not be empty")
+        clash = RESERVED_SEEDS.intersection(seeds)
+        if clash:
+            raise ValueError(f"Seeds {sorted(clash)} are reserved for the demo dataset / LOS model")
+        total = float(sum(mode_weights.values()))
+        self.modes = list(mode_weights)
+        self.probs = np.array([mode_weights[m] / total for m in self.modes])
+        self.seeds, self.days = seeds, days
+        self.last_mode: Optional[str] = None
+        self.last_seed: Optional[int] = None
+
+    def __call__(self, rng: np.random.Generator) -> List[Patient]:
+        self.last_mode = str(self.modes[int(rng.choice(len(self.modes), p=self.probs))])
+        self.last_seed = int(self.seeds[int(rng.integers(len(self.seeds)))])
+        return generate_stream(self.last_seed, self.days, self.last_mode)

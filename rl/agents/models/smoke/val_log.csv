@@ -1,0 +1,5 @@
+timesteps,val_score,epsilon,normal_weighted_wait,normal_avg_wait,normal_critical_wait,normal_still_waiting,normal_icu_util,normal_invalid_actions,moderate_surge_weighted_wait,moderate_surge_avg_wait,moderate_surge_critical_wait,moderate_surge_still_waiting,moderate_surge_icu_util,moderate_surge_invalid_actions
+5000,3415.7613,0.5251,3268.5633,2463.25,4729.62,36.6667,0.0949,0.0,3759.2233,2804.2933,5305.75,68.0,0.1039,0.0
+10000,2481.5077,0.0501,2270.6267,1561.5633,3681.6133,23.0,0.1277,0.0,2973.5633,2182.7633,4541.7767,56.0,0.1786,0.0
+15000,1977.5453,0.05,1679.6433,1718.9633,1772.0233,23.6667,0.362,0.0,2672.65,2782.7,2337.0167,69.0,0.4177,0.0
+20000,1675.637,0.05,1157.41,1058.9333,1160.74,17.3333,0.1742,0.0,2884.8333,2825.1667,2774.4333,79.6667,0.1927,0.0

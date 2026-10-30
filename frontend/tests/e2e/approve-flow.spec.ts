@@ -1,12 +1,13 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('CareGrid Bed Allocation Approval Flow', () => {
-  test('displays command centre with permanent synthetic data badge and KPI metrics', async ({ page }) => {
+  test('displays command centre without hospital header text and with KPI metrics', async ({ page }) => {
     await page.goto('/');
 
     // Check title and header
     await expect(page).toHaveTitle(/CareGrid/);
-    await expect(page.locator('text=Synthetic Data')).toBeVisible();
+    await expect(page.locator('text=Synthetic Data')).toHaveCount(0);
+    await expect(page.locator('text=St. Jude Central Hospital — Metropolitan Campus')).toHaveCount(0);
 
     // Check presence of key KPI metric cards
     await expect(page.locator('text=Bed Occupancy')).toBeVisible();

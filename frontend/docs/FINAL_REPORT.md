@@ -32,9 +32,8 @@ The implementation strictly respects all architectural constraints:
 
 ### 2.2 Clinical Design Principles
 1. **Clinical Legibility**: Information density balanced with high-contrast color tokens for triage acuity (levels 1 through 5) and care tiers (ICU, Step-Down, General Ward).
-2. **Permanent Synthetic Data Banner**: Every page displays a persistent header badge informing staff that records and telemetry are synthetically generated.
-3. **Graceful Degeneration & Error Boundaries**: If a component fails or network connectivity drops, localized ErrorState components provide user-friendly explanations and Retry buttons without unmounting the entire application.
-4. **Stale Data Awareness**: If data synchronization exceeds 2 minutes, a global warning banner appears with a direct "Refresh Now" action.
+2. **Graceful Degeneration & Error Boundaries**: If a component fails or network connectivity drops, localized ErrorState components provide user-friendly explanations and Retry buttons without unmounting the entire application.
+3. **Stale Data Awareness**: If data synchronization exceeds 2 minutes, a global warning banner appears with a direct "Refresh Now" action.
 
 ---
 

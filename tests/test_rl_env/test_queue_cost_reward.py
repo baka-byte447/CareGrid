@@ -206,3 +206,15 @@ def test_queue_feature_is_log_scaled_and_independent_of_episode_size(data_dir, c
     env.state.waiting_queue = [f"w{i}" for i in range(n_waiting)]
     expected = min(np.log1p(n_waiting) / np.log1p(QUEUE_LOG_CAP), 1.0)
     assert env._observation()[IDX["waiting_queue_size"]] == pytest.approx(expected, abs=1e-6)
+
+
+# ---------- next-decision mask reported for masked Bellman targets ----------
+
+def test_info_reports_the_valid_actions_of_the_next_decision(data_dir, counting_predictor):
+    pts = [patient("a", acuity=1), patient("b", acuity=5, arrival=T0 + timedelta(hours=1))]
+    env = make_env(data_dir, counting_predictor, 2)
+    _, info = env.reset(seed=0, options={"patients": pts})
+    assert info["next_valid_actions"] == [False, False, True, True]          # patient 'a': ward + wait
+    _, _, _, _, info = env.step(2)                                           # admit 'a' to a ward bed
+    assert env.current_patient.patient_id == "b"
+    assert info["next_valid_actions"] == env.valid_actions().tolist() == [True, False, False, True]

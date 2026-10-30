@@ -1,0 +1,179 @@
+{
+  "run_name": "dqn_v1_s1",
+  "seed": 0,
+  "config": {
+    "run_name": "dqn_v1_s1",
+    "seed": 0,
+    "out_dir": "rl/agents/models",
+    "total_timesteps": 1000000,
+    "net_arch": [
+      128,
+      128
+    ],
+    "learning_rate": 0.0003,
+    "learning_rate_final": null,
+    "buffer_size": 500000,
+    "learning_starts": 10000,
+    "batch_size": 128,
+    "tau": 1.0,
+    "target_update_interval": 2000,
+    "train_freq": 4,
+    "gradient_steps": 1,
+    "gamma": 0.995,
+    "exploration_initial_eps": 1.0,
+    "exploration_final_eps": 0.05,
+    "exploration_fraction": 0.3,
+    "max_grad_norm": 10.0,
+    "masked_targets": true,
+    "mode_weights": {
+      "normal": 0.7,
+      "moderate_surge": 0.3
+    },
+    "stream_days": 30.0,
+    "drain_days": 7.0,
+    "reward_scale": 10.0,
+    "invalid_action_penalty": 0.1,
+    "acuity_weights": {
+      "1": 1.0,
+      "2": 1.0,
+      "3": 2.0,
+      "4": 4.0,
+      "5": 8.0
+    },
+    "val_every_steps": 50000,
+    "val_streams_during_training": 10,
+    "final_val_streams": 20
+  },
+  "versions": {
+    "python": "3.13.3",
+    "torch": "2.15.0+cpu",
+    "stable_baselines3": "2.9.2",
+    "gymnasium": "1.2.0",
+    "numpy": "2.5.4",
+    "scikit_learn": "1.9.1"
+  },
+  "git_commit": "dd250cf6584bfd43d1e558b40ce30c3d414d644e",
+  "started_at": "2026-10-29T21:15:38",
+  "duration_seconds": 1952.8,
+  "steps_per_second": 512.1,
+  "resumed_from_step": null,
+  "best_val_score_during_training": 1327.5354,
+  "best_step": 300000,
+  "final_validation_streams": 20,
+  "best_checkpoint_validation": {
+    "val_score": 1414.6245,
+    "normal": {
+      "weighted_wait": 299.595,
+      "avg_wait": 317.8605,
+      "critical_wait": 253.3325,
+      "still_waiting": 0.25,
+      "icu_util": 0.8109,
+      "invalid_actions": 0.0
+    },
+    "moderate_surge": {
+      "weighted_wait": 4016.36,
+      "avg_wait": 3305.9685,
+      "critical_wait": 4316.5965,
+      "still_waiting": 28.25,
+      "icu_util": 0.9283,
+      "invalid_actions": 0.0
+    }
+  },
+  "baseline_validation": {
+    "b1_rule": {
+      "val_score": 1326.2917,
+      "normal": {
+        "weighted_wait": 440.605,
+        "avg_wait": 404.8495,
+        "critical_wait": 422.824,
+        "still_waiting": 0.25,
+        "icu_util": 0.881,
+        "invalid_actions": 0.0
+      },
+      "moderate_surge": {
+        "weighted_wait": 3392.894,
+        "avg_wait": 2746.725,
+        "critical_wait": 3933.5495,
+        "still_waiting": 16.1,
+        "icu_util": 0.9518,
+        "invalid_actions": 0.0
+      }
+    },
+    "h1_lowest_tier": {
+      "val_score": 1064.0103,
+      "normal": {
+        "weighted_wait": 193.093,
+        "avg_wait": 323.327,
+        "critical_wait": 78.6955,
+        "still_waiting": 0.45,
+        "icu_util": 0.5769,
+        "invalid_actions": 0.0
+      },
+      "moderate_surge": {
+        "weighted_wait": 3096.1505,
+        "avg_wait": 2623.6215,
+        "critical_wait": 3483.945,
+        "still_waiting": 15.45,
+        "icu_util": 0.8839,
+        "invalid_actions": 0.0
+      }
+    },
+    "h3_combined": {
+      "val_score": 1082.8878,
+      "normal": {
+        "weighted_wait": 209.037,
+        "avg_wait": 338.4155,
+        "critical_wait": 92.7425,
+        "still_waiting": 0.6,
+        "icu_util": 0.5773,
+        "invalid_actions": 0.0
+      },
+      "moderate_surge": {
+        "weighted_wait": 3121.873,
+        "avg_wait": 2630.5645,
+        "critical_wait": 3527.0415,
+        "still_waiting": 16.05,
+        "icu_util": 0.8832,
+        "invalid_actions": 0.0
+      }
+    },
+    "random": {
+      "val_score": 16799.676,
+      "normal": {
+        "weighted_wait": 16708.3775,
+        "avg_wait": 17100.7025,
+        "critical_wait": 15992.172,
+        "still_waiting": 247.6,
+        "icu_util": 0.4395,
+        "invalid_actions": 302.25
+      },
+      "moderate_surge": {
+        "weighted_wait": 17012.706,
+        "avg_wait": 17222.957,
+        "critical_wait": 16387.6565,
+        "still_waiting": 434.3,
+        "icu_util": 0.6711,
+        "invalid_actions": 526.1
+      }
+    },
+    "always_wait": {
+      "val_score": 31780.8655,
+      "normal": {
+        "weighted_wait": 31809.49,
+        "avg_wait": 31750.9915,
+        "critical_wait": 31861.634,
+        "still_waiting": 490.95,
+        "icu_util": 0.0,
+        "invalid_actions": 0.0
+      },
+      "moderate_surge": {
+        "weighted_wait": 31714.075,
+        "avg_wait": 31665.91,
+        "critical_wait": 31677.4985,
+        "still_waiting": 844.4,
+        "icu_util": 0.0,
+        "invalid_actions": 0.0
+      }
+    }
+  }
+}

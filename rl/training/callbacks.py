@@ -7,9 +7,10 @@ scenario-weighted acuity-weighted average wait (lower is better); the best check
 saved as best.zip.
 
 Burn-in rule: only checkpoints taken after the exploration schedule has finished
-(exploration_fraction x total_timesteps) may become best.zip. Before that the network is
-barely trained, and an almost-random network can act like a fixed heuristic by chance and
-score well on a handful of validation streams. Every checkpoint is still logged.
+(exploration_fraction x total_timesteps) may become best.zip when config.burn_in=True.
+Before that the network is barely trained, and an almost-random network can act like
+a fixed heuristic by chance and score well on a handful of validation streams.
+When config.burn_in=False, any checkpoint can become best.zip.
 """
 import csv
 import json
@@ -37,10 +38,12 @@ def score_policy_on_validation(policy: Policy, config: DQNConfig, predictor: Any
     """{'val_score': float, mode: {metric: mean}} on the first n_streams validation streams."""
     seeds = list(VAL_SEEDS)[:n_streams]
     total_w = float(sum(config.mode_weights.values()))
+    obs_ver = getattr(config, "observation_version", 1)
     out: Dict[str, Any] = {"val_score": 0.0}
     for mode, weight in config.mode_weights.items():
         res = evaluate_on_streams(policy, seeds=seeds, days=config.stream_days, mode=mode,
-                                  drain_days=config.drain_days, los_predictor=predictor)
+                                  drain_days=config.drain_days, los_predictor=predictor,
+                                  observation_version=obs_ver)
         s = res["summary"]
         out[mode] = {short: s[key]["mean"] for key, short in TRACKED}
         out["val_score"] += (weight / total_w) * s["acuity_weighted_avg_wait_min"]["mean"]
@@ -54,7 +57,10 @@ class ValidationCallback(BaseCallback):
         self.config, self.predictor, self.run_dir = config, predictor, Path(run_dir)
         self.best_score = float("inf")
         self.best_step = 0
-        self.min_select_step = int(config.exploration_fraction * config.total_timesteps)
+        if getattr(config, "burn_in", True):
+            self.min_select_step = int(config.exploration_fraction * config.total_timesteps)
+        else:
+            self.min_select_step = 0
         self.history: List[dict] = []
         self._next_eval = config.val_every_steps
         self._log_path = self.run_dir / "val_log.csv"

@@ -65,6 +65,7 @@ def train(config: DQNConfig, predictor=None, resume: bool = False) -> dict:
     from stable_baselines3 import DQN
 
     from ml.los.predictor import LOSPredictor
+    from rl.agents.double_dqn import DoubleDQN
     from rl.agents.masked_dqn import MaskedDQN
     from rl.agents.sb3_utils import sb3_q_fn
     from rl.evaluation.policies import (always_wait_policy, combined_heuristic_policy,
@@ -72,6 +73,7 @@ def train(config: DQNConfig, predictor=None, resume: bool = False) -> dict:
                                         masked_greedy_policy, rule_based_policy)
     from rl.training.callbacks import ValidationCallback, score_policy_on_validation
     from rl.training.envs import make_training_env
+    from rl.training.warmup import fill_replay_buffer_with_heuristic
 
     run_dir = Path(config.out_dir) / config.run_name
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -82,7 +84,15 @@ def train(config: DQNConfig, predictor=None, resume: bool = False) -> dict:
 
     predictor = predictor or LOSPredictor.load()
     env = make_training_env(config, predictor)
-    algorithm = MaskedDQN if config.masked_targets else DQN
+
+    algo_name = getattr(config, "algorithm", "masked_dqn")
+    if algo_name == "double_dqn":
+        algorithm = DoubleDQN
+    elif config.masked_targets:
+        algorithm = MaskedDQN
+    else:
+        algorithm = DQN
+
     resume_state = None
     state_file = run_dir / "resume_state.json"
     if resume and state_file.exists() and (run_dir / "resume.zip").exists() \
@@ -94,6 +104,10 @@ def train(config: DQNConfig, predictor=None, resume: bool = False) -> dict:
         print(f"[resume] continuing {config.run_name} from step {model.num_timesteps:,d}", flush=True)
     else:
         model = _new_model(algorithm, env, config)
+        if getattr(config, "heuristic_warmup_steps", 0) > 0:
+            print(f"[warmup] pre-filling replay buffer with {config.heuristic_warmup_steps:,d} H3 transitions...", flush=True)
+            added = fill_replay_buffer_with_heuristic(model, env, config.heuristic_warmup_steps, combined_heuristic_policy)
+            print(f"[warmup] added {added:,d} transitions to buffer (now {model.replay_buffer.size():,d})", flush=True)
 
     callback = ValidationCallback(config, predictor, run_dir)
     if resume_state is not None:
@@ -108,7 +122,7 @@ def train(config: DQNConfig, predictor=None, resume: bool = False) -> dict:
         callback.validate()                               # always score the final network too
     model.save(run_dir / "last.zip")
 
-    best = DQN.load(run_dir / "best.zip", device="cpu")
+    best = algorithm.load(run_dir / "best.zip", device="cpu")
     n = config.final_val_streams
     final_val = score_policy_on_validation(masked_greedy_policy(sb3_q_fn(best)), config, predictor, n)
     context = {name: score_policy_on_validation(policy, config, predictor, n)
@@ -148,11 +162,20 @@ def main() -> None:
     ap.add_argument("--timesteps", type=int, default=None)
     ap.add_argument("--smoke", action="store_true", help="tiny pipeline check (~1 minute)")
     ap.add_argument("--out-dir", default="rl/agents/models")
+    ap.add_argument("--algorithm", choices=["masked_dqn", "double_dqn", "dqn"], default=None)
     ap.add_argument("--learning-rate", type=float, default=None)
     ap.add_argument("--gamma", type=float, default=None)
     ap.add_argument("--learning-rate-final", type=float, default=None, help="enables linear LR decay")
     ap.add_argument("--reward-scale", type=float, default=None)
     ap.add_argument("--unmasked-targets", action="store_true", help="plain SB3 DQN (ablation)")
+    ap.add_argument("--burn-in", dest="burn_in", action="store_true", default=None,
+                    help="enforce exploration burn-in before checkpoint selection")
+    ap.add_argument("--no-burn-in", dest="burn_in", action="store_false",
+                    help="disable burn-in requirement so any checkpoint can be selected")
+    ap.add_argument("--observation-version", type=int, choices=[1, 2], default=None,
+                    help="1: standard 14 features, 2: 17 features (+wait_so_far +time_of_day)")
+    ap.add_argument("--heuristic-warmup-steps", type=int, default=None,
+                    help="pre-fill replay buffer with transitions from H3 heuristic")
     ap.add_argument("--resume", action="store_true",
                     help="continue an interrupted run from its last checkpoint (written every --val-every steps)")
     ap.add_argument("--invalid-penalty", type=float, default=None,
@@ -164,6 +187,8 @@ def main() -> None:
     ap.add_argument("--exploration-fraction", type=float, default=None)
     ap.add_argument("--mode-weights", default=None, help="e.g. normal=0.7,moderate_surge=0.3")
     ap.add_argument("--val-every", type=int, default=None)
+    ap.add_argument("--val-streams", type=int, default=None,
+                    help="number of validation streams during training")
     args = ap.parse_args()
 
     overrides = {"run_name": args.run_name, "seed": args.seed, "out_dir": args.out_dir}
@@ -172,12 +197,18 @@ def main() -> None:
                              ("learning_rate_final", "learning_rate_final"), ("reward_scale", "reward_scale"),
                              ("invalid_penalty", "invalid_action_penalty"),
                              ("buffer_size", "buffer_size"), ("batch_size", "batch_size"),
-                             ("exploration_fraction", "exploration_fraction"), ("val_every", "val_every_steps")):
+                             ("exploration_fraction", "exploration_fraction"), ("val_every", "val_every_steps"),
+                             ("algorithm", "algorithm"), ("observation_version", "observation_version"),
+                             ("heuristic_warmup_steps", "heuristic_warmup_steps"),
+                             ("val_streams", "val_streams_during_training")):
         value = getattr(args, flag)
         if value is not None:
             overrides[field_name] = value
+    if args.burn_in is not None:
+        overrides["burn_in"] = args.burn_in
     if args.unmasked_targets:
         overrides["masked_targets"] = False
+        overrides["algorithm"] = "dqn"
     if args.net_arch:
         overrides["net_arch"] = tuple(int(x) for x in args.net_arch.split(","))
     if args.mode_weights:

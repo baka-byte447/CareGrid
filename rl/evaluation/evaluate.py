@@ -72,7 +72,8 @@ def wait_group_metrics(patients, as_of, weights=None) -> Dict[str, Any]:
 def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7.0,
                     los_predictor: Any = None, name: str = "policy",
                     data_dir: Optional[str] = None,
-                    record_actions: bool = False) -> Dict[str, Any]:
+                    record_actions: bool = False,
+                    observation_version: int = 1) -> Dict[str, Any]:
     """Run one episode over `patients` and return the standard metrics.
 
     The episode lasts until `drain_days` after the last arrival; patients still
@@ -87,7 +88,8 @@ def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7
 
     collector = MetricsCollector(window_start=start, window_end=last)
     env = CareGridHospitalEnv(data_dir=data_dir, max_episode_days=horizon_days,
-                              los_predictor=los_predictor)
+                              los_predictor=los_predictor,
+                              observation_version=observation_version)
     obs, _ = env.reset(seed=0, options={"patients": list(patients),
                                         "on_tick": collector.on_tick})
     total_reward, decisions, invalid = 0.0, 0, 0
@@ -127,13 +129,15 @@ def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7
 
 def evaluate_on_streams(policy: Policy, *, seeds: Sequence[int] = tuple(EVAL_SEEDS[:5]),
                         days: float = 30.0, mode: str = "normal", drain_days: float = 7.0,
-                        los_predictor: Any = None, name: str = "policy") -> Dict[str, Any]:
+                        los_predictor: Any = None, name: str = "policy",
+                        observation_version: int = 1) -> Dict[str, Any]:
     """Evaluate on several held-out patient streams and aggregate (mean, std)."""
     runs: List[Dict[str, Any]] = []
     for seed in seeds:
         stream = generate_stream(seed, days=days, mode=mode)
         run = evaluate_policy(policy, stream, drain_days=drain_days,
-                              los_predictor=los_predictor, name=name)
+                              los_predictor=los_predictor, name=name,
+                              observation_version=observation_version)
         run["stream_seed"] = int(seed)
         runs.append(run)
 

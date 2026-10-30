@@ -51,6 +51,13 @@ OBSERVATION_FEATURES = (
 )
 N_OBSERVATIONS = len(OBSERVATION_FEATURES)
 
+OBSERVATION_FEATURES_V2 = OBSERVATION_FEATURES + (
+    "wait_so_far",                 # min(wait_days / 7.0, 1.0)
+    "time_of_day_sin",             # (sin(2*pi*hour/24) + 1) / 2
+    "time_of_day_cos",             # (cos(2*pi*hour/24) + 1) / 2
+)
+N_OBSERVATIONS_V2 = len(OBSERVATION_FEATURES_V2)
+
 # Waiting-queue feature: log scale so that 3, 11 and 118 waiting patients stay
 # distinguishable, and so the value does not depend on the size of the episode.
 QUEUE_LOG_CAP = 200
@@ -84,6 +91,7 @@ class CareGridHospitalEnv(gym.Env):
         reward_mode: str = "legacy",
         acuity_weights: Optional[dict] = None,
         reward_scale: float = 10.0,
+        observation_version: int = 1,
     ) -> None:
         super().__init__()
         project_root = Path(__file__).resolve().parents[2]
@@ -107,9 +115,13 @@ class CareGridHospitalEnv(gym.Env):
         self.reward_scale = float(reward_scale)
         self._tracker = QueueCostTracker(self.acuity_weights)
         self._user_tick: Optional[Callable] = None
+        if observation_version not in (1, 2):
+            raise ValueError(f"observation_version must be 1 or 2, got {observation_version!r}")
+        self.observation_version = int(observation_version)
+        n_obs = N_OBSERVATIONS if self.observation_version == 1 else N_OBSERVATIONS_V2
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
-            low=0.0, high=1.0, shape=(N_OBSERVATIONS,), dtype=np.float32)
+            low=0.0, high=1.0, shape=(n_obs,), dtype=np.float32)
         self.state: Optional[HospitalState] = None
         self.engine: Optional[SimulationEngine] = None
         self._patients: dict[str, Patient] = {}
@@ -288,7 +300,8 @@ class CareGridHospitalEnv(gym.Env):
         patient = self._patients.get(self._current_patient_id) if self._current_patient_id else None
         if patient is None:
             # Terminal observation is all zeros; no hidden patient target is exposed.
-            return np.zeros(N_OBSERVATIONS, dtype=np.float32)
+            n_obs = N_OBSERVATIONS if self.observation_version == 1 else N_OBSERVATIONS_V2
+            return np.zeros(n_obs, dtype=np.float32)
         predicted_los = self._los_estimates[patient.patient_id]
         values = [
             patient.acuity / 5.0,
@@ -312,6 +325,19 @@ class CareGridHospitalEnv(gym.Env):
         waiting = self.state.waiting_queue
         critical = sum(self._patients[pid].acuity >= 4 for pid in waiting)
         values.append(critical / len(waiting) if waiting else 0.0)
+        if self.observation_version == 2:
+            if patient.arrival_time and self.state.current_time:
+                elapsed_days = max(0.0, (self.state.current_time - patient.arrival_time).total_seconds() / 86400.0)
+                wait_val = min(elapsed_days / 7.0, 1.0)
+            else:
+                wait_val = 0.0
+            if self.state.current_time:
+                hour = self.state.current_time.hour + self.state.current_time.minute / 60.0
+                tod_sin = (np.sin(2.0 * np.pi * hour / 24.0) + 1.0) / 2.0
+                tod_cos = (np.cos(2.0 * np.pi * hour / 24.0) + 1.0) / 2.0
+            else:
+                tod_sin, tod_cos = 0.5, 0.5
+            values.extend([float(wait_val), float(tod_sin), float(tod_cos)])
         return np.asarray(values, dtype=np.float32)
 
     def _info(self) -> dict[str, Any]:

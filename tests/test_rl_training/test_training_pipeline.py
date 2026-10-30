@@ -42,8 +42,11 @@ def test_config_defaults_match_the_plan_and_serialise():
     assert (c.gamma, c.learning_rate, c.batch_size, c.target_update_interval) == (0.995, 3e-4, 128, 2_000)
     assert c.net_arch == (128, 128) and c.total_timesteps == 1_000_000
     assert c.mode_weights == {"normal": 0.7, "moderate_surge": 0.3}
+    assert c.algorithm == "masked_dqn" and c.burn_in is True
+    assert c.observation_version == 1 and c.heuristic_warmup_steps == 0
     d = c.to_dict()
     assert d["net_arch"] == [128, 128] and set(d["acuity_weights"]) == {"1", "2", "3", "4", "5"}
+    assert d["algorithm"] == "masked_dqn" and d["observation_version"] == 1
     json.dumps(d)                                                       # fully JSON-serialisable
     assert DQNConfig.smoke().total_timesteps == 20_000
 
@@ -152,3 +155,21 @@ def test_interrupted_training_resumes_from_its_checkpoint(tmp_path, monkeypatch)
 def test_resume_without_a_checkpoint_just_starts_a_new_run(tmp_path):
     meta = train(tiny_config(tmp_path, total_timesteps=600, val_every_steps=300), FakePredictor(), resume=True)
     assert meta["resumed_from_step"] is None
+
+
+def test_train_with_double_dqn_obs_v2_and_warmup(tmp_path):
+    cfg = tiny_config(
+        tmp_path,
+        total_timesteps=300,
+        val_every_steps=150,
+        algorithm="double_dqn",
+        observation_version=2,
+        heuristic_warmup_steps=20,
+        burn_in=False,
+    )
+    meta = train(cfg, predictor=FakePredictor())
+    run = tmp_path / "tiny"
+    assert (run / "best.zip").exists()
+    assert (run / "last.zip").exists()
+    assert (run / "metadata.json").exists()
+    assert meta["best_checkpoint_validation"] is not None

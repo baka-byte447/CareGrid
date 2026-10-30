@@ -96,3 +96,22 @@ BASELINES = {
     "always_wait": lambda: always_wait_policy,
     "random": lambda: make_random_policy(0),
 }
+
+
+
+def safe_policy(base_policy: Policy, layer) -> Policy:
+    """Wrap any policy with a SafetyLayer: the layer validates (and may override)
+    each decision before it reaches the environment.
+
+    The wrapped policy has the same (obs, env) -> action signature as any other policy.
+    After running an episode, check ``layer.override_rate`` and ``layer.stats``.
+    """
+    def policy(obs: np.ndarray, env: CareGridHospitalEnv) -> int:
+        proposed = base_policy(obs, env)
+        patient = env.current_patient
+        state = env.state
+        if patient is None or state is None:
+            return proposed
+        decision = layer.review(patient, state, proposed, env=env)
+        return decision.final_action
+    return policy

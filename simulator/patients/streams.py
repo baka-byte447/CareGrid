@@ -35,6 +35,7 @@ RESERVED_SEEDS = frozenset({DEMO_DATASET_SEED, LOS_TRAIN_SEED, LOS_TEST_SEED})
 
 TRAIN_SEEDS = range(10_000, 10_500)     # 500 distinct training streams
 VAL_SEEDS = range(80_000, 80_020)       # 20 validation streams (checkpoint / config selection)
+VAL_CONFIRM_SEEDS = range(81_000, 81_020)  # 20 confirmation streams (never used for selection)
 EVAL_SEEDS = range(90_000, 90_050)      # 50 held-out evaluation streams (final claim only)
 
 STREAM_START = datetime(2026, 1, 1, 8, 0, 0)

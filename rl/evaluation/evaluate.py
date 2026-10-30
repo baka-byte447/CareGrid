@@ -92,10 +92,15 @@ def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7
                                         "on_tick": collector.on_tick})
     total_reward, decisions, invalid = 0.0, 0, 0
     action_counts = {str(a): [0, 0, 0, 0] for a in range(1, 6)}
+    wait_with_feasible_bed = 0
+    wait_with_feasible_by_acuity = {str(a): 0 for a in range(1, 6)}
     while True:
         action = policy(obs, env)
         if record_actions and env.current_patient is not None:
             action_counts[str(env.current_patient.acuity)][int(action)] += 1
+            if int(action) == 3 and env.valid_actions()[:3].any():
+                wait_with_feasible_bed += 1
+                wait_with_feasible_by_acuity[str(env.current_patient.acuity)] += 1
         obs, reward, terminated, truncated, info = env.step(action)
         total_reward += reward
         decisions += 1
@@ -114,6 +119,8 @@ def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7
     }
     if record_actions:
         result["action_counts"] = action_counts
+        result["wait_with_feasible_bed"] = wait_with_feasible_bed
+        result["wait_with_feasible_by_acuity"] = wait_with_feasible_by_acuity
     env.close()
     return result
 

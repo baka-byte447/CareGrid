@@ -5,7 +5,8 @@ import pytest
 from ml.los.data import TEST_SEED, TRAIN_SEED
 from simulator.patients.streams import (DEMO_DATASET_SEED, EVAL_SEEDS, LOS_TEST_SEED,
                                         LOS_TRAIN_SEED, RESERVED_SEEDS, TRAIN_SEEDS,
-                                        VAL_SEEDS, MixedStreamSampler, StreamSampler,
+                                        VAL_CONFIRM_SEEDS, VAL_SEEDS,
+                                        MixedStreamSampler, StreamSampler,
                                         generate_stream)
 
 
@@ -23,6 +24,11 @@ def test_seed_ranges_are_disjoint_from_every_other_dataset():
     assert not RESERVED_SEEDS.intersection(VAL_SEEDS)
     assert not set(VAL_SEEDS).intersection(TRAIN_SEEDS)
     assert not set(VAL_SEEDS).intersection(EVAL_SEEDS)
+    # confirmation seeds (chosen-checkpoint verification) disjoint from all others
+    assert not RESERVED_SEEDS.intersection(VAL_CONFIRM_SEEDS)
+    assert not set(VAL_CONFIRM_SEEDS).intersection(TRAIN_SEEDS)
+    assert not set(VAL_CONFIRM_SEEDS).intersection(VAL_SEEDS)
+    assert not set(VAL_CONFIRM_SEEDS).intersection(EVAL_SEEDS)
 
 
 def test_streams_are_reproducible_and_differ_between_seeds():

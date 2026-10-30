@@ -22,5 +22,6 @@ def make_training_env(config: DQNConfig, predictor):
         reward_scale=config.reward_scale,
         invalid_action_penalty=config.invalid_action_penalty,
         patient_source=MixedStreamSampler(config.mode_weights, TRAIN_SEEDS, config.stream_days),
+        observation_version=getattr(config, "observation_version", 1),
     )
     return Monitor(env)

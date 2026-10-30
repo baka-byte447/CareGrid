@@ -34,6 +34,10 @@ class DQNConfig:
     exploration_fraction: float = 0.3
     max_grad_norm: float = 10.0
     masked_targets: bool = True           # MaskedDQN: Bellman max over valid next actions only
+    algorithm: str = "masked_dqn"         # "masked_dqn", "double_dqn", or "dqn"
+    burn_in: bool = True                  # If False, any checkpoint can become best.zip
+    observation_version: int = 1          # 1: 14 features, 2: 17 features (+wait +time_of_day)
+    heuristic_warmup_steps: int = 0       # Steps to pre-fill replay buffer with H3 transitions
 
     # --- environment / reward ---
     mode_weights: Dict[str, float] = field(

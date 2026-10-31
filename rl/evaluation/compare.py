@@ -181,7 +181,7 @@ def write_markdown_report(summary: Dict[str, Any], meta: Dict[str, Any], path: P
                                  f"[{r['ci_low']:.1f}, {r['ci_high']:.1f}] | {r['win_rate']:.0%} |")
         lines.append("")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(lines))
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def compact_runs(results: Dict[str, Dict[str, List[dict]]]) -> Dict[str, Any]:
@@ -236,7 +236,10 @@ def load_agent_policy(path: str) -> Policy:
     from stable_baselines3 import DQN
     from rl.agents.sb3_utils import sb3_q_fn
     model = DQN.load(path, device="cpu")
-    return masked_greedy_policy(sb3_q_fn(model))
+    pol = masked_greedy_policy(sb3_q_fn(model))
+    if hasattr(model, "observation_space") and model.observation_space.shape[0] == 17:
+        pol.observation_version = 2
+    return pol
 
 
 def main() -> None:
@@ -253,6 +256,7 @@ def main() -> None:
     ap.add_argument("--resamples", type=int, default=10_000)
     ap.add_argument("--out-md", default="")
     ap.add_argument("--out-json", default="")
+    ap.add_argument("--safe", action="store_true", help="also evaluate agent wrapped with SafetyLayer")
     ap.add_argument("--title", default="Policy comparison")
     args = ap.parse_args()
 
@@ -260,7 +264,13 @@ def main() -> None:
     for short in [p for p in args.policies.split(",") if p]:
         policies[short] = BASELINES[POLICY_ALIASES.get(short, short)]()
     for path in [p for p in args.agent.split(",") if p]:
-        policies[Path(path).parent.name] = load_agent_policy(path)
+        name = Path(path).parent.name
+        base_pol = load_agent_policy(path)
+        policies[name] = base_pol
+        if args.safe:
+            from safety.layer import SafetyLayer
+            from rl.evaluation.policies import safe_policy
+            policies[f"{name}_safe"] = safe_policy(base_pol, SafetyLayer())
     modes = [m for m in args.modes.split(",") if m]
     seeds_by_mode = {m: resolve_seeds(args.split, args.severe_streams if (m == "severe_surge" and
                                       args.severe_streams) else args.streams, args.final) for m in modes}

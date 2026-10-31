@@ -70,6 +70,7 @@ print(f"Stats: {dict(layer.stats)}")
 
 | Base Policy | Override Rate | Violations Post-Review | Notes |
 |:------------|--------------:|-----------------------:|:------|
+| **x6_obs_v2 (neural agent)** | **0.94%** | **0** | Guardrails intercept and override unnecessary WAITs under surge (G1: 162, G2: 216) |
 | **H3 (combined)** | **0.0%** | **0** | Pure hard-constraint review leaves valid H3 proposals unchanged |
 | **B1 (rule-based)** | **0.0%** | **0** | Deterministic valid proposals are approved unconditionally |
 | **Random** | **74.8%** | **0** | Hard checks reject ~3 in 4 actions (incompatible tier, no vent/iso) |

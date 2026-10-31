@@ -114,4 +114,5 @@ def safe_policy(base_policy: Policy, layer) -> Policy:
             return proposed
         decision = layer.review(patient, state, proposed, env=env)
         return decision.final_action
+    policy.observation_version = getattr(base_policy, "observation_version", 1)
     return policy

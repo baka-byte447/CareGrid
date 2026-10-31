@@ -116,12 +116,13 @@ EXPERIMENTS: Dict[str, Dict[str, Any]] = {
         ),
     },
     "x7_combo": {
-        "description": "X7: Combined top winners (Double DQN + Obs v2 + Reward scale 50)",
+        "description": "X7: Combined top winners (Double DQN + Obs v2 + Warmup + Reward scale 50)",
         "config": dict(
             algorithm="double_dqn",
             observation_version=2,
             reward_scale=50.0,
             invalid_action_penalty=0.5,
+            heuristic_warmup_steps=25_000,
             total_timesteps=300_000,
             val_every_steps=25_000,
             val_streams_during_training=20,

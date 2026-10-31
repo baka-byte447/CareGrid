@@ -34,10 +34,8 @@ _Last updated: 2026-10-31_
 - [x] Length-of-stay prediction (Random Forest, `ml/los`)
 - [x] Gymnasium RL environment (14- and 17-feature observations, fresh patient streams with held-out evaluation seeds, ~16k steps/s)
 - [x] Policy evaluation harness: baselines and learned agents scored by the same metrics (`python -m rl.evaluation.evaluate`)
-- [x] Policy diagnostics harness (`rl/evaluation/diagnose.py`) — action distributions, Q-spreads, feasible-WAIT auditing
-- [x] DQN / Double DQN agents trained and benchmarked (X1 Double DQN, X6 Obs-v2, X7 Combo; 300k steps each)
-- [x] Safety layer (`safety/`) — independent two-tier validation: H1–H5 hard rules + G1/G2 soft guardrails; **0 hard violations, 0.94 % override rate**
-- [x] Multi-stream statistical evaluation — 50 held-out eval streams, paired bootstrap, 95 % CIs (`rl/evaluation/compare.py`)
+- [x] DQN agent trained on the simulator and compared with the baseline
+- [x] Safety layer (independent validation of every proposed action)
 - [ ] Simple MARL (Bed Agent + Surge Agent)
 
 **Application**

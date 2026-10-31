@@ -20,15 +20,13 @@ _pg_user = os.getenv("POSTGRES_USER")
 if _pg_user:
     from sqlalchemy import URL as _URL
 
-    DATABASE_URL = str(
-        _URL.create(
-            "postgresql+psycopg2",
-            username=_pg_user,
-            password=os.getenv("POSTGRES_PASSWORD"),
-            host=os.getenv("POSTGRES_HOST", "localhost"),
-            port=int(os.getenv("POSTGRES_PORT", "5432")),
-            database=os.getenv("POSTGRES_DB", "caregrid"),
-        )
+    DATABASE_URL = _URL.create(
+        "postgresql+psycopg2",
+        username=_pg_user,
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host=os.getenv("POSTGRES_HOST", "localhost"),
+        port=int(os.getenv("POSTGRES_PORT", "5432")),
+        database=os.getenv("POSTGRES_DB", "caregrid"),
     )
     _connect_args: dict = {}
 else:

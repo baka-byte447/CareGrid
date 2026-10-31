@@ -19,7 +19,7 @@ before they are considered executed.
 
 # Current Status
 
-_Last updated: 2026-10-26_
+_Last updated: 2026-10-31_
 
 **Data & simulation**
 - [x] Problem definition, architecture, repository structure
@@ -32,37 +32,59 @@ _Last updated: 2026-10-26_
 
 **AI**
 - [x] Length-of-stay prediction (Random Forest, `ml/los`)
-- [x] Gymnasium RL environment (14-feature observation, fresh patient streams with held-out evaluation seeds, ~16k steps/s)
+- [x] Gymnasium RL environment (14- and 17-feature observations, fresh patient streams with held-out evaluation seeds, ~16k steps/s)
 - [x] Policy evaluation harness: baselines and learned agents scored by the same metrics (`python -m rl.evaluation.evaluate`)
-- [ ] DQN agent trained on the simulator and compared with the baseline
-- [ ] Safety layer (independent validation of every proposed action)
+- [x] Policy diagnostics harness (`rl/evaluation/diagnose.py`) — action distributions, Q-spreads, feasible-WAIT auditing
+- [x] DQN / Double DQN agents trained and benchmarked (X1 Double DQN, X6 Obs-v2, X7 Combo; 300k steps each)
+- [x] Safety layer (`safety/`) — independent two-tier validation: H1–H5 hard rules + G1/G2 soft guardrails; **0 hard violations, 0.94 % override rate**
+- [x] Multi-stream statistical evaluation — 50 held-out eval streams, paired bootstrap, 95 % CIs (`rl/evaluation/compare.py`)
 - [ ] Simple MARL (Bed Agent + Surge Agent)
-- [ ] Final evaluation: rule-based vs DQN vs MARL across all scenarios
 
 **Application**
 - [x] PostgreSQL schema, Alembic migrations, CSV import
 - [x] FastAPI: patients, beds, staff, equipment, recommend, approve, surge simulation, metrics, audit log
 - [x] Recommendations come from the same allocation code the simulator uses (`simulator/hospital/allocation_rules.py`)
-- [x] React dashboard: overview, wards, patient queue with approve flow, audit log
-- [ ] Reject / override with a reason
-- [ ] Surge-simulator and analytics pages (rule vs DQN vs MARL charts)
+- [x] React dashboard: command centre, patient queue with approve flow, bed board, staff roster, equipment, audit log
+- [x] Surge capacity planner (`/surge`) and analytical reports (`/reports`)
+- [ ] Reject / override with a reason (backend endpoint pending)
 - [ ] RL + safety layer behind `/allocation/recommend` (selectable algorithm)
 - [ ] Authentication (JWT, roles)
 - [ ] Mock FHIR endpoint
 - [ ] End-to-end demo
 
 **Quality**
-- [x] Automated tests: simulator, metrics, load calibration, LOS model, allocation API
+- [x] Automated tests: **290 tests passing** — simulator, metrics, load calibration, LOS model, Gymnasium env, DQN / Double DQN, safety layer
 
 ### Quick start
 
 ```bash
-pip install -r requirements-dev.txt          # backend + ML + test dependencies
-python -m simulator.hospital.run             # run the simulator with the rule-based baseline
-python -m experiments.run_experiment --scenario normal      # metrics (also: moderate_surge, severe_surge)
-python -m ml.los.train                       # train the LOS model once (the model file is git-ignored)
-python -m rl.evaluation.evaluate --policy rule_based --mode normal   # baseline on held-out patient streams
-python -m pytest tests -q                    # full test suite
+# -- Setup -------------------------------------------------------------------
+pip install -r requirements-dev.txt            # backend + ML + RL + test deps
+
+# -- Simulator & rule-based baseline ------------------------------------------
+python -m simulator.hospital.run               # run simulator with rule-based baseline
+python -m experiments.run_experiment --scenario normal   # metrics (also: moderate_surge, severe_surge)
+
+# -- ML: Length-of-Stay predictor --------------------------------------------
+python -m ml.los.train                         # train LOS model once (model file is git-ignored)
+
+# -- RL: Train agents --------------------------------------------------------
+python -m rl.training.run_experiments          # run all factor experiments (X0-X7)
+python -m rl.training.train --factor x6_obs_v2 --steps 300000   # single factor
+
+# -- RL: Diagnose & evaluate -------------------------------------------------
+python -m rl.evaluation.diagnose --model rl/agents/models/x6_obs_v2/best.zip --mode surge
+python -m rl.evaluation.evaluate --policy rule_based --mode normal
+python -m rl.evaluation.compare --policies b1,h1,h2,h3 \
+    --agent rl/agents/models/x6_obs_v2/best.zip --safe \
+    --split eval --final --streams 50          # 50-stream held-out benchmark
+
+# -- Backend & Frontend -------------------------------------------------------
+uvicorn backend.api.main:app --reload          # FastAPI server  ->  http://localhost:8000
+cd frontend && npm install && npm run dev      # React dashboard ->  http://localhost:5173
+
+# -- Test suite --------------------------------------------------------------
+python -m pytest tests --ignore=tests/test_backend -q   # 290 tests, ~55 s
 ```
 
 Work happens on short-lived `feature/<area>-<desc>` branches merged into `main` by pull request; `main` must always run.

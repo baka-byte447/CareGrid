@@ -87,9 +87,10 @@ def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7
     horizon_days = (last - start).total_seconds() / 86400 + drain_days
 
     collector = MetricsCollector(window_start=start, window_end=last)
+    obs_ver = getattr(policy, "observation_version", observation_version)
     env = CareGridHospitalEnv(data_dir=data_dir, max_episode_days=horizon_days,
                               los_predictor=los_predictor,
-                              observation_version=observation_version)
+                              observation_version=obs_ver)
     obs, _ = env.reset(seed=0, options={"patients": list(patients),
                                         "on_tick": collector.on_tick})
     total_reward, decisions, invalid = 0.0, 0, 0

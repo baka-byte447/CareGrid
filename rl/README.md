@@ -76,3 +76,25 @@ Driving the rule policy through the env reproduces `SimulationEngine.run()` exac
 
 Streams differ a lot (std 124 on a mean of 367), so compare policies on the **same**
 streams and use at least 10.
+
+## Phase 8 / PR-3 & PR-4 Final Evaluation Results (Held-Out EVAL_SEEDS 90000-90049)
+
+Across 50 held-out evaluation streams per scenario (generated once, evaluated identically across policies):
+
+| Scenario | Metric | B1 (Rules) | H1 (Lowest-Tier) | H3 (Combined) | x6_obs_v2 (DQN) | x6_obs_v2_safe (DQN+Safety) |
+|---|---|---:|---:|---:|---:|---:|
+| **normal** | Weighted wait (min) | 419.4 ± 206.1 | 180.8 ± 107.5 | 184.1 ± 108.7 | 256.2 ± 178.6 | **253.3 ± 170.7** |
+| | Avg wait (min) | 351.0 | 282.2 | 275.4 | 316.2 | **313.6** |
+| | Critical wait (min) | 421.8 | 89.3 | 93.7 | 185.1 | **182.2** |
+| | Win rate vs B1 | -- | 100% | 98% | 96% | **96%** |
+| **moderate_surge** | Weighted wait (min) | 3488.4 ± 1008.1 | 3144.0 ± 970.5 | 3190.2 ± 972.8 | 3472.5 ± 970.4 | **3287.0 ± 978.2** |
+| | Avg wait (min) | 2796.4 | 2652.3 | 2664.9 | 2836.4 | **2690.8** |
+| | Critical wait (min) | 4018.5 | 3534.0 | 3611.0 | 3913.3 | **3748.3** |
+| | Win rate vs B1 | -- | 96% | 94% | 48% | **86%** |
+| **severe_surge** | Weighted wait (min) | 14532.2 ± 644.3 | 14473.7 ± 634.1 | 14492.6 ± 638.4 | 14753.2 ± 669.8 | **14468.5 ± 646.0** |
+| | Avg wait (min) | 13925.9 | 14048.2 | 14041.5 | 14005.6 | **13964.0** |
+| | Critical wait (min) | 15098.2 | 14886.8 | 14932.9 | 15592.8 | **14940.5** |
+| | Win rate vs B1 | -- | 78% | 74% | 4% | **88%** |
+
+Full report: docs/results/phase8_final_evaluation.md  
+Curated metrics: experiments/results/curated/phase8_final_evaluation.json

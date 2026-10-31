@@ -34,8 +34,8 @@ _Last updated: 2026-10-26_
 - [x] Length-of-stay prediction (Random Forest, `ml/los`)
 - [x] Gymnasium RL environment (14-feature observation, fresh patient streams with held-out evaluation seeds, ~16k steps/s)
 - [x] Policy evaluation harness: baselines and learned agents scored by the same metrics (`python -m rl.evaluation.evaluate`)
-- [ ] DQN agent trained on the simulator and compared with the baseline
-- [ ] Safety layer (independent validation of every proposed action)
+- [x] DQN agent trained on the simulator and compared with the baseline
+- [x] Safety layer (independent validation of every proposed action)
 - [ ] Simple MARL (Bed Agent + Surge Agent)
 - [ ] Final evaluation: rule-based vs DQN vs MARL across all scenarios
 

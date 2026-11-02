@@ -66,9 +66,63 @@ def client(db_session):
     from fastapi.testclient import TestClient
 
     from backend.api.main import app
+    from backend.auth.security import create_access_token
     from backend.db.database import get_db
+    from backend.models import User
+
+    # Create a test doctor account
+    test_user = User(
+        username="test_doctor",
+        email="test_doctor@example.com",
+        hashed_password="test-hash",
+        role="doctor",
+        is_active=True,
+    )
+    db_session.add(test_user)
+    db_session.commit()
+    db_session.refresh(test_user)
+
+    # Generate a valid JWT for this test user
+    token = create_access_token(data={"sub": str(test_user.id), "role": test_user.role})
+
+    # Use the test database instead of PostgreSQL
+    app.dependency_overrides[get_db] = lambda: (yield db_session)
+
+    with TestClient(app) as c:
+        c.headers.update({"Authorization": f"Bearer {token}"})
+        yield c
+
+    app.dependency_overrides.clear()
+
+@pytest.fixture()
+def admin_client(db_session):
+    from fastapi.testclient import TestClient
+
+    from backend.api.main import app
+    from backend.auth.security import create_access_token
+    from backend.db.database import get_db
+    from backend.models import User
+
+    admin = User(
+        username="test_admin",
+        email="test_admin@example.com",
+        hashed_password="test-hash",
+        role="admin",
+        is_active=True,
+    )
+
+    db_session.add(admin)
+    db_session.commit()
+    db_session.refresh(admin)
+
+    token = create_access_token(
+        data={"sub": str(admin.id), "role": admin.role}
+    )
 
     app.dependency_overrides[get_db] = lambda: (yield db_session)
+
     with TestClient(app) as c:
+        c.headers.update({"Authorization": f"Bearer {token}"})
         yield c
+
     app.dependency_overrides.clear()

@@ -3,3 +3,4 @@ from backend.models.bed import Bed
 from backend.models.staff import Staff
 from backend.models.equipment import Equipment
 from backend.models.audit import AuditLog
+from backend.models.user import User

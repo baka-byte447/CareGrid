@@ -6,7 +6,7 @@ from backend.models.bed import Bed
 from backend.models.staff import Staff
 from backend.models.equipment import Equipment
 
-
+import backend.models
 Base.metadata.create_all(bind=engine)
 
 print("All database tables created successfully.")

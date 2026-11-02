@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
+from backend.api.auth import router as auth_router
 
 from backend.api.schemas import (
     AllocationRecommendRequest,
@@ -8,7 +9,7 @@ from backend.api.schemas import (
     SurgeSimulationRequest,
 )
 from backend.db.database import get_db
-from backend.models import AuditLog, Bed, Equipment, Patient, Staff
+from backend.models import AuditLog, Bed, Equipment, Patient, Staff, User
 from backend.services.hospital_state import build_hospital_state, to_simulator_patient
 
 from pathlib import Path
@@ -20,6 +21,7 @@ from simulator.hospital.engine import SimulationEngine
 from simulator.metrics.collector import MetricsCollector
 from simulator.metrics.summary import compute_metrics
 
+from backend.auth.dependencies import require_roles
 
 app = FastAPI(
     title="CareGrid API",
@@ -27,6 +29,7 @@ app = FastAPI(
     version="1.0.0",
 )
 
+app.include_router(auth_router)
 
 @app.get("/")
 def root():
@@ -36,7 +39,12 @@ def root():
 
 
 @app.get("/patients")
-def get_patients(db: Session = Depends(get_db)):
+def get_patients(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "doctor", "nurse", "operator")
+    ),
+):
     patients = db.query(Patient).all()
 
     return {
@@ -58,7 +66,12 @@ def get_patients(db: Session = Depends(get_db)):
 
 
 @app.get("/beds")
-def get_beds(db: Session = Depends(get_db)):
+def get_beds(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "doctor", "nurse", "operator")
+    ),
+):
     beds = db.query(Bed).all()
 
     return {
@@ -75,7 +88,12 @@ def get_beds(db: Session = Depends(get_db)):
     }
 
 @app.get("/staff")
-def get_staff(db: Session = Depends(get_db)):
+def get_staff(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "operator")
+    ),
+):
     staff_members = db.query(Staff).all()
 
     return {
@@ -92,7 +110,12 @@ def get_staff(db: Session = Depends(get_db)):
     }
 
 @app.get("/equipment")
-def get_equipment(db: Session = Depends(get_db)):
+def get_equipment(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "nurse", "operator")
+    ),
+):
     equipment_items = db.query(Equipment).all()
 
     return {
@@ -112,6 +135,9 @@ def get_equipment(db: Session = Depends(get_db)):
 def recommend_allocation(
     request: AllocationRecommendRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "doctor")
+    ),
 ):
     # 1. Find the patient
     patient = db.query(Patient).filter(
@@ -170,6 +196,9 @@ def recommend_allocation(
 def approve_allocation(
     request: AllocationApproveRequest,
     db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "doctor")
+    ),
 ):
     # 1. Find the patient
     patient = (
@@ -279,7 +308,12 @@ def approve_allocation(
     }
 
 @app.post("/surge/simulate")
-def simulate_surge(request: SurgeSimulationRequest):
+def simulate_surge(
+    request: SurgeSimulationRequest,
+    current_user: User = Depends(
+        require_roles("admin", "operator")
+    ),
+):
     try:
         # Resolve the dataset directory from the project root.
         data_dir = Path(__file__).resolve().parents[2] / "data" / "synthetic"
@@ -360,7 +394,12 @@ def simulate_surge(request: SurgeSimulationRequest):
 
 
 @app.get("/metrics")
-def get_metrics(db: Session = Depends(get_db)):
+def get_metrics(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "operator")
+    ),
+):
     # Patient counts
     patients_total = db.query(Patient).count()
     patients_waiting = (
@@ -442,7 +481,12 @@ def get_metrics(db: Session = Depends(get_db)):
 
 
 @app.get("/audit")
-def get_audit_logs(db: Session = Depends(get_db)):
+def get_audit_logs(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "operator")
+    ),
+):
     records = (
         db.query(AuditLog)
         .order_by(AuditLog.timestamp.desc(), AuditLog.id.desc())

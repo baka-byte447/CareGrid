@@ -12,27 +12,89 @@ import {
   Settings,
   Activity,
 } from 'lucide-react';
+import { useAuth } from '@/auth/AuthContext';
+import type { UserRole } from '@/auth/types';
+
+interface NavItem {
+  label: string;
+  path: string;
+  icon: React.ElementType;
+  allowedRoles: UserRole[];
+}
+
+const navItems: NavItem[] = [
+  {
+    label: 'Command Centre',
+    path: '/',
+    icon: LayoutDashboard,
+    allowedRoles: ['admin', 'doctor', 'nurse', 'operator'],
+  },
+  {
+    label: 'Admission Queue',
+    path: '/queue',
+    icon: Users,
+    allowedRoles: ['admin', 'doctor', 'nurse', 'operator'],
+  },
+  {
+    label: 'Bed Management',
+    path: '/beds',
+    icon: BedDouble,
+    allowedRoles: ['admin', 'doctor', 'nurse', 'operator'],
+  },
+  {
+    label: 'Staff Roster',
+    path: '/staff',
+    icon: UserCheck,
+    allowedRoles: ['admin', 'operator'],
+  },
+  {
+    label: 'Equipment',
+    path: '/equipment',
+    icon: Stethoscope,
+    allowedRoles: ['admin', 'nurse', 'operator'],
+  },
+  {
+    label: 'Surge Planner',
+    path: '/surge',
+    icon: Zap,
+    allowedRoles: ['admin', 'operator'],
+  },
+  {
+    label: 'Clinical Reports',
+    path: '/reports',
+    icon: BarChart3,
+    allowedRoles: ['admin', 'operator'],
+  },
+  {
+    label: 'Audit Log',
+    path: '/audit',
+    icon: ScrollText,
+    allowedRoles: ['admin', 'operator'],
+  },
+  {
+    label: 'Hospital Admin',
+    path: '/admin',
+    icon: Settings,
+    allowedRoles: ['admin'],
+  },
+];
 
 export const Sidebar: React.FC = () => {
-  const navItems = [
-    { label: 'Command Centre', path: '/', icon: LayoutDashboard },
-    { label: 'Admission Queue', path: '/queue', icon: Users },
-    { label: 'Bed Management', path: '/beds', icon: BedDouble },
-    { label: 'Staff Roster', path: '/staff', icon: UserCheck },
-    { label: 'Equipment', path: '/equipment', icon: Stethoscope },
-    { label: 'Surge Planner', path: '/surge', icon: Zap },
-    { label: 'Clinical Reports', path: '/reports', icon: BarChart3 },
-    { label: 'Audit Log', path: '/audit', icon: ScrollText },
-    { label: 'Hospital Admin', path: '/admin', icon: Settings },
-  ];
+  const { user } = useAuth();
+
+  const visibleNavItems = navItems.filter((item) =>
+    user && item.allowedRoles.includes(user.role)
+  );
 
   return (
     <aside className="w-60 bg-[#0a192f] text-slate-200 flex flex-col flex-shrink-0 border-r border-slate-800 select-none">
+
       {/* Brand Logo & Name */}
       <div className="p-5 border-b border-slate-800/80 flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg bg-brand-primary flex items-center justify-center text-white shadow-md">
           <Activity className="w-5 h-5 text-sky-200" />
         </div>
+
         <div>
           <h1 className="text-base font-bold tracking-tight text-white leading-none">
             CareGrid
@@ -49,8 +111,9 @@ export const Sidebar: React.FC = () => {
           Clinical Operations
         </div>
 
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
+
           return (
             <NavLink
               key={item.path}
@@ -75,9 +138,14 @@ export const Sidebar: React.FC = () => {
       <div className="p-4 border-t border-slate-800/80 text-[11px] text-slate-400">
         <div className="flex items-center gap-2 mb-1">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-semibold text-slate-300">RL Engine Active</span>
+          <span className="font-semibold text-slate-300">
+            RL Engine Active
+          </span>
         </div>
-        <p className="text-[10px] text-slate-500">v1.0.0 &bull; St. Jude Central</p>
+
+        <p className="text-[10px] text-slate-500">
+          v1.0.0 &bull; St. Jude Central
+        </p>
       </div>
     </aside>
   );

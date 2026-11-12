@@ -397,7 +397,7 @@ def simulate_surge(
 def get_metrics(
     db: Session = Depends(get_db),
     current_user: User = Depends(
-        require_roles("admin", "operator")
+        require_roles("admin", "doctor", "nurse", "operator")
     ),
 ):
     # Patient counts

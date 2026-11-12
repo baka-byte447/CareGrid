@@ -163,3 +163,40 @@ export type RecommendResponse = z.infer<typeof RecommendResponseSchema>
 export type ApproveResponse = z.infer<typeof ApproveResponseSchema>
 export type SurgeResponse = z.infer<typeof SurgeResponseSchema>
 export type SurgeMetrics = z.infer<typeof SurgeMetricsSchema>
+
+// ─── User Management ────────────────────────────────────────────────────────
+
+export const UserRoleSchema = z.enum([
+  'admin',
+  'doctor',
+  'nurse',
+  'operator',
+])
+
+export const UserSchema = z.object({
+  id: z.number().int(),
+  username: z.string(),
+  email: z.string().email(),
+  role: UserRoleSchema,
+  is_active: z.boolean(),
+})
+
+export const UsersResponseSchema = z.array(UserSchema)
+
+export const CreateUserRequestSchema = z.object({
+  username: z.string().min(3).max(50),
+  email: z.string().email(),
+  password: z.string().min(8).max(72),
+  role: UserRoleSchema,
+})
+
+export const UpdateUserRequestSchema = z.object({
+  role: UserRoleSchema.optional(),
+  is_active: z.boolean().optional(),
+})
+
+// Type exports
+export type User = z.infer<typeof UserSchema>
+export type UserRole = z.infer<typeof UserRoleSchema>
+export type CreateUserRequest = z.infer<typeof CreateUserRequestSchema>
+export type UpdateUserRequest = z.infer<typeof UpdateUserRequestSchema>

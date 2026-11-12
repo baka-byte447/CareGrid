@@ -10,7 +10,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ZodError, ZodSchema } from 'zod'
-import { apiGet, apiPost, ApiRequestError } from '../client'
+import { apiGet, apiPost, apiPatch, ApiRequestError } from '../client'
 import {
   PatientsResponseSchema,
   BedsResponseSchema,
@@ -30,6 +30,11 @@ import {
   RecommendResponse,
   ApproveResponse,
   SurgeResponse,
+  UsersResponseSchema,
+  UserSchema,
+  User,
+  CreateUserRequest,
+  UpdateUserRequest,
 } from '../schemas'
 
 // ─── Validation helper ────────────────────────────────────────────────────────
@@ -61,6 +66,66 @@ export const QUERY_KEYS = {
   equipment: ['equipment'] as const,
   metrics: ['metrics'] as const,
   audit: ['audit'] as const,
+  users: ['users'] as const,
+}
+
+
+// ─── User Management ────────────────────────────────────────────────────────
+
+// GET /auth/users
+export function useUsers() {
+  return useQuery<User[], Error>({
+    queryKey: QUERY_KEYS.users,
+    queryFn: async () => {
+      const raw = await apiGet<unknown>('/auth/users')
+      return validate(UsersResponseSchema, raw)
+    },
+    staleTime: 15_000,
+    retry: 1,
+  })
+}
+
+// POST /auth/users
+export function useCreateUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation<User, Error, CreateUserRequest>({
+    mutationFn: async (userData) => {
+      const raw = await apiPost<unknown>('/auth/users', userData)
+      return validate(UserSchema, raw)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.users,
+      })
+    },
+    retry: 0,
+  })
+}
+
+// PATCH /auth/users/{user_id}
+export function useUpdateUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation<
+    User,
+    Error,
+    { userId: number; updates: UpdateUserRequest }
+  >({
+    mutationFn: async ({ userId, updates }) => {
+      const raw = await apiPatch<unknown>(
+        `/auth/users/${userId}`,
+        updates,
+      )
+      return validate(UserSchema, raw)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.users,
+      })
+    },
+    retry: 0,
+  })
 }
 
 // ─── GET /patients ────────────────────────────────────────────────────────────

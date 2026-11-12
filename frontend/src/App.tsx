@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
@@ -16,12 +15,17 @@ import { LoginPage } from '@/pages/LoginPage'
 
 import { ProtectedRoute } from './auth/ProtectedRoute'
 import { useAuth } from './auth/AuthContext'
+import { UserRole } from './auth/types'
 
 function LoginRoute() {
   const { isAuthenticated, isLoading } = useAuth()
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Checking authentication...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Checking authentication...
+      </div>
+    )
   }
 
   if (isAuthenticated) {
@@ -31,29 +35,57 @@ function LoginRoute() {
   return <LoginPage />
 }
 
+const ALL_ROLES: UserRole[] = [
+  'admin',
+  'doctor',
+  'nurse',
+  'operator',
+]
+
+const ADMIN_OPERATOR: UserRole[] = ['admin', 'operator']
+const ADMIN_NURSE_OPERATOR: UserRole[] = [
+  'admin',
+  'nurse',
+  'operator',
+]
+const ADMIN_ONLY: UserRole[] = ['admin']
+
 export const App: React.FC = () => {
   return (
     <Routes>
-      {/* Public login page */}
       <Route path="/login" element={<LoginRoute />} />
 
-      {/* Protected clinical application */}
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<AppShell />}>
           <Route index element={<CommandCentrePage />} />
-          <Route path="command-centre" element={<Navigate to="/" replace />} />
-          <Route path="queue" element={<AdmissionQueuePage />} />
-          <Route path="beds" element={<BedManagementPage />} />
-          <Route path="staff" element={<StaffPage />} />
-          <Route path="equipment" element={<EquipmentPage />} />
-          <Route path="surge" element={<SurgePlannerPage />} />
-          <Route path="reports" element={<ReportsPage />} />
-          <Route path="audit" element={<AuditLogPage />} />
-          <Route path="admin" element={<AdminPage />} />
+
+          <Route
+            path="command-centre"
+            element={<Navigate to="/" replace />}
+          />
+
+          <Route element={<ProtectedRoute allowedRoles={ALL_ROLES} />}>
+            <Route path="queue" element={<AdmissionQueuePage />} />
+            <Route path="beds" element={<BedManagementPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={ADMIN_OPERATOR} />}>
+            <Route path="staff" element={<StaffPage />} />
+            <Route path="surge" element={<SurgePlannerPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="audit" element={<AuditLogPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={ADMIN_NURSE_OPERATOR} />}>
+            <Route path="equipment" element={<EquipmentPage />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={ADMIN_ONLY} />}>
+            <Route path="admin" element={<AdminPage />} />
+          </Route>
         </Route>
       </Route>
 
-      {/* Unknown routes */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

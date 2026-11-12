@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -17,7 +16,7 @@ from backend.auth.security import (
 from backend.db.database import get_db
 from backend.models import User
 
-from backend.auth.dependencies import require_roles
+from backend.auth.dependencies import require_roles, get_current_user
 from backend.auth.roles import Role
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -102,6 +101,12 @@ def login_user(
         "access_token": access_token,
         "token_type": "bearer",
     }
+
+@router.get("/me", response_model=UserResponse)
+def get_me(
+    current_user: User = Depends(get_current_user),
+):
+    return current_user
 
 @router.post("/users", response_model=UserResponse, status_code=201)
 def create_user(

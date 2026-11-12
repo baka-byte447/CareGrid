@@ -127,7 +127,10 @@ export function useEquipment() {
 
 // ─── GET /metrics ─────────────────────────────────────────────────────────────
 
-export function useMetrics(refetchInterval?: number) {
+export function useMetrics(
+  refetchInterval?: number,
+  enabled: boolean = true
+) {
   return useQuery<Metrics, Error>({
     queryKey: QUERY_KEYS.metrics,
     queryFn: async () => {
@@ -137,6 +140,7 @@ export function useMetrics(refetchInterval?: number) {
     staleTime: 15_000,
     retry: 1,
     refetchInterval,
+    enabled,
   })
 }
 

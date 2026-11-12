@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
-
+from typing import Optional
+from pydantic import BaseModel, EmailStr, Field
 
 class AllocationRecommendRequest(BaseModel):
     patient_id: str
@@ -28,6 +29,10 @@ class AdminUserCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=72)
     role: str
+
+class AdminUserUpdate(BaseModel):
+    role: Optional[str] = None
+    is_active: Optional[bool] = None
 
 class UserLogin(BaseModel):
     username: str

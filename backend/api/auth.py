@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.api.schemas import (
-    UserRegister,
     UserLogin,
     UserResponse,
     TokenResponse,
@@ -19,6 +18,9 @@ from backend.models import User
 from backend.auth.dependencies import require_roles, get_current_user
 from backend.auth.roles import Role
 
+from backend.api.schemas import AdminUserUpdate
+from typing import List
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
@@ -27,38 +29,6 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def register_user(
-    user_data: UserRegister,
-    db: Session = Depends(get_db),
-):
-    existing_user = (
-        db.query(User)
-        .filter(
-            (User.username == user_data.username)
-            | (User.email == user_data.email)
-        )
-        .first()
-    )
-
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Username or email already registered",
-        )
-
-    new_user = User(
-        username=user_data.username,
-        email=user_data.email,
-        hashed_password=hash_password(user_data.password),
-        role="nurse",
-    )
-
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    return new_user
-
 
 @router.post("/login", response_model=TokenResponse)
 def login_user(
@@ -148,3 +118,70 @@ def create_user(
     db.refresh(new_user)
 
     return new_user
+
+
+@router.get("/users", response_model=list[UserResponse])
+def list_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("admin")),
+):
+    users = db.query(User).order_by(User.id.asc()).all()
+    return users
+
+
+@router.patch(
+    "/users/{user_id}",
+    response_model=UserResponse,
+)
+def update_user(
+    user_id: int,
+    user_data: AdminUserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_roles("admin")),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    updates = user_data.model_dump(exclude_unset=True)
+
+    if not updates:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No update fields provided",
+        )
+
+    if user.id == current_user.id and updates.get("is_active") is False:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You cannot deactivate your own account",
+        )
+
+    if "role" in updates:
+        allowed_roles = {role.value for role in Role}
+
+        if updates["role"] not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid role",
+            )
+
+        if user.id == current_user.id and updates["role"] != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You cannot remove your own admin role",
+            )
+
+        user.role = updates["role"]
+
+    if "is_active" in updates:
+        user.is_active = updates["is_active"]
+
+    db.commit()
+    db.refresh(user)
+
+    return user

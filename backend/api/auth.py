@@ -6,6 +6,7 @@ from backend.api.schemas import (
     UserResponse,
     TokenResponse,
     AdminUserCreate,
+    AdminUserUpdate,
 )
 from backend.auth.security import (
     hash_password,
@@ -18,17 +19,10 @@ from backend.models import User
 from backend.auth.dependencies import require_roles, get_current_user
 from backend.auth.roles import Role
 
-from backend.api.schemas import AdminUserUpdate
 from typing import List
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-
-@router.post(
-    "/register",
-    response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED,
-)
 
 @router.post("/login", response_model=TokenResponse)
 def login_user(
@@ -179,6 +173,11 @@ def update_user(
         user.role = updates["role"]
 
     if "is_active" in updates:
+        if updates["is_active"] is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="is_active cannot be null",
+            )
         user.is_active = updates["is_active"]
 
     db.commit()

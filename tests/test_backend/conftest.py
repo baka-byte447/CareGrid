@@ -5,10 +5,16 @@ If the backend dependencies are not installed (pip install -r requirements-dev.t
 this whole folder is skipped, and the pytest header says so, instead of breaking
 the rest of the test suite."""
 import importlib.util
+import os
 import sys
 from pathlib import Path
 
 import pytest
+
+# Set a dedicated test-only JWT_SECRET_KEY in the environment before any backend
+# modules (which import backend.auth.security) are imported during test collection.
+TEST_JWT_SECRET = "caregrid-test-jwt-secret-key-32charsmin!"
+os.environ["JWT_SECRET_KEY"] = TEST_JWT_SECRET
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
@@ -27,6 +33,12 @@ def pytest_report_header(config):
     if _MISSING:
         return (f"backend API tests SKIPPED - missing packages: {', '.join(_MISSING)} "
                 f"(pip install -r requirements-dev.txt)")
+
+
+@pytest.fixture(autouse=True)
+def test_jwt_secret(monkeypatch):
+    """Ensure each test runs with the isolated test JWT secret in the environment."""
+    monkeypatch.setenv("JWT_SECRET_KEY", TEST_JWT_SECRET)
 
 
 @pytest.fixture()
@@ -94,6 +106,7 @@ def client(db_session):
 
     app.dependency_overrides.clear()
 
+
 @pytest.fixture()
 def admin_client(db_session):
     from fastapi.testclient import TestClient
@@ -123,6 +136,21 @@ def admin_client(db_session):
 
     with TestClient(app) as c:
         c.headers.update({"Authorization": f"Bearer {token}"})
+        yield c
+
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def unauthenticated_client(db_session):
+    from fastapi.testclient import TestClient
+
+    from backend.api.main import app
+    from backend.db.database import get_db
+
+    app.dependency_overrides[get_db] = lambda: (yield db_session)
+
+    with TestClient(app) as c:
         yield c
 
     app.dependency_overrides.clear()

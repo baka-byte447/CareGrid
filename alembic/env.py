@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from backend.db.database import Base, DATABASE_URL
-from backend.models import Patient, Bed, Staff, Equipment
+from backend.models import Patient, Bed, Staff, Equipment, AuditLog, User
 
 import os
 from dotenv import load_dotenv
@@ -46,6 +46,8 @@ def run_migrations_offline() -> None:
 
     """
     url = config.get_main_option("sqlalchemy.url")
+    if not url or url.startswith("driver://"):
+        url = str(DATABASE_URL)
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -58,16 +60,22 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    connectable = create_engine(
-    DATABASE_URL,
-    poolclass=pool.NullPool,
-)
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
+    url = config.get_main_option("sqlalchemy.url")
+    if url and not url.startswith("driver://"):
+        target_url = url
+    else:
+        target_url = DATABASE_URL
+
+    connectable = create_engine(
+        target_url,
+        poolclass=pool.NullPool,
+    )
     
     with connectable.connect() as connection:
         context.configure(

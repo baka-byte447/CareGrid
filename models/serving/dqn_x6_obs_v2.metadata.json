@@ -1,0 +1,21 @@
+{
+  "algorithm": "masked_dqn",
+  "obs_version": 2,
+  "n_inputs": 17,
+  "n_actions": 4,
+  "action_names": [
+    "ICU",
+    "STEP_DOWN",
+    "WARD",
+    "WAIT"
+  ],
+  "net_arch": [
+    128,
+    128
+  ],
+  "val_score": 1231.4331,
+  "git_commit_model": "266137bf7af7bc4f62092bd710e8b92f1515a30c",
+  "git_commit_export": "70524c323ebc9ef80eed7a93e8d575332a03aad1",
+  "source_model": "rl\\agents\\models\\x6_obs_v2\\best.zip",
+  "npz_sha256": "9d680c9ef713c8bccfd636f8a42885613879d8bd05183fc308c6f5b4a675ad6f"
+}

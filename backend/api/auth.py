@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.api.schemas import (
@@ -22,6 +23,16 @@ from backend.auth.roles import Role
 from typing import List
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+def _is_username_or_email_unique_violation(exc: IntegrityError) -> bool:
+    constraint_name = getattr(getattr(exc.orig, "diag", None), "constraint_name", None)
+    if constraint_name in {"ix_users_username", "ix_users_email", "uq_users_username", "uq_users_email"}:
+        return True
+    return str(exc.orig) in {
+        "UNIQUE constraint failed: users.username",
+        "UNIQUE constraint failed: users.email",
+    }
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -50,8 +61,9 @@ def login_user(
 
     if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is inactive",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     access_token = create_access_token(
@@ -108,7 +120,16 @@ def create_user(
     )
 
     db.add(new_user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        if _is_username_or_email_unique_violation(exc):
+            raise HTTPException(
+                status_code=409,
+                detail="Username or email already registered",
+            ) from exc
+        raise
     db.refresh(new_user)
 
     return new_user

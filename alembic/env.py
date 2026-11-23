@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from backend.db.database import Base, DATABASE_URL
-from backend.models import Patient, Bed, Staff, Equipment, AuditLog, User
+from backend.models import Patient, Bed, Staff, Equipment, AuditLog, User, Encounter, BedAssignment, EquipmentAssignment
 
 import os
 from dotenv import load_dotenv

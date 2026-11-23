@@ -50,9 +50,7 @@ def temp_alembic_db():
 
 
 def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
-    """Verify fresh database upgrade to head creates all tables (including users and marker),
-    and downgrade drops users and marker without affecting other tables.
-    """
+    """Verify latest-revision and full downgrades preserve the right tables."""
     cfg, db_url = temp_alembic_db
 
     # 1. Upgrade to head on a fresh database
@@ -86,7 +84,7 @@ def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
     assert "ix_users_username" in user_indexes
     assert "ix_users_email" in user_indexes
 
-    # 2. Downgrade by 1 revision
+    # 2. Downgrade only the latest lifecycle revision; users remains applied.
     engine.dispose()
     command.downgrade(cfg, "-1")
 
@@ -94,13 +92,28 @@ def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
     insp = inspect(engine)
     tables_after_downgrade = set(insp.get_table_names())
 
-    assert "users" not in tables_after_downgrade, "users table was not dropped on downgrade of fresh migration"
-    assert "_alembic_users_created_by_migration" not in tables_after_downgrade, "marker table was not dropped"
+    assert {"encounters", "bed_assignments", "equipment_assignments"}.isdisjoint(
+        tables_after_downgrade
+    ), "Lifecycle tables were not removed by downgrading the latest revision"
+    assert "users" in tables_after_downgrade, "users table should remain after one-revision downgrade"
+    assert "_alembic_users_created_by_migration" in tables_after_downgrade, (
+        "users migration marker should remain after one-revision downgrade"
+    )
     assert {"beds", "equipment", "patients", "staff", "audit_logs"}.issubset(tables_after_downgrade), (
         "Other tables must remain intact after downgrade"
     )
 
-    # 3. Upgrade back to head re-creates users and marker
+    # 3. Full downgrade explicitly reverses the users revision too.
+    engine.dispose()
+    command.downgrade(cfg, "base")
+
+    engine = create_engine(db_url)
+    tables_after_full_downgrade = set(inspect(engine).get_table_names())
+    assert "users" not in tables_after_full_downgrade
+    assert "_alembic_users_created_by_migration" not in tables_after_full_downgrade
+    engine.dispose()
+
+    # 4. Upgrade back to head re-creates the full schema.
     engine.dispose()
     command.upgrade(cfg, "head")
 

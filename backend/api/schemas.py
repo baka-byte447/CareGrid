@@ -1,9 +1,20 @@
-from pydantic import BaseModel, Field
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
+
+try:
+    import email_validator
+    from pydantic import EmailStr
+except ImportError:
+    EmailStr = str
 
 class AllocationRecommendRequest(BaseModel):
     patient_id: str
+    algorithm: Optional[str] = "rule_based"
+
+
+class AllocationRejectRequest(BaseModel):
+    patient_id: str
+    reason: str = Field(min_length=3)
 
 
 class AllocationApproveRequest(BaseModel):
@@ -16,7 +27,7 @@ class SurgeSimulationRequest(BaseModel):
     duration_hours: int = Field(gt=0)
 
 
-from pydantic import BaseModel, EmailStr, Field
+
 
 
 class UserRegister(BaseModel):

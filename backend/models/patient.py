@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import String, Integer, Float, Boolean, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.database import Base
 
@@ -52,4 +52,9 @@ class Patient(Base):
     current_status: Mapped[str] = mapped_column(
         String(20),
         nullable=False
+    )
+
+    encounters: Mapped[list["Encounter"]] = relationship(
+        back_populates="patient",
+        cascade="all, delete-orphan",
     )

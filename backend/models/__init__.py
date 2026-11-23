@@ -4,3 +4,6 @@ from backend.models.staff import Staff
 from backend.models.equipment import Equipment
 from backend.models.audit import AuditLog
 from backend.models.user import User
+from backend.models.encounter import Encounter
+from backend.models.bed_assignment import BedAssignment
+from backend.models.equipment_assignment import EquipmentAssignment

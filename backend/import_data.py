@@ -20,6 +20,7 @@ def percentage_to_int(value):
 
 
 def import_patients(db):
+    imported = 0
     with open(f"{DATA_DIR}/patients.csv", newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
 
@@ -40,9 +41,13 @@ def import_patients(db):
             )
 
             db.add(patient)
+            imported += 1
+
+    return imported
 
 
 def import_beds(db):
+    imported = 0
     with open(f"{DATA_DIR}/beds.csv", newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
 
@@ -56,9 +61,13 @@ def import_beds(db):
             )
 
             db.add(bed)
+            imported += 1
+
+    return imported
 
 
 def import_staff(db):
+    imported = 0
     with open(f"{DATA_DIR}/staff.csv", newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
 
@@ -72,9 +81,13 @@ def import_staff(db):
             )
 
             db.add(staff)
+            imported += 1
+
+    return imported
 
 
 def import_equipment(db):
+    imported = 0
     with open(f"{DATA_DIR}/equipment.csv", newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
 
@@ -87,27 +100,44 @@ def import_equipment(db):
             )
 
             db.add(equipment)
+            imported += 1
+
+    return imported
 
 
 def main():
-
     db = SessionLocal()
 
     try:
-        # Clear existing synthetic data
-        db.query(Patient).delete()
-        db.query(Bed).delete()
-        db.query(Staff).delete()
-        db.query(Equipment).delete()
+        # These checks start the transaction used for the entire import.
+        tables = (
+            ("patients", Patient),
+            ("beds", Bed),
+            ("staff", Staff),
+            ("equipment", Equipment),
+        )
+        populated_tables = [
+            table_name
+            for table_name, model in tables
+            if db.query(model).first() is not None
+        ]
+        if populated_tables:
+            raise RuntimeError(
+                "Import aborted: target tables already contain records: "
+                f"{', '.join(populated_tables)}. No CSV data was imported."
+            )
 
-        # Import fresh data from CSV files
-        import_patients(db)
-        import_beds(db)
-        import_staff(db)
-        import_equipment(db)
+        imported_counts = {
+            "patients": import_patients(db),
+            "beds": import_beds(db),
+            "staff": import_staff(db),
+            "equipment": import_equipment(db),
+        }
 
         db.commit()
 
+        for table_name, count in imported_counts.items():
+            print(f"Imported {table_name}: {count} records")
         print("CSV data imported successfully.")
 
     except Exception as e:

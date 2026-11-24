@@ -19,7 +19,7 @@ before they are considered executed.
 
 # Current Status
 
-_Last updated: 2026-10-31_
+_Last updated: 2026-11-23_
 
 **Data & simulation**
 - [x] Problem definition, architecture, repository structure
@@ -28,7 +28,7 @@ _Last updated: 2026-10-31_
 - [x] Rule-based allocation baseline (hard isolation / ventilator constraints)
 - [x] Metrics pipeline and experiment runner (wait times, utilization, turnover, constraint violations)
 - [x] Arrival-rate surge scenarios (normal / moderate / severe)
-- [ ] Shortage scenarios (ICU, staff, equipment, combined crisis)
+- [x] Shortage scenarios (ICU, staff, equipment, combined crisis)
 
 **AI**
 - [x] Length-of-stay prediction (Random Forest, `ml/los`)
@@ -36,22 +36,22 @@ _Last updated: 2026-10-31_
 - [x] Policy evaluation harness: baselines and learned agents scored by the same metrics (`python -m rl.evaluation.evaluate`)
 - [x] DQN agent trained on the simulator and compared with the baseline
 - [x] Safety layer (independent validation of every proposed action)
-- [ ] Simple MARL (Bed Agent + Surge Agent)
+- [x] Hierarchical MARL (Bed Agent + Surge Agent, `rl/marl`)
 
 **Application**
 - [x] PostgreSQL schema, Alembic migrations, CSV import
-- [x] FastAPI: patients, beds, staff, equipment, recommend, approve, surge simulation, metrics, audit log
+- [x] FastAPI: patients, beds, staff, equipment, recommend, approve, reject, surge simulation, metrics, audit log
 - [x] Recommendations come from the same allocation code the simulator uses (`simulator/hospital/allocation_rules.py`)
 - [x] React dashboard: command centre, patient queue with approve flow, bed board, staff roster, equipment, audit log
 - [x] Surge capacity planner (`/surge`) and analytical reports (`/reports`)
-- [ ] Reject / override with a reason (backend endpoint pending)
-- [ ] RL + safety layer behind `/allocation/recommend` (selectable algorithm)
-- [ ] Authentication (JWT, roles)
+- [x] Reject / override with a reason (`POST /allocation/reject` with audit trail)
+- [x] RL + safety layer behind `/allocation/recommend` (selectable algorithm: `rule_based`, `dqn_safe`)
+- [x] Authentication (JWT, roles: admin, doctor, nurse, operator)
 - [ ] Mock FHIR endpoint
 - [ ] End-to-end demo
 
 **Quality**
-- [x] Automated tests: **290 tests passing** — simulator, metrics, load calibration, LOS model, Gymnasium env, DQN / Double DQN, safety layer
+- [x] Automated tests: **302 tests passing** — simulator, metrics, load calibration, LOS model, Gymnasium env, DQN / Double DQN, safety layer, serving parity, MARL, shortage scenarios
 
 ### Quick start
 

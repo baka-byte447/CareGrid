@@ -1,21 +1,76 @@
 # CareGrid API Contract
 
-Base URL:
+Base URL for local development: `http://localhost:8000`
 
-http://localhost:8000
+This document describes the routes registered by `backend/api/main.py` and
+`backend/api/auth.py`. Response examples show the JSON shape; example identifiers
+and values are illustrative. Pydantic response models filter responses to the
+documented fields.
 
----
+## Authentication and errors
 
-## 1. GET /patients
+Routes marked as authenticated require a JWT bearer access token. Send it in the
+HTTP `Authorization` header:
 
-Returns the list of patients.
+```http
+Authorization: Bearer <access_token>
+```
 
-### Request
+`POST /auth/login` issues the token. Protected routes return `401` when credentials
+are missing or invalid, or the account is inactive. A valid token with an
+insufficient role returns `403`.
 
-GET /patients
+Application `HTTPException` errors use this shape:
 
-### Response
+```json
+{"detail":"Patient not found"}
+```
 
+Request validation failures use FastAPI's structured `422` response, generally
+with a `detail` array containing error locations, messages, and error types. For
+example:
+
+```json
+{
+  "detail": [
+    {
+      "type": "missing",
+      "loc": ["body", "patient_id"],
+      "msg": "Field required",
+      "input": {}
+    }
+  ]
+}
+```
+
+Role requirements below are taken from the route dependencies. They describe the
+roles currently accepted by each route, not an inferred permission matrix.
+
+## Main API
+
+### `GET /`
+
+- **Purpose:** API availability message.
+- **Authentication:** None; public.
+- **Required roles:** None.
+- **Request:** No body or parameters.
+- **Success:** `200 OK`; `RootResponse`.
+- **Common errors:** None defined by this route.
+
+```json
+{"message":"CareGrid API is running"}
+```
+
+### `GET /patients`
+
+- **Purpose:** List patient records.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`, `nurse`, `operator`.
+- **Request:** No body or parameters.
+- **Success:** `200 OK`; `PatientsResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed.
+
+```json
 {
   "patients": [
     {
@@ -31,19 +86,18 @@ GET /patients
     }
   ]
 }
+```
 
----
+### `GET /beds`
 
-## 2. GET /beds
+- **Purpose:** List beds and their current state.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`, `nurse`, `operator`.
+- **Request:** No body or parameters.
+- **Success:** `200 OK`; `BedsResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed.
 
-Returns the current hospital bed state.
-
-### Request
-
-GET /beds
-
-### Response
-
+```json
 {
   "beds": [
     {
@@ -55,19 +109,18 @@ GET /beds
     }
   ]
 }
+```
 
----
+### `GET /staff`
 
-## 3. GET /staff
+- **Purpose:** List staff members.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `operator`.
+- **Request:** No body or parameters.
+- **Success:** `200 OK`; `StaffResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed.
 
-Returns the list of hospital staff members.
-
-### Request
-
-GET /staff
-
-### Response
-
+```json
 {
   "staff": [
     {
@@ -79,138 +132,344 @@ GET /staff
     }
   ]
 }
----
+```
 
-## 4. GET /equipment
+### `GET /equipment`
 
-Returns the list of hospital equipment and its current state.
+- **Purpose:** List equipment and its current state.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `nurse`, `operator`.
+- **Request:** No body or parameters.
+- **Success:** `200 OK`; `EquipmentResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed.
 
-### Request
-
-GET /equipment
-
-### Response
-
+```json
 {
   "equipment": [
     {
       "equipment_id": "E001",
-      "type": "Ventilator",
+      "type": "VENTILATOR",
       "status": "AVAILABLE",
       "location": "ICU-Alpha"
     }
   ]
 }
----
+```
 
-## 5. POST /allocation/recommend
+### `POST /allocation/recommend`
 
-Requests a bed allocation recommendation for a patient.
+- **Purpose:** Request a recommendation for a waiting patient using the current
+  hospital state.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`.
+- **Request body:** `AllocationRecommendRequest`.
 
-### Request
+```json
+{"patient_id":"P0001"}
+```
 
-POST /allocation/recommend
+- **Success:** `200 OK`; `AllocationRecommendResponse`.
+- **Common errors:** `400` invalid patient acuity; `401` missing/invalid/inactive
+  credentials; `403` role not allowed; `404` patient not found; `409` patient is
+  not waiting; `422` invalid request body.
 
-{
-  "patient_id": "P0001"
-}
+Recommended response:
 
-### Response
-
+```json
 {
   "patient_id": "P0001",
   "recommended_bed_id": "B025",
   "algorithm": "rule_based",
-  "reason": "Compatible isolation-capable bed available",
+  "reason": "Compatible ICU bed available",
   "status": "RECOMMENDED"
 }
+```
 
----
+When no suitable resource is available, `recommended_bed_id` is nullable:
 
-## 6. POST /allocation/approve
-
-Approves a previously generated allocation recommendation.
-
-### Request
-
-POST /allocation/approve
-
+```json
 {
   "patient_id": "P0001",
-  "bed_id": "B025"
+  "recommended_bed_id": null,
+  "algorithm": "rule_based",
+  "reason": "No compatible available bed found",
+  "status": "NO_SUITABLE_BED"
 }
+```
 
-### Response
+### `POST /allocation/approve`
 
-{
-  "patient_id": "P0001",
-  "bed_id": "B025",
-  "status": "APPROVED"
-}
+- **Purpose:** Validate and approve a patient/bed allocation. This route accepts
+  the patient and bed IDs directly; it does not require a recommendation token.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`.
+- **Request body:** `AllocationApproveRequest`.
 
----
+```json
+{"patient_id":"P0001","bed_id":"B025"}
+```
 
-## 7. POST /surge/simulate
+- **Success:** `200 OK`; `AllocationApproveResponse`.
+- **Common errors:** `400` invalid acuity, incompatible bed type, or isolation
+  requirement not met; `401` missing/invalid/inactive credentials; `403` role not
+  allowed; `404` patient or bed not found; `409` patient is not waiting, bed is no
+  longer available, or no ventilator is available when required; `422` invalid
+  request body; `500` allocation transaction failed and was rolled back.
 
-Runs a hospital surge scenario.
+```json
+{"patient_id":"P0001","bed_id":"B025","status":"APPROVED"}
+```
 
-### Request
+### `POST /surge/simulate`
 
-POST /surge/simulate
+- **Purpose:** Run an in-memory surge simulation over the requested duration.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `operator`.
+- **Request body:** `SurgeSimulationRequest`; both values must be greater than zero.
 
-{
-  "arrival_rate_multiplier": 1.5,
-  "duration_hours": 24
-}
+```json
+{"arrival_rate_multiplier":1.5,"duration_hours":24}
+```
 
-### Response
+- **Success:** `200 OK`; `SurgeSimulationResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not
+  allowed; `422` invalid request body; `500` no simulation patients were loaded or
+  the simulation failed.
 
+```json
 {
   "status": "COMPLETED",
   "arrival_rate_multiplier": 1.5,
   "duration_hours": 24,
-  "patients_processed": 150
+  "patients_arrived": 150,
+  "simulation_start": "2026-10-01T08:09:13",
+  "simulation_end": "2026-10-02T08:09:13",
+  "metrics": {
+    "patients_total": 150,
+    "patients_admitted": 110,
+    "patients_discharged": 20,
+    "patients_still_waiting": 40,
+    "avg_wait_min": 55.2,
+    "median_wait_min": 43.0,
+    "avg_wait_incl_unadmitted_min": 90.1,
+    "p90_wait_incl_unadmitted_min": 180.0,
+    "p90_wait_min": 120.0,
+    "max_wait_min": 240.0,
+    "avg_wait_by_acuity_min": {
+      "1": 20.0,
+      "2": 35.0,
+      "3": null,
+      "4": 70.0,
+      "5": 80.0
+    },
+    "pct_admitted_within_60min": 0.72,
+    "icu_utilization": 0.82,
+    "step_down_utilization": null,
+    "ward_utilization": 0.61,
+    "overall_bed_utilization": 0.7,
+    "ventilator_utilization": 0.5,
+    "bed_turnover_per_bed_per_day": 0.2,
+    "peak_waiting_queue": 45,
+    "constraint_violations": {
+      "acuity_tier": 0,
+      "isolation": 0,
+      "ventilator": 0,
+      "double_booking": 0,
+      "total": 0
+    },
+    "measurement_window_hours": 24.0,
+    "waiting_patients_elapsed_wait_min": {
+      "avg": 30.0,
+      "max": 60.0
+    }
+  }
 }
+```
 
----
+The example values are illustrative; nullable utilization and acuity metrics may
+be `null` depending on the simulated state.
 
-## 8. GET /metrics
+### `GET /metrics`
 
-Returns hospital performance metrics.
+- **Purpose:** Return database-derived patient, bed, ventilator, occupancy, and
+  approved-allocation counts.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`, `nurse`, `operator`.
+- **Request:** No body or parameters.
+- **Success:** `200 OK`; `MetricsResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed.
 
-### Request
-
-GET /metrics
-
-### Response
-
+```json
 {
-  "average_wait_time": 19517.2,
-  "icu_utilization": 0.82,
-  "bed_turnover": 3.4,
-  "constraint_violations": 0
+  "patients_total": 150,
+  "patients_waiting": 40,
+  "patients_admitted": 20,
+  "beds_total": 80,
+  "beds_available": 24,
+  "beds_occupied": 56,
+  "bed_occupancy_rate": 0.7,
+  "ventilators_total": 20,
+  "ventilators_available": 8,
+  "ventilators_in_use": 12,
+  "approved_allocations": 56
 }
+```
 
----
+### `GET /audit`
 
-## 9. GET /audit
+- **Purpose:** Return up to the 100 most recent audit records.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `operator`.
+- **Request:** No body or parameters.
+- **Success:** `200 OK`; `AuditResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed.
 
-Returns allocation and approval history.
+`bed_id` is nullable:
 
-### Request
-
-GET /audit
-
-### Response
-
+```json
 {
   "audit": [
     {
       "patient_id": "P0001",
-      "bed_id": "B025",
-      "action": "APPROVED",
+      "bed_id": null,
+      "action": "BED_EVENT",
       "algorithm": "rule_based",
-      "timestamp": "2026-10-05T10:30:00"
+      "timestamp": "2026-10-05T10:30:00+00:00"
     }
   ]
 }
+```
+
+## Authentication API
+
+### `POST /auth/login`
+
+- **Purpose:** Authenticate an active user and issue a JWT access token.
+- **Authentication:** None; public.
+- **Required roles:** None.
+- **Request body:** `UserLogin`.
+
+```json
+{"username":"care_admin","password":"example-password"}
+```
+
+- **Success:** `200 OK`; `TokenResponse`.
+- **Common errors:** `401` invalid username/password or inactive account; `422`
+  invalid request body.
+
+```json
+{"access_token":"<jwt>","token_type":"bearer"}
+```
+
+### `GET /auth/me`
+
+- **Purpose:** Return the authenticated user's public account fields.
+- **Authentication:** Bearer JWT.
+- **Required roles:** Any active authenticated user; no additional role restriction.
+- **Request:** No body or parameters.
+- **Success:** `200 OK`; `UserResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials.
+
+```json
+{
+  "id": 1,
+  "username": "care_admin",
+  "email": "care_admin@example.com",
+  "role": "admin",
+  "is_active": true
+}
+```
+
+### `POST /auth/users`
+
+- **Purpose:** Create a user account. This is the only registered account
+  creation route and is administrator-only.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`.
+- **Request body:** `AdminUserCreate`; username length 3–50, valid email, password
+  at least 8 characters and no more than 72 UTF-8 bytes, and role one of `admin`,
+  `doctor`, `nurse`, or `operator`.
+
+```json
+{
+  "username": "new_doctor",
+  "email": "new_doctor@example.com",
+  "password": "example-password",
+  "role": "doctor"
+}
+```
+
+- **Success:** `201 Created`; `UserResponse` (does not include the password or
+  password hash).
+- **Common errors:** `400` invalid role; `401` missing/invalid/inactive
+  credentials; `403` caller is not an administrator; `409` username or email
+  already registered; `422` invalid request body.
+
+```json
+{
+  "id": 2,
+  "username": "new_doctor",
+  "email": "new_doctor@example.com",
+  "role": "doctor",
+  "is_active": true
+}
+```
+
+### `GET /auth/users`
+
+- **Purpose:** List user accounts.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`.
+- **Request:** No body or parameters.
+- **Success:** `200 OK`; array of `UserResponse` objects.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` caller is
+  not an administrator.
+
+```json
+[
+  {
+    "id": 1,
+    "username": "care_admin",
+    "email": "care_admin@example.com",
+    "role": "admin",
+    "is_active": true
+  }
+]
+```
+
+### `PATCH /auth/users/{user_id}`
+
+- **Purpose:** Update a user's role and/or active state.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`.
+- **Path parameter:** `user_id` is an integer user ID.
+- **Request body:** `AdminUserUpdate`; `role` and `is_active` are optional fields.
+  When provided, role must be one of `admin`, `doctor`, `nurse`, or `operator`;
+  `is_active` must not be `null`. An empty update is rejected.
+
+```json
+{"role":"nurse","is_active":true}
+```
+
+- **Success:** `200 OK`; `UserResponse`.
+- **Common errors:** `400` no update fields, invalid role, null `is_active`, or
+  attempt to deactivate/remove the admin role from the caller's own account;
+  `401` missing/invalid/inactive credentials; `403` caller is not an
+  administrator; `404` user not found; `422` invalid path parameter or request
+  body.
+
+```json
+{
+  "id": 2,
+  "username": "new_doctor",
+  "email": "new_doctor@example.com",
+  "role": "nurse",
+  "is_active": true
+}
+```
+
+## Registration availability
+
+Public `POST /auth/register` is not registered and is unavailable (an unknown
+route returns `404`). Account creation is administrator-only through
+`POST /auth/users`.

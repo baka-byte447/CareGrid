@@ -8,7 +8,18 @@ from backend.api.schemas import (
     AllocationRecommendRequest,
     AllocationApproveRequest,
     AllocationRejectRequest,
+    DQNAllocationRecommendResponse,
     SurgeSimulationRequest,
+    RootResponse,
+    PatientsResponse,
+    BedsResponse,
+    StaffResponse,
+    EquipmentResponse,
+    AllocationRecommendResponse,
+    AllocationApproveResponse,
+    SurgeSimulationResponse,
+    MetricsResponse,
+    AuditResponse,
 )
 from backend.db.database import get_db
 from backend.models import AuditLog, Bed, Equipment, Patient, Staff, User
@@ -43,14 +54,14 @@ app = FastAPI(
 
 app.include_router(auth_router)
 
-@app.get("/")
+@app.get("/", response_model=RootResponse)
 def root():
     return {
         "message": "CareGrid API is running"
     }
 
 
-@app.get("/patients")
+@app.get("/patients", response_model=PatientsResponse)
 def get_patients(
     db: Session = Depends(get_db),
     current_user: User = Depends(
@@ -77,7 +88,7 @@ def get_patients(
     }
 
 
-@app.get("/beds")
+@app.get("/beds", response_model=BedsResponse)
 def get_beds(
     db: Session = Depends(get_db),
     current_user: User = Depends(
@@ -99,7 +110,7 @@ def get_beds(
         ]
     }
 
-@app.get("/staff")
+@app.get("/staff", response_model=StaffResponse)
 def get_staff(
     db: Session = Depends(get_db),
     current_user: User = Depends(
@@ -121,7 +132,7 @@ def get_staff(
         ]
     }
 
-@app.get("/equipment")
+@app.get("/equipment", response_model=EquipmentResponse)
 def get_equipment(
     db: Session = Depends(get_db),
     current_user: User = Depends(
@@ -143,7 +154,7 @@ def get_equipment(
     }
 
 
-@app.post("/allocation/recommend")
+@app.post("/allocation/recommend", response_model=AllocationRecommendResponse | DQNAllocationRecommendResponse,)
 def recommend_allocation(
     request: AllocationRecommendRequest,
     db: Session = Depends(get_db),
@@ -191,7 +202,7 @@ def recommend_allocation(
             "patient_id": patient.patient_id,
             "recommended_bed_id": res.recommended_bed_id,
             "algorithm": res.algorithm,
-            "reason": "; ".join(res.reasons) if res.reasons else None,
+            "reason": "; ".join(res.reasons) if res.reasons else "",
             "status": res.status,
             "safety": res.safety.to_dict(),
             "q_values": res.q_values,
@@ -266,7 +277,7 @@ def reject_allocation(
     }
 
 
-@app.post("/allocation/approve")
+@app.post("/allocation/approve", response_model=AllocationApproveResponse)
 def approve_allocation(
     request: AllocationApproveRequest,
     db: Session = Depends(get_db),
@@ -381,7 +392,7 @@ def approve_allocation(
         "status": "APPROVED",
     }
 
-@app.post("/surge/simulate")
+@app.post("/surge/simulate", response_model=SurgeSimulationResponse)
 def simulate_surge(
     request: SurgeSimulationRequest,
     current_user: User = Depends(
@@ -467,7 +478,7 @@ def simulate_surge(
         ) from exc
 
 
-@app.get("/metrics")
+@app.get("/metrics", response_model=MetricsResponse)
 def get_metrics(
     db: Session = Depends(get_db),
     current_user: User = Depends(
@@ -554,7 +565,7 @@ def get_metrics(
 
 
 
-@app.get("/audit")
+@app.get("/audit", response_model=AuditResponse)
 def get_audit_logs(
     db: Session = Depends(get_db),
     current_user: User = Depends(

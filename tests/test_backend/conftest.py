@@ -6,6 +6,7 @@ this whole folder is skipped, and the pytest header says so, instead of breaking
 the rest of the test suite."""
 import importlib.util
 import os
+import secrets
 import sys
 from pathlib import Path
 
@@ -13,8 +14,10 @@ import pytest
 
 # Set a dedicated test-only JWT_SECRET_KEY in the environment before any backend
 # modules (which import backend.auth.security) are imported during test collection.
-TEST_JWT_SECRET = "caregrid-test-jwt-secret-key-32charsmin!"
-os.environ["JWT_SECRET_KEY"] = TEST_JWT_SECRET
+# pytest imports this conftest before collecting backend tests. Generate one
+# process-local signing key here, before any backend auth module can capture it.
+_TEST_JWT_SECRET = secrets.token_urlsafe(32)
+os.environ["JWT_SECRET_KEY"] = _TEST_JWT_SECRET
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
@@ -33,12 +36,6 @@ def pytest_report_header(config):
     if _MISSING:
         return (f"backend API tests SKIPPED - missing packages: {', '.join(_MISSING)} "
                 f"(pip install -r requirements-dev.txt)")
-
-
-@pytest.fixture(autouse=True)
-def test_jwt_secret(monkeypatch):
-    """Ensure each test runs with the isolated test JWT secret in the environment."""
-    monkeypatch.setenv("JWT_SECRET_KEY", TEST_JWT_SECRET)
 
 
 @pytest.fixture()

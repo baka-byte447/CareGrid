@@ -21,6 +21,7 @@ import gymnasium as gym
 from gymnasium import spaces
 
 from ml.los.predictor import LOSPredictor
+from rl.environment.observation import build_observation
 from simulator.hospital.allocation_rules import AllocationDecision, allocation_for_bed_type
 from rl.environment.rewards import (DEFAULT_ACUITY_WEIGHTS, QueueCostTracker,
                                     validate_weights)
@@ -92,6 +93,8 @@ class CareGridHospitalEnv(gym.Env):
         acuity_weights: Optional[dict] = None,
         reward_scale: float = 10.0,
         observation_version: int = 1,
+        isolation_overflow: bool = False,
+        shortage_scenario: Optional[str] = None,
     ) -> None:
         super().__init__()
         project_root = Path(__file__).resolve().parents[2]
@@ -118,6 +121,8 @@ class CareGridHospitalEnv(gym.Env):
         if observation_version not in (1, 2):
             raise ValueError(f"observation_version must be 1 or 2, got {observation_version!r}")
         self.observation_version = int(observation_version)
+        self.isolation_overflow = bool(isolation_overflow)
+        self.shortage_scenario = shortage_scenario
         n_obs = N_OBSERVATIONS if self.observation_version == 1 else N_OBSERVATIONS_V2
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(
@@ -158,8 +163,22 @@ class CareGridHospitalEnv(gym.Env):
         if patient is None or self.state is None:
             return mask
         for index, bed_type in enumerate(BED_ACTIONS):
-            decision, _ = allocation_for_bed_type(patient, self.state, bed_type)
-            mask[index] = decision is not None
+            orig_acuity = patient.acuity
+            try:
+                if (
+                    self.isolation_overflow
+                    and patient.acuity in (1, 2)
+                    and patient.isolation_required
+                    and bed_type == "STEP_DOWN"
+                ):
+                    ward_iso = [b for b in self.state.beds_by_type("WARD") if b.isolation_capable]
+                    ward_free = sum(b.status == "AVAILABLE" for b in ward_iso)
+                    if ward_free == 0:
+                        patient.acuity = 3
+                decision, _ = allocation_for_bed_type(patient, self.state, bed_type)
+                mask[index] = decision is not None
+            finally:
+                patient.acuity = orig_acuity
         return mask
 
     def _ensure_predictor(self) -> Any:
@@ -184,6 +203,10 @@ class CareGridHospitalEnv(gym.Env):
         # Seed is accepted for Gymnasium reproducibility. The supplied patient
         # arrival file is fixed; stochastic extensions should use self.np_random.
         self.state = load_hospital_state(str(self.data_dir), start_empty=True)
+        shortage = (options or {}).get("shortage_scenario") or self.shortage_scenario
+        if shortage:
+            from simulator.hospital.scenarios import apply_shortage
+            apply_shortage(self.state, shortage, seed=seed or 0)
         if options and options.get("patients") is not None:
             loaded_patients = deepcopy(list(options["patients"]))
         elif self.patient_source is not None:
@@ -238,7 +261,18 @@ class CareGridHospitalEnv(gym.Env):
                 self.engine.defer_pending_patient()
                 reward -= self.invalid_action_penalty
             else:
-                self.engine.admit_pending_patient(allocation)
+                orig_acuity = patient.acuity
+                try:
+                    if (
+                        self.isolation_overflow
+                        and patient.acuity in (1, 2)
+                        and patient.isolation_required
+                        and requested_type == "STEP_DOWN"
+                    ):
+                        patient.acuity = 3
+                    self.engine.admit_pending_patient(allocation)
+                finally:
+                    patient.acuity = orig_acuity
                 admitted = True
                 reward += self.admission_reward
                 # Small preference for avoiding unnecessary waits while keeping
@@ -273,7 +307,21 @@ class CareGridHospitalEnv(gym.Env):
     def _allocation_for(self, patient: Patient, bed_type: str):
         """Use the simulator's shared feasibility rules for an agent action."""
         assert self.state is not None
-        return allocation_for_bed_type(patient, self.state, bed_type)
+        orig_acuity = patient.acuity
+        try:
+            if (
+                self.isolation_overflow
+                and patient.acuity in (1, 2)
+                and patient.isolation_required
+                and bed_type == "STEP_DOWN"
+            ):
+                ward_iso = [b for b in self.state.beds_by_type("WARD") if b.isolation_capable]
+                ward_free = sum(b.status == "AVAILABLE" for b in ward_iso)
+                if ward_free == 0:
+                    patient.acuity = 3
+            return allocation_for_bed_type(patient, self.state, bed_type)
+        finally:
+            patient.acuity = orig_acuity
 
     def _advance_to_decision(self) -> None:
         assert self.engine is not None and self.state is not None and self._end_time is not None
@@ -303,42 +351,14 @@ class CareGridHospitalEnv(gym.Env):
             n_obs = N_OBSERVATIONS if self.observation_version == 1 else N_OBSERVATIONS_V2
             return np.zeros(n_obs, dtype=np.float32)
         predicted_los = self._los_estimates[patient.patient_id]
-        values = [
-            patient.acuity / 5.0,
-            1.0 if patient.age_group in ("65+", "65_PLUS", "SENIOR", "ELDERLY") else 0.0,
-            float(patient.isolation_required),
-            float(patient.ventilator_required),
-            min(max(predicted_los, 1.0), 10.0) / 10.0,
-        ]
-        for bed_type in BED_ACTIONS:
-            beds = self.state.beds_by_type(bed_type)
-            available = sum(b.status == "AVAILABLE" for b in beds)
-            values.append(available / len(beds) if beds else 0.0)
-        vents = [e for e in self.state.equipment.values() if e.type == "VENTILATOR"]
-        available_vents = sum(e.status == "AVAILABLE" for e in vents)
-        values.append(available_vents / len(vents) if vents else 0.0)
-        values.append(min(float(np.log1p(len(self.state.waiting_queue))) / np.log1p(QUEUE_LOG_CAP), 1.0))
-        for bed_type in BED_ACTIONS:
-            iso_beds = [b for b in self.state.beds_by_type(bed_type) if b.isolation_capable]
-            free = sum(b.status == "AVAILABLE" for b in iso_beds)
-            values.append(free / len(iso_beds) if iso_beds else 0.0)
-        waiting = self.state.waiting_queue
-        critical = sum(self._patients[pid].acuity >= 4 for pid in waiting)
-        values.append(critical / len(waiting) if waiting else 0.0)
-        if self.observation_version == 2:
-            if patient.arrival_time and self.state.current_time:
-                elapsed_days = max(0.0, (self.state.current_time - patient.arrival_time).total_seconds() / 86400.0)
-                wait_val = min(elapsed_days / 7.0, 1.0)
-            else:
-                wait_val = 0.0
-            if self.state.current_time:
-                hour = self.state.current_time.hour + self.state.current_time.minute / 60.0
-                tod_sin = (np.sin(2.0 * np.pi * hour / 24.0) + 1.0) / 2.0
-                tod_cos = (np.cos(2.0 * np.pi * hour / 24.0) + 1.0) / 2.0
-            else:
-                tod_sin, tod_cos = 0.5, 0.5
-            values.extend([float(wait_val), float(tod_sin), float(tod_cos)])
-        return np.asarray(values, dtype=np.float32)
+        return build_observation(
+            patient=patient,
+            state=self.state,
+            los_estimate=predicted_los,
+            now=self.state.current_time,
+            version=self.observation_version,
+            patients_by_id=self._patients,
+        )
 
     def _info(self) -> dict[str, Any]:
         info = dict(self._last_info)

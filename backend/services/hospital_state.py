@@ -3,6 +3,7 @@ Bridges the PostgreSQL rows to the simulator's in-memory types, so the API asks
 the SAME allocation code the simulator uses (simulator/hospital/policy.py)
 instead of keeping its own copy of the rules.
 """
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from backend.models import Bed, Equipment
@@ -14,7 +15,7 @@ from simulator.patients.patient import Patient as SimPatient
 
 
 def build_hospital_state(db: Session) -> HospitalState:
-    """Snapshot of the current beds and equipment (statuses as stored in the DB)."""
+    """Snapshot of current beds, equipment, waiting queue, and time."""
     state = HospitalState()
     for b in db.query(Bed).all():
         state.beds[b.bed_id] = SimBed(
@@ -24,6 +25,15 @@ def build_hospital_state(db: Session) -> HospitalState:
         state.equipment[e.equipment_id] = SimEquipment(
             equipment_id=e.equipment_id, type=e.type,
             status=e.status.upper(), location=e.location)
+
+    waiting_patients = (
+        db.query(PatientRow)
+        .filter(PatientRow.current_status == "WAITING")
+        .order_by(PatientRow.arrival_time)
+        .all()
+    )
+    state.waiting_queue = [p.patient_id for p in waiting_patients]
+    state.current_time = datetime.now(timezone.utc).replace(tzinfo=None)
     return state
 
 

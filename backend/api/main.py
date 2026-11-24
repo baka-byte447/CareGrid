@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
@@ -6,6 +7,8 @@ from backend.api.auth import router as auth_router
 from backend.api.schemas import (
     AllocationRecommendRequest,
     AllocationApproveRequest,
+    AllocationRejectRequest,
+    DQNAllocationRecommendResponse,
     SurgeSimulationRequest,
     RootResponse,
     PatientsResponse,
@@ -21,6 +24,16 @@ from backend.api.schemas import (
 from backend.db.database import get_db
 from backend.models import AuditLog, Bed, Equipment, Patient, Staff, User
 from backend.services.hospital_state import build_hospital_state, to_simulator_patient
+from rl.serving.service import AllocationService
+
+_allocation_service = None
+
+def get_allocation_service() -> AllocationService:
+    global _allocation_service
+    if _allocation_service is None:
+        model_path = os.getenv("ALLOCATION_MODEL_PATH")
+        _allocation_service = AllocationService(model_path=model_path)
+    return _allocation_service
 
 from pathlib import Path
 
@@ -141,7 +154,7 @@ def get_equipment(
     }
 
 
-@app.post("/allocation/recommend", response_model=AllocationRecommendResponse)
+@app.post("/allocation/recommend", response_model=AllocationRecommendResponse | DQNAllocationRecommendResponse,)
 def recommend_allocation(
     request: AllocationRecommendRequest,
     db: Session = Depends(get_db),
@@ -176,8 +189,31 @@ def recommend_allocation(
             detail="Invalid patient acuity",
         )
 
-    # 4. Ask the shared allocation policy (same code the simulator uses)
-    #    about the CURRENT hospital state stored in the database
+    # 4. Handle requested algorithm
+    algo = getattr(request, "algorithm", "rule_based") or "rule_based"
+    if algo == "dqn_safe":
+        service = get_allocation_service()
+        sim_patient = to_simulator_patient(patient)
+        sim_state = build_hospital_state(db)
+        all_waiting = db.query(Patient).filter(Patient.current_status == "WAITING").all()
+        patients_by_id = {p.patient_id: to_simulator_patient(p) for p in all_waiting}
+        res = service.recommend(sim_patient, sim_state, patients_by_id=patients_by_id)
+        return {
+            "patient_id": patient.patient_id,
+            "recommended_bed_id": res.recommended_bed_id,
+            "algorithm": res.algorithm,
+            "reason": "; ".join(res.reasons) if res.reasons else "",
+            "status": res.status,
+            "safety": res.safety.to_dict(),
+            "q_values": res.q_values,
+            "los_estimate_days": res.los_estimate_days,
+            "proposed_action": res.proposed_action,
+            "final_action": res.final_action,
+            "proposed_bed_type": res.proposed_bed_type,
+            "final_bed_type": res.final_bed_type,
+        }
+
+    # Default: rule-based allocation (same code the simulator uses)
     result = recommend(
         to_simulator_patient(patient),
         build_hospital_state(db),
@@ -199,6 +235,45 @@ def recommend_allocation(
         "algorithm": DEFAULT_ALGORITHM,
         "reason": result.reason,
         "status": "RECOMMENDED",
+    }
+
+
+@app.post("/allocation/reject")
+def reject_allocation(
+    request: AllocationRejectRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_roles("admin", "doctor")
+    ),
+):
+    patient = (
+        db.query(Patient)
+        .filter(Patient.patient_id == request.patient_id)
+        .first()
+    )
+
+    if patient is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    if patient.current_status.upper() != "WAITING":
+        raise HTTPException(
+            status_code=409,
+            detail="Patient is not waiting for allocation",
+        )
+
+    audit_entry = AuditLog(
+        patient_id=patient.patient_id,
+        bed_id=None,
+        action="REJECTED",
+        algorithm="operator_override",
+    )
+    db.add(audit_entry)
+    db.commit()
+
+    return {
+        "patient_id": patient.patient_id,
+        "status": "REJECTED",
+        "reason": request.reason,
     }
 
 

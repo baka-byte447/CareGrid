@@ -13,8 +13,15 @@ def _validate_bcrypt_password(value: str) -> str:
         raise ValueError("Password must be at most 72 UTF-8 bytes for bcrypt")
     return value
 
+
 class AllocationRecommendRequest(BaseModel):
     patient_id: str
+    algorithm: Optional[str] = "rule_based"
+
+
+class AllocationRejectRequest(BaseModel):
+    patient_id: str
+    reason: str = Field(min_length=3)
 
 
 class AllocationApproveRequest(BaseModel):
@@ -81,7 +88,6 @@ class EquipmentItemResponse(BaseModel):
 class EquipmentResponse(BaseModel):
     equipment: list[EquipmentItemResponse]
 
-
 class AllocationRecommendResponse(BaseModel):
     patient_id: str
     recommended_bed_id: str | None
@@ -89,6 +95,21 @@ class AllocationRecommendResponse(BaseModel):
     reason: str
     status: str
 
+class SafetyBlockResponse(BaseModel):
+    overridden: bool
+    rule_triggered: str | None = None
+    original_action: int
+    reason: str | None = None
+
+
+class DQNAllocationRecommendResponse(AllocationRecommendResponse):
+    safety: SafetyBlockResponse
+    q_values: list[float] | None = None
+    los_estimate_days: float | None = None
+    proposed_action: int | None = None
+    final_action: int | None = None
+    proposed_bed_type: str | None = None
+    final_bed_type: str | None = None
 
 class AllocationApproveResponse(BaseModel):
     patient_id: str
@@ -179,6 +200,7 @@ class UserRegister(BaseModel):
     _strip_email = field_validator("email", mode="before")(_strip_identity)
     _check_password_bytes = field_validator("password")(_validate_bcrypt_password)
 
+
 class AdminUserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: EmailStr
@@ -189,9 +211,11 @@ class AdminUserCreate(BaseModel):
     _strip_email = field_validator("email", mode="before")(_strip_identity)
     _check_password_bytes = field_validator("password")(_validate_bcrypt_password)
 
+
 class AdminUserUpdate(BaseModel):
     role: Optional[str] = None
     is_active: Optional[bool] = None
+
 
 class UserLogin(BaseModel):
     username: str

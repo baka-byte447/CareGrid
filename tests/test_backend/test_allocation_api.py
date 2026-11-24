@@ -139,3 +139,46 @@ def test_approve_rejects_wrong_tier_and_non_isolation_beds(client, db_session):
                     json={"patient_id": iso.patient_id, "bed_id": plain_ward.bed_id})
     assert r.status_code == 400
     assert r.json()["detail"] == "Patient requires an isolation-capable bed"
+
+
+def test_recommend_dqn_safe_algorithm(client, db_session):
+    p = db_session.query(Patient).filter(Patient.current_status == "WAITING").first()
+    r = client.post("/allocation/recommend", json={"patient_id": p.patient_id, "algorithm": "dqn_safe"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["patient_id"] == p.patient_id
+    assert body["algorithm"] == "dqn_safe"
+    assert "safety" in body
+    assert "q_values" in body
+    assert "los_estimate_days" in body
+    assert body["safety"]["overridden"] in (True, False)
+
+
+def test_reject_allocation(client, db_session):
+    from backend.models import AuditLog
+    p = db_session.query(Patient).filter(Patient.current_status == "WAITING").first()
+    r = client.post("/allocation/reject", json={"patient_id": p.patient_id, "reason": "Clinical contraindication"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["patient_id"] == p.patient_id
+    assert data["status"] == "REJECTED"
+    assert data["reason"] == "Clinical contraindication"
+
+    # Verify audit log entry
+    audit = db_session.query(AuditLog).filter(
+        AuditLog.patient_id == p.patient_id,
+        AuditLog.action == "REJECTED"
+    ).first()
+    assert audit is not None
+    assert audit.algorithm == "operator_override"
+
+
+def test_reject_allocation_validation(client, db_session):
+    # Nonexistent patient -> 404
+    r = client.post("/allocation/reject", json={"patient_id": "NOT_REAL", "reason": "Too short"})
+    assert r.status_code == 404
+
+    # Validation: reason too short -> 422
+    p = db_session.query(Patient).filter(Patient.current_status == "WAITING").first()
+    r = client.post("/allocation/reject", json={"patient_id": p.patient_id, "reason": "no"})
+    assert r.status_code == 422

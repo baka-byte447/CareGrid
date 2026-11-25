@@ -96,12 +96,28 @@ export const AuditResponseSchema = z.object({
 })
 
 // ─── Allocation Recommend ────────────────────────────────────────────────────
+export type RecommendationAlgorithm = 'rule_based' | 'dqn_safe'
+
+const SafetyBlockSchema = z.object({
+  overridden: z.boolean(),
+  rule_triggered: z.string().nullable().optional(),
+  original_action: z.number().int(),
+  reason: z.string().nullable().optional(),
+})
+
 export const RecommendResponseSchema = z.object({
   patient_id: z.string(),
   recommended_bed_id: z.string().nullable(),
   algorithm: z.string(),
   reason: z.string(),
-  status: z.enum(['RECOMMENDED', 'NO_SUITABLE_BED']),
+  status: z.enum(['RECOMMENDED', 'NO_SUITABLE_BED', 'WAIT']),
+  safety: SafetyBlockSchema.optional(),
+  q_values: z.array(z.number()).nullable().optional(),
+  los_estimate_days: z.number().nullable().optional(),
+  proposed_action: z.number().int().nullable().optional(),
+  final_action: z.number().int().nullable().optional(),
+  proposed_bed_type: z.string().nullable().optional(),
+  final_bed_type: z.string().nullable().optional(),
 })
 
 // ─── Allocation Approve ──────────────────────────────────────────────────────

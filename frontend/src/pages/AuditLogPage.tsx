@@ -10,6 +10,13 @@ import { formatServerTimestamp } from '@/lib/format';
 import { AuditEntry } from '@/api/schemas';
 import { ScrollText, Download, Search, RefreshCw, Cpu, Clock, CheckCircle } from 'lucide-react';
 
+function algorithmLabel(algorithm: string): string {
+  if (algorithm === 'dqn_safe') return 'DQN Safe';
+  if (algorithm === 'rule_based') return 'Rule-Based';
+  if (algorithm === 'rule_based_fallback') return 'Rule-Based fallback';
+  return algorithm;
+}
+
 export const AuditLogPage: React.FC = () => {
   const { data, isLoading, error, refetch } = useAuditLog();
 
@@ -175,7 +182,7 @@ export const AuditLogPage: React.FC = () => {
             <option value="ALL">All Algorithms ({algorithms.length})</option>
             {algorithms.map((alg) => (
               <option key={alg} value={alg}>
-                Policy: {alg}
+                Policy: {algorithmLabel(alg)}
               </option>
             ))}
           </Select>
@@ -227,7 +234,7 @@ export const AuditLogPage: React.FC = () => {
                     <td className="p-3.5 text-right">
                       <span className="inline-flex items-center gap-1 text-[11px] font-mono text-text-secondary bg-bg-page px-2 py-0.5 rounded border border-border-light">
                         <Cpu className="w-3 h-3 text-brand-primary" />
-                        {entry.algorithm}
+                        {algorithmLabel(entry.algorithm)}
                       </span>
                     </td>
                   </tr>

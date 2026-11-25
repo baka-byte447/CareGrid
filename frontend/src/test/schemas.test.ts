@@ -132,6 +132,47 @@ describe('Zod API Response Schemas', () => {
     expect(parsed.status).toBe('NO_SUITABLE_BED');
   });
 
+  it('validates DQN recommendation details and nullable safety values', () => {
+    const valid = {
+      patient_id: 'PAT-001',
+      recommended_bed_id: 'ICU-01',
+      algorithm: 'dqn_safe',
+      reason: 'Safety layer retained the proposed action',
+      status: 'RECOMMENDED',
+      safety: {
+        overridden: false,
+        rule_triggered: null,
+        original_action: 0,
+        reason: null,
+      },
+      q_values: [0.8, 0.4, 0.2, -0.1],
+      los_estimate_days: 4.25,
+      proposed_action: 0,
+      final_action: 0,
+      proposed_bed_type: 'ICU',
+      final_bed_type: 'ICU',
+    };
+
+    const parsed = RecommendResponseSchema.parse(valid);
+    expect(parsed.safety?.overridden).toBe(false);
+    expect(parsed.q_values).toEqual([0.8, 0.4, 0.2, -0.1]);
+    expect(parsed.los_estimate_days).toBe(4.25);
+  });
+
+  it('keeps missing optional DQN details valid without inventing values', () => {
+    const parsed = RecommendResponseSchema.parse({
+      patient_id: 'PAT-001',
+      recommended_bed_id: null,
+      algorithm: 'dqn_safe',
+      reason: 'Policy or safety layer selected WAIT',
+      status: 'WAIT',
+    });
+
+    expect(parsed.safety).toBeUndefined();
+    expect(parsed.q_values).toBeUndefined();
+    expect(parsed.los_estimate_days).toBeUndefined();
+  });
+
   it('validates allocation approval response schema', () => {
     const valid = {
       patient_id: 'PAT-001',

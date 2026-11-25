@@ -35,6 +35,7 @@ import {
   User,
   CreateUserRequest,
   UpdateUserRequest,
+  RecommendationAlgorithm,
 } from '../schemas'
 
 // ─── Validation helper ────────────────────────────────────────────────────────
@@ -228,25 +229,34 @@ export const useAuditLog = useAudit
 
 // ─── POST /allocation/recommend ───────────────────────────────────────────────
 
-export function useRecommend() {
-  return useMutation<RecommendResponse, Error, string>({
-    mutationFn: async (patientId: string) => {
-      const raw = await apiPost<unknown>('/allocation/recommend', { patient_id: patientId })
+export interface RecommendArgs {
+  patient_id: string
+  algorithm?: RecommendationAlgorithm
+}
+
+export type RecommendInput = RecommendArgs | string
+
+function useRecommendationMutation() {
+  return useMutation<RecommendResponse, Error, RecommendInput>({
+    mutationFn: async (arg: RecommendInput) => {
+      const patient_id = typeof arg === 'string' ? arg : arg.patient_id
+      const algorithm = typeof arg === 'string' ? 'rule_based' : arg.algorithm ?? 'rule_based'
+      const raw = await apiPost<unknown>('/allocation/recommend', {
+        patient_id,
+        algorithm,
+      })
       return validate(RecommendResponseSchema, raw)
     },
     retry: 0,
   })
 }
 
+export function useRecommend() {
+  return useRecommendationMutation()
+}
+
 export function useRecommendAllocation() {
-  return useMutation<RecommendResponse, Error, { patient_id: string } | string>({
-    mutationFn: async (arg: { patient_id: string } | string) => {
-      const patientId = typeof arg === 'string' ? arg : arg.patient_id
-      const raw = await apiPost<unknown>('/allocation/recommend', { patient_id: patientId })
-      return validate(RecommendResponseSchema, raw)
-    },
-    retry: 0,
-  })
+  return useRecommendationMutation()
 }
 
 // ─── POST /allocation/approve ─────────────────────────────────────────────────

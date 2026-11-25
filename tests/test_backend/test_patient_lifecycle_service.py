@@ -186,7 +186,7 @@ def test_discharge_releases_all_equipment_and_puts_bed_into_cleaning(db_session)
 
     assert encounter.status == "DISCHARGED"
     assert encounter.discharged_at is not None
-    assert patient.current_status == "WAITING"
+    assert patient.current_status == "DISCHARGED"
     assert bed.status == "CLEANING"
     assert ventilator.status == other_equipment.status == "AVAILABLE"
     assert db_session.query(BedAssignment).filter_by(encounter_id=encounter.encounter_id, released_at=None).count() == 0
@@ -254,10 +254,14 @@ def test_readmission_creates_separate_encounter_and_preserves_resource_history(d
 
     lifecycle.discharge_encounter(db_session, first.encounter_id)
     db_session.commit()
+    db_session.refresh(patient)
+    assert patient.current_status == "DISCHARGED"
     lifecycle.complete_bed_cleaning(db_session, bed.bed_id)
     db_session.commit()
 
     second = lifecycle.create_encounter(db_session, patient.patient_id)
+    db_session.refresh(patient)
+    assert patient.current_status == "WAITING"
     lifecycle.approve_encounter(
         db_session, second.encounter_id, bed.bed_id, equipment_id=ventilator.equipment_id
     )

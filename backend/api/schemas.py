@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 def _strip_identity(value: object) -> object:
@@ -12,6 +12,35 @@ def _validate_bcrypt_password(value: str) -> str:
     if len(value.encode("utf-8")) > 72:
         raise ValueError("Password must be at most 72 UTF-8 bytes for bcrypt")
     return value
+
+
+class PatientIntakeRequest(BaseModel):
+    patient_id: Optional[str] = Field(default=None, min_length=1, max_length=10)
+    age_group: str = Field(min_length=1, max_length=20)
+    acuity: int = Field(ge=1, le=5)
+    specialty: str = Field(min_length=1, max_length=50)
+    predicted_los: float = Field(gt=0)
+    isolation_required: bool = False
+    ventilator_required: bool = False
+    arrival_time: Optional[datetime] = None
+
+    _strip_patient_id = field_validator("patient_id", mode="before")(_strip_identity)
+    _strip_age_group = field_validator("age_group", mode="before")(_strip_identity)
+    _strip_specialty = field_validator("specialty", mode="before")(_strip_identity)
+
+
+class PatientIntakeResponse(BaseModel):
+    patient_id: str
+    encounter_id: int
+    age_group: str
+    acuity: int
+    specialty: str
+    predicted_los: float
+    isolation_required: bool
+    ventilator_required: bool
+    arrival_time: datetime
+    current_status: str
+    encounter_status: str
 
 
 class AllocationRecommendRequest(BaseModel):
@@ -27,6 +56,81 @@ class AllocationRejectRequest(BaseModel):
 class AllocationApproveRequest(BaseModel):
     patient_id: str
     bed_id: str
+    encounter_id: Optional[int] = None
+    equipment_id: Optional[str] = None
+
+
+class DischargeRequest(BaseModel):
+    release_reason: str = Field(default="discharge", min_length=1, max_length=100)
+    encounter_id: Optional[int] = None
+
+    _strip_release_reason = field_validator("release_reason", mode="before")(_strip_identity)
+
+
+class DischargeResponse(BaseModel):
+    patient_id: str
+    encounter_id: int
+    bed_id: str
+    bed_status: str
+    released_equipment_ids: list[str]
+    patient_status: str
+    encounter_status: str
+    discharged_at: datetime
+
+
+class TransferRequest(BaseModel):
+    destination_bed_id: str = Field(min_length=1, max_length=10)
+    release_reason: str = Field(default="transfer", min_length=1, max_length=100)
+    encounter_id: Optional[int] = None
+
+    _strip_destination_bed_id = field_validator("destination_bed_id", mode="before")(_strip_identity)
+    _strip_release_reason = field_validator("release_reason", mode="before")(_strip_identity)
+
+
+class TransferResponse(BaseModel):
+    patient_id: str
+    encounter_id: int
+    from_bed_id: str
+    to_bed_id: str
+    status: str
+
+
+class BedCleaningResponse(BaseModel):
+    bed_id: str
+    status: str
+
+
+class EquipmentAssignRequest(BaseModel):
+    patient_id: Optional[str] = None
+    encounter_id: Optional[int] = None
+
+    _strip_patient_id = field_validator("patient_id", mode="before")(_strip_identity)
+
+    @model_validator(mode="after")
+    def _require_target(self) -> "EquipmentAssignRequest":
+        if not self.patient_id and self.encounter_id is None:
+            raise ValueError("Either patient_id or encounter_id must be provided")
+        return self
+
+
+class EquipmentReleaseRequest(BaseModel):
+    patient_id: Optional[str] = None
+    encounter_id: Optional[int] = None
+    release_reason: str = Field(default="released", min_length=1, max_length=100)
+
+    _strip_patient_id = field_validator("patient_id", mode="before")(_strip_identity)
+    _strip_release_reason = field_validator("release_reason", mode="before")(_strip_identity)
+
+
+class EquipmentAssignmentResponse(BaseModel):
+    assignment_id: int
+    encounter_id: int
+    patient_id: str
+    equipment_id: str
+    status: str
+    assigned_at: datetime
+    released_at: Optional[datetime] = None
+    release_reason: Optional[str] = None
 
 
 class SurgeSimulationRequest(BaseModel):

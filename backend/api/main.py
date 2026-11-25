@@ -1,6 +1,8 @@
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Body, Depends, FastAPI, HTTPException
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from backend.api.auth import router as auth_router
 
@@ -8,8 +10,18 @@ from backend.api.schemas import (
     AllocationRecommendRequest,
     AllocationApproveRequest,
     AllocationRejectRequest,
+    BedCleaningResponse,
+    DischargeRequest,
+    DischargeResponse,
     DQNAllocationRecommendResponse,
+    EquipmentAssignmentResponse,
+    EquipmentAssignRequest,
+    EquipmentReleaseRequest,
+    PatientIntakeRequest,
+    PatientIntakeResponse,
     SurgeSimulationRequest,
+    TransferRequest,
+    TransferResponse,
     RootResponse,
     PatientsResponse,
     BedsResponse,
@@ -22,8 +34,31 @@ from backend.api.schemas import (
     AuditResponse,
 )
 from backend.db.database import get_db
-from backend.models import AuditLog, Bed, Equipment, Patient, Staff, User
+from backend.models import (
+    AuditLog,
+    Bed,
+    BedAssignment,
+    Encounter,
+    Equipment,
+    EquipmentAssignment,
+    Patient,
+    Staff,
+    User,
+)
 from backend.services.hospital_state import build_hospital_state, to_simulator_patient
+from backend.services.patient_lifecycle import (
+    LifecycleConflict,
+    LifecycleError,
+    LifecycleNotFound,
+    LifecycleValidationError,
+    approve_encounter,
+    assign_equipment as lifecycle_assign_equipment,
+    complete_bed_cleaning,
+    create_encounter,
+    discharge_encounter,
+    release_equipment as lifecycle_release_equipment,
+    transfer_encounter,
+)
 from rl.serving.service import AllocationService
 
 _allocation_service = None
@@ -44,7 +79,7 @@ from simulator.hospital.engine import SimulationEngine
 from simulator.metrics.collector import MetricsCollector
 from simulator.metrics.summary import compute_metrics
 
-from backend.auth.dependencies import require_roles
+from backend.auth.dependencies import require_permission, require_roles
 
 app = FastAPI(
     title="CareGrid API",
@@ -53,6 +88,75 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+
+def _raise_lifecycle_http_error(exc: LifecycleError) -> None:
+    if isinstance(exc, LifecycleNotFound):
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    if isinstance(exc, LifecycleConflict):
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    if isinstance(exc, LifecycleValidationError):
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def _generate_patient_id(db: Session) -> str:
+    existing_ids = set(db.scalars(select(Patient.patient_id)).all())
+    max_num = 0
+    for pid in existing_ids:
+        if pid.startswith("P") and pid[1:].isdigit():
+            max_num = max(max_num, int(pid[1:]))
+    candidate = f"P{max_num + 1:04d}"
+    if len(candidate) <= 10 and candidate not in existing_ids:
+        return candidate
+    for _ in range(10):
+        fallback = f"P{uuid.uuid4().hex[:9].upper()}"
+        if fallback not in existing_ids:
+            return fallback
+    raise HTTPException(status_code=500, detail="Unable to generate unique patient ID")
+
+
+def _resolve_target_encounter(
+    db: Session,
+    *,
+    patient_id: str | None = None,
+    encounter_id: int | None = None,
+) -> Encounter:
+    if encounter_id is not None:
+        encounter = db.get(Encounter, encounter_id)
+        if encounter is None:
+            raise HTTPException(status_code=404, detail="Encounter not found")
+        if patient_id is not None and encounter.patient_id != patient_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Encounter does not belong to the specified patient",
+            )
+        return encounter
+
+    if patient_id is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Either patient_id or encounter_id must be provided",
+        )
+
+    patient = db.get(Patient, patient_id)
+    if patient is None:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    encounter = db.execute(
+        select(Encounter)
+        .where(
+            Encounter.patient_id == patient_id,
+            Encounter.status == "ADMITTED",
+        )
+        .order_by(Encounter.encounter_id.desc())
+    ).scalar_one_or_none()
+    if encounter is None:
+        raise HTTPException(
+            status_code=409,
+            detail="Patient has no active admitted encounter",
+        )
+    return encounter
+
 
 @app.get("/", response_model=RootResponse)
 def root():
@@ -64,9 +168,7 @@ def root():
 @app.get("/patients", response_model=PatientsResponse)
 def get_patients(
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles("admin", "doctor", "nurse", "operator")
-    ),
+    current_user: User = Depends(require_permission("patients:read")),
 ):
     patients = db.query(Patient).all()
 
@@ -88,12 +190,244 @@ def get_patients(
     }
 
 
+@app.post("/patients/intake", response_model=PatientIntakeResponse, status_code=201)
+def intake_patient(
+    request: PatientIntakeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("patients:intake")),
+):
+    arrival_time = request.arrival_time or datetime.now(timezone.utc)
+    patient_id = request.patient_id or _generate_patient_id(db)
+
+    try:
+        patient = db.execute(
+            select(Patient).where(Patient.patient_id == patient_id).with_for_update()
+        ).scalar_one_or_none()
+
+        if patient is None:
+            patient = Patient(
+                patient_id=patient_id,
+                age_group=request.age_group,
+                acuity=request.acuity,
+                specialty=request.specialty,
+                predicted_los=request.predicted_los,
+                isolation_required=request.isolation_required,
+                ventilator_required=request.ventilator_required,
+                arrival_time=arrival_time,
+                current_status="WAITING",
+            )
+            db.add(patient)
+            db.flush()
+        else:
+            if patient.current_status.upper() in ("WAITING", "ADMITTED"):
+                raise LifecycleConflict("Patient already has an active waiting or admitted status")
+            patient.age_group = request.age_group
+            patient.acuity = request.acuity
+            patient.specialty = request.specialty
+            patient.predicted_los = request.predicted_los
+            patient.isolation_required = request.isolation_required
+            patient.ventilator_required = request.ventilator_required
+            patient.arrival_time = arrival_time
+
+        encounter = create_encounter(
+            db,
+            patient.patient_id,
+            acuity=request.acuity,
+            specialty=request.specialty,
+            predicted_los=request.predicted_los,
+            isolation_required=request.isolation_required,
+            ventilator_required=request.ventilator_required,
+            arrival_time=arrival_time,
+        )
+        db.commit()
+        db.refresh(patient)
+        db.refresh(encounter)
+    except LifecycleError as exc:
+        db.rollback()
+        _raise_lifecycle_http_error(exc)
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Patient intake failed; changes were rolled back",
+        ) from exc
+
+    return {
+        "patient_id": patient.patient_id,
+        "encounter_id": encounter.encounter_id,
+        "age_group": patient.age_group,
+        "acuity": encounter.acuity,
+        "specialty": encounter.specialty,
+        "predicted_los": encounter.predicted_los,
+        "isolation_required": encounter.isolation_required,
+        "ventilator_required": encounter.ventilator_required,
+        "arrival_time": encounter.arrival_time,
+        "current_status": patient.current_status,
+        "encounter_status": encounter.status,
+    }
+
+
+def _perform_discharge(
+    db: Session,
+    encounter: Encounter,
+    current_user: User,
+    request: DischargeRequest,
+) -> dict:
+    try:
+        active_bed = db.execute(
+            select(BedAssignment).where(
+                BedAssignment.encounter_id == encounter.encounter_id,
+                BedAssignment.released_at.is_(None),
+            )
+        ).scalar_one_or_none()
+        active_equipment_ids = db.execute(
+            select(EquipmentAssignment.equipment_id)
+            .where(
+                EquipmentAssignment.encounter_id == encounter.encounter_id,
+                EquipmentAssignment.released_at.is_(None),
+            )
+            .order_by(EquipmentAssignment.equipment_id)
+        ).scalars().all()
+
+        discharged = discharge_encounter(
+            db,
+            encounter.encounter_id,
+            actor_id=current_user.id,
+            release_reason=request.release_reason,
+        )
+        db.commit()
+        db.refresh(discharged)
+        patient = db.get(Patient, discharged.patient_id)
+        bed = db.get(Bed, active_bed.bed_id) if active_bed is not None else None
+    except LifecycleError as exc:
+        db.rollback()
+        _raise_lifecycle_http_error(exc)
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Discharge failed; changes were rolled back",
+        ) from exc
+
+    return {
+        "patient_id": discharged.patient_id,
+        "encounter_id": discharged.encounter_id,
+        "bed_id": bed.bed_id if bed is not None else "",
+        "bed_status": bed.status if bed is not None else "",
+        "released_equipment_ids": list(active_equipment_ids),
+        "patient_status": patient.current_status if patient is not None else discharged.status,
+        "encounter_status": discharged.status,
+        "discharged_at": discharged.discharged_at,
+    }
+
+
+@app.post("/patients/{patient_id}/discharge", response_model=DischargeResponse)
+def discharge_patient(
+    patient_id: str,
+    request: DischargeRequest = Body(default_factory=DischargeRequest),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("patients:discharge")),
+):
+    encounter = _resolve_target_encounter(
+        db,
+        patient_id=patient_id,
+        encounter_id=request.encounter_id,
+    )
+    return _perform_discharge(db, encounter, current_user, request)
+
+
+@app.post("/encounters/{encounter_id}/discharge", response_model=DischargeResponse)
+def discharge_encounter_endpoint(
+    encounter_id: int,
+    request: DischargeRequest = Body(default_factory=DischargeRequest),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("patients:discharge")),
+):
+    encounter = _resolve_target_encounter(db, encounter_id=encounter_id)
+    return _perform_discharge(db, encounter, current_user, request)
+
+
+def _perform_transfer(
+    db: Session,
+    encounter: Encounter,
+    current_user: User,
+    request: TransferRequest,
+) -> dict:
+    try:
+        active_bed = db.execute(
+            select(BedAssignment).where(
+                BedAssignment.encounter_id == encounter.encounter_id,
+                BedAssignment.released_at.is_(None),
+            )
+        ).scalar_one_or_none()
+        from_bed_id = active_bed.bed_id if active_bed is not None else ""
+
+        transferred = transfer_encounter(
+            db,
+            encounter.encounter_id,
+            request.destination_bed_id,
+            actor_id=current_user.id,
+            release_reason=request.release_reason,
+        )
+        db.commit()
+    except LifecycleError as exc:
+        db.rollback()
+        _raise_lifecycle_http_error(exc)
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Transfer failed; changes were rolled back",
+        ) from exc
+
+    return {
+        "patient_id": transferred.patient_id,
+        "encounter_id": transferred.encounter_id,
+        "from_bed_id": from_bed_id,
+        "to_bed_id": request.destination_bed_id,
+        "status": "TRANSFERRED",
+    }
+
+
+@app.post("/patients/{patient_id}/transfer", response_model=TransferResponse)
+def transfer_patient(
+    patient_id: str,
+    request: TransferRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("patients:transfer")),
+):
+    encounter = _resolve_target_encounter(
+        db,
+        patient_id=patient_id,
+        encounter_id=request.encounter_id,
+    )
+    return _perform_transfer(db, encounter, current_user, request)
+
+
+@app.post("/encounters/{encounter_id}/transfer", response_model=TransferResponse)
+def transfer_encounter_endpoint(
+    encounter_id: int,
+    request: TransferRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("patients:transfer")),
+):
+    encounter = _resolve_target_encounter(db, encounter_id=encounter_id)
+    return _perform_transfer(db, encounter, current_user, request)
+
+
 @app.get("/beds", response_model=BedsResponse)
 def get_beds(
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles("admin", "doctor", "nurse", "operator")
-    ),
+    current_user: User = Depends(require_permission("beds:read")),
 ):
     beds = db.query(Bed).all()
 
@@ -110,12 +444,37 @@ def get_beds(
         ]
     }
 
+
+@app.post("/beds/{bed_id}/cleaning-complete", response_model=BedCleaningResponse)
+def complete_bed_cleaning_endpoint(
+    bed_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("beds:clean")),
+):
+    try:
+        bed = complete_bed_cleaning(db, bed_id)
+        db.commit()
+        db.refresh(bed)
+    except LifecycleError as exc:
+        db.rollback()
+        _raise_lifecycle_http_error(exc)
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Bed cleaning completion failed; changes were rolled back",
+        ) from exc
+
+    return {
+        "bed_id": bed.bed_id,
+        "status": bed.status,
+    }
+
+
 @app.get("/staff", response_model=StaffResponse)
 def get_staff(
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles("admin", "operator")
-    ),
+    current_user: User = Depends(require_permission("staff:read")),
 ):
     staff_members = db.query(Staff).all()
 
@@ -132,12 +491,11 @@ def get_staff(
         ]
     }
 
+
 @app.get("/equipment", response_model=EquipmentResponse)
 def get_equipment(
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles("admin", "nurse", "operator")
-    ),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     equipment_items = db.query(Equipment).all()
 
@@ -154,13 +512,119 @@ def get_equipment(
     }
 
 
+@app.post("/equipment/{equipment_id}/assign", response_model=EquipmentAssignmentResponse)
+def assign_equipment_endpoint(
+    equipment_id: str,
+    request: EquipmentAssignRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("equipment:assign")),
+):
+    encounter = _resolve_target_encounter(
+        db,
+        patient_id=request.patient_id,
+        encounter_id=request.encounter_id,
+    )
+    try:
+        assignment = lifecycle_assign_equipment(
+            db,
+            encounter.encounter_id,
+            equipment_id,
+            actor_id=current_user.id,
+        )
+        db.commit()
+        db.refresh(assignment)
+        item = db.get(Equipment, equipment_id)
+    except LifecycleError as exc:
+        db.rollback()
+        _raise_lifecycle_http_error(exc)
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Equipment assignment failed; changes were rolled back",
+        ) from exc
+
+    return {
+        "assignment_id": assignment.assignment_id,
+        "encounter_id": assignment.encounter_id,
+        "patient_id": encounter.patient_id,
+        "equipment_id": assignment.equipment_id,
+        "status": item.status if item is not None else "IN_USE",
+        "assigned_at": assignment.assigned_at,
+        "released_at": assignment.released_at,
+        "release_reason": assignment.release_reason,
+    }
+
+
+@app.post("/equipment/{equipment_id}/release", response_model=EquipmentAssignmentResponse)
+def release_equipment_endpoint(
+    equipment_id: str,
+    request: EquipmentReleaseRequest = Body(default_factory=EquipmentReleaseRequest),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("equipment:release")),
+):
+    if request.patient_id is not None or request.encounter_id is not None:
+        encounter = _resolve_target_encounter(
+            db,
+            patient_id=request.patient_id,
+            encounter_id=request.encounter_id,
+        )
+    else:
+        item = db.get(Equipment, equipment_id)
+        if item is None:
+            raise HTTPException(status_code=404, detail=f"Equipment {equipment_id} not found")
+        active_assignment = db.execute(
+            select(EquipmentAssignment).where(
+                EquipmentAssignment.equipment_id == equipment_id,
+                EquipmentAssignment.released_at.is_(None),
+            )
+        ).scalar_one_or_none()
+        if active_assignment is None:
+            raise HTTPException(
+                status_code=409,
+                detail="No active equipment assignment exists for this equipment",
+            )
+        encounter = db.get(Encounter, active_assignment.encounter_id)
+        if encounter is None:
+            raise HTTPException(status_code=404, detail="Encounter not found")
+
+    try:
+        assignment = lifecycle_release_equipment(
+            db,
+            encounter.encounter_id,
+            equipment_id,
+            release_reason=request.release_reason,
+        )
+        db.commit()
+        db.refresh(assignment)
+        item = db.get(Equipment, equipment_id)
+    except LifecycleError as exc:
+        db.rollback()
+        _raise_lifecycle_http_error(exc)
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Equipment release failed; changes were rolled back",
+        ) from exc
+
+    return {
+        "assignment_id": assignment.assignment_id,
+        "encounter_id": assignment.encounter_id,
+        "patient_id": encounter.patient_id,
+        "equipment_id": assignment.equipment_id,
+        "status": item.status if item is not None else "AVAILABLE",
+        "assigned_at": assignment.assigned_at,
+        "released_at": assignment.released_at,
+        "release_reason": assignment.release_reason,
+    }
+
+
 @app.post("/allocation/recommend", response_model=AllocationRecommendResponse | DQNAllocationRecommendResponse,)
 def recommend_allocation(
     request: AllocationRecommendRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles("admin", "doctor")
-    ),
+    current_user: User = Depends(require_permission("allocation:recommend")),
 ):
     # 1. Find the patient
     patient = db.query(Patient).filter(
@@ -242,9 +706,7 @@ def recommend_allocation(
 def reject_allocation(
     request: AllocationRejectRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles("admin", "doctor")
-    ),
+    current_user: User = Depends(require_permission("allocation:reject")),
 ):
     patient = (
         db.query(Patient)
@@ -281,123 +743,66 @@ def reject_allocation(
 def approve_allocation(
     request: AllocationApproveRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles("admin", "doctor")
-    ),
+    current_user: User = Depends(require_permission("allocation:approve")),
 ):
-    # 1. Find the patient
-    patient = (
-        db.query(Patient)
-        .filter(Patient.patient_id == request.patient_id)
-        .with_for_update()
-        .first()
-    )
-
+    patient = db.execute(
+        select(Patient).where(Patient.patient_id == request.patient_id).with_for_update()
+    ).scalar_one_or_none()
     if patient is None:
         raise HTTPException(status_code=404, detail="Patient not found")
 
-    if patient.current_status.upper() != "WAITING":
-        raise HTTPException(
-            status_code=409,
-            detail="Patient is not waiting for allocation",
-        )
-
-    # 2. Lock and validate the requested bed
-    bed = (
-        db.query(Bed)
-        .filter(Bed.bed_id == request.bed_id)
-        .with_for_update()
-        .first()
-    )
-
-    if bed is None:
-        raise HTTPException(status_code=404, detail="Bed not found")
-
-    if bed.status.upper() != "AVAILABLE":
-        raise HTTPException(
-            status_code=409,
-            detail="Bed is no longer available",
-        )
-
-    # 3. Validate the bed type against patient acuity (shared rule table)
     try:
-        preferred_types = candidate_bed_types(patient.acuity)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid patient acuity")
+        if request.encounter_id is not None:
+            encounter = db.get(Encounter, request.encounter_id)
+            if encounter is None:
+                raise LifecycleNotFound("Encounter not found")
+            if encounter.patient_id != patient.patient_id:
+                raise LifecycleValidationError("Encounter does not belong to the specified patient")
+        else:
+            encounter = db.execute(
+                select(Encounter)
+                .where(
+                    Encounter.patient_id == patient.patient_id,
+                    Encounter.status == "WAITING",
+                )
+                .order_by(Encounter.encounter_id.desc())
+            ).scalar_one_or_none()
+            if encounter is None:
+                if patient.current_status.upper() != "WAITING":
+                    raise LifecycleConflict("Patient is not waiting for allocation")
+                encounter = create_encounter(db, patient.patient_id)
 
-    if bed.bed_type not in preferred_types:
-        raise HTTPException(
-            status_code=400,
-            detail="Bed type is incompatible with patient acuity",
+        approve_encounter(
+            db,
+            encounter.encounter_id,
+            request.bed_id,
+            actor_id=current_user.id,
+            equipment_id=request.equipment_id,
         )
-
-    # 4. Validate isolation requirement
-    if patient.isolation_required and not bed.isolation_capable:
-        raise HTTPException(
-            status_code=400,
-            detail="Patient requires an isolation-capable bed",
-        )
-
-    # 5. Reserve a ventilator if required
-    ventilator = None
-
-    if patient.ventilator_required:
-        ventilator = (
-            db.query(Equipment)
-            .filter(
-                Equipment.type == "VENTILATOR",
-                Equipment.status == "AVAILABLE",
-            )
-            .order_by(Equipment.equipment_id)
-            .with_for_update()
-            .first()
-        )
-
-        if ventilator is None:
-            raise HTTPException(
-                status_code=409,
-                detail="No available ventilator",
-            )
-
-    # 6. Update everything in one transaction
-    try:
-        bed.status = "OCCUPIED"
-
-        if ventilator is not None:
-            ventilator.status = "IN_USE"
-
-        patient.current_status = "ADMITTED"
-
-        audit_entry = AuditLog(
-        patient_id=patient.patient_id,
-        bed_id=bed.bed_id,
-        action="APPROVED",
-        algorithm="rule_based",
-        timestamp=datetime.now(timezone.utc),
-        )
-        db.add(audit_entry)
-
         db.commit()
-
-    except Exception:
+    except LifecycleError as exc:
+        db.rollback()
+        _raise_lifecycle_http_error(exc)
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as exc:
         db.rollback()
         raise HTTPException(
             status_code=500,
             detail="Allocation failed; changes were rolled back",
-        )
+        ) from exc
 
     return {
         "patient_id": patient.patient_id,
-        "bed_id": bed.bed_id,
+        "bed_id": request.bed_id,
         "status": "APPROVED",
     }
 
 @app.post("/surge/simulate", response_model=SurgeSimulationResponse)
 def simulate_surge(
     request: SurgeSimulationRequest,
-    current_user: User = Depends(
-        require_roles("admin", "operator")
-    ),
+    current_user: User = Depends(require_permission("surge:simulate")),
 ):
     try:
         # Resolve the dataset directory from the project root.
@@ -481,9 +886,7 @@ def simulate_surge(
 @app.get("/metrics", response_model=MetricsResponse)
 def get_metrics(
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles("admin", "doctor", "nurse", "operator")
-    ),
+    current_user: User = Depends(require_permission("metrics:read")),
 ):
     # Patient counts
     patients_total = db.query(Patient).count()
@@ -544,7 +947,7 @@ def get_metrics(
     # Successful allocation audit records
     approved_allocations = (
         db.query(AuditLog)
-        .filter(AuditLog.action == "APPROVED")
+        .filter(AuditLog.action.in_(("APPROVED", "ADMITTED")))
         .count()
     )
 
@@ -568,9 +971,7 @@ def get_metrics(
 @app.get("/audit", response_model=AuditResponse)
 def get_audit_logs(
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        require_roles("admin", "operator")
-    ),
+    current_user: User = Depends(require_permission("audit:read")),
 ):
     records = (
         db.query(AuditLog)

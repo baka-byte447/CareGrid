@@ -109,6 +109,28 @@ def test_successful_admission_creates_encounter_assignments_and_actor_history(db
     assert equipment_assignments[0].assigned_by == user.id
 
 
+def test_admission_rejects_patient_not_waiting_under_lock(db_session):
+    encounter = _encounter(db_session)
+    patient = db_session.get(Patient, encounter.patient_id)
+    bed = _compatible_bed(db_session, encounter)
+    patient.current_status = "ADMITTED"
+    db_session.commit()
+
+    with pytest.raises(LifecycleConflict, match="Patient is not waiting"):
+        lifecycle.approve_encounter(db_session, encounter.encounter_id, bed.bed_id)
+    db_session.rollback()
+
+    db_session.refresh(patient)
+    db_session.refresh(encounter)
+    db_session.refresh(bed)
+    assert patient.current_status == "ADMITTED"
+    assert encounter.status == "WAITING"
+    assert bed.status == "AVAILABLE"
+    assert db_session.query(BedAssignment).filter(
+        BedAssignment.encounter_id == encounter.encounter_id
+    ).count() == 0
+
+
 @pytest.mark.parametrize("failure", ["unavailable", "wrong_tier", "isolation"])
 def test_admission_validation_failure_leaves_no_partial_writes(db_session, failure):
     encounter = _encounter(db_session, acuity=5 if failure == "wrong_tier" else 3,

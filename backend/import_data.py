@@ -6,6 +6,7 @@ from backend.models.patient import Patient
 from backend.models.bed import Bed
 from backend.models.staff import Staff
 from backend.models.equipment import Equipment
+from backend.models.encounter import Encounter
 
 
 DATA_DIR = "data/synthetic"
@@ -20,7 +21,14 @@ def percentage_to_int(value):
 
 
 def import_patients(db):
+    """Import patients from CSV and create lifecycle Encounters for WAITING patients.
+
+    Every WAITING patient receives a companion Encounter row so that subsequent
+    allocation calls (approve_encounter, discharge_encounter, etc.) can operate
+    through the full lifecycle immediately after import.
+    """
     imported = 0
+    encounters_created = 0
     with open(f"{DATA_DIR}/patients.csv", newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
 
@@ -39,15 +47,35 @@ def import_patients(db):
                 ),
                 current_status=row["current_status"],
             )
-
             db.add(patient)
             imported += 1
 
-    return imported
+            # Create a WAITING Encounter so the patient enters the lifecycle immediately.
+            # ADMITTED/DISCHARGED patients from the CSV are legacy orphans — we do not
+            # fabricate BedAssignment history for them (see migration c41a7d9e2b60).
+            if row["current_status"] == "WAITING":
+                encounter = Encounter(
+                    patient_id=row["patient_id"],
+                    acuity=int(row["acuity"]),
+                    specialty=row["specialty"],
+                    predicted_los=float(row["predicted_los"]),
+                    isolation_required=yes_no_to_bool(row["isolation_required"]),
+                    ventilator_required=yes_no_to_bool(row["ventilator_required"]),
+                    arrival_time=datetime.strptime(row["arrival_time"], "%Y-%m-%d %H:%M:%S"),
+                    status="WAITING",
+                )
+                db.add(encounter)
+                encounters_created += 1
+
+    return imported, encounters_created
 
 
 def import_beds(db):
+    """Import beds from CSV. OCCUPIED beds without a matching BedAssignment are
+    logged as warnings — they are legacy orphans and cannot be discharged via
+    the lifecycle API until a reconciliation script creates their Encounters."""
     imported = 0
+    occupied_count = 0
     with open(f"{DATA_DIR}/beds.csv", newline="", encoding="utf-8") as file:
         reader = csv.DictReader(file)
 
@@ -59,10 +87,16 @@ def import_beds(db):
                 status=row["status"],
                 isolation_capable=yes_no_to_bool(row["isolation_capable"]),
             )
-
             db.add(bed)
             imported += 1
+            if row["status"] == "OCCUPIED":
+                occupied_count += 1
 
+    if occupied_count:
+        print(
+            f"[WARN] {occupied_count} OCCUPIED bed(s) imported without a BedAssignment row. "
+            "Run backend/reconcile_encounters.py to create lifecycle Encounters for them."
+        )
     return imported
 
 
@@ -127,8 +161,10 @@ def main():
                 f"{', '.join(populated_tables)}. No CSV data was imported."
             )
 
+        patient_count, encounter_count = import_patients(db)
         imported_counts = {
-            "patients": import_patients(db),
+            "patients": patient_count,
+            "encounters (WAITING)": encounter_count,
             "beds": import_beds(db),
             "staff": import_staff(db),
             "equipment": import_equipment(db),

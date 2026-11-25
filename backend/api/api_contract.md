@@ -518,3 +518,20 @@ be `null` depending on the simulated state.
 Public `POST /auth/register` is not registered and is unavailable (an unknown
 route returns `404`). Account creation is administrator-only through
 `POST /auth/users`.
+
+## Simulated Time & Lifecycle Reconciliation
+
+- **Simulated clock:** `build_hospital_state()` derives `state.current_time` from
+  the latest `patients.arrival_time` in the database (stored as naive simulated
+  datetime) rather than wall-clock UTC, falling back to UTC now only when the
+  database has no patients. Wait-time calculations, G2 max-wait guardrails, and
+  RL `wait_so_far` observations all operate on this simulated timeline.
+- **Queue membership & status:** `encounters.status` is the authoritative
+  lifecycle status (`WAITING`, `ADMITTED`, `DISCHARGED`), and
+  `patients.current_status` is kept in sync as a denormalized cache by
+  `backend/services/patient_lifecycle.py`.
+- **Import & reconciliation:** `backend/import_data.py` creates `WAITING`
+  `Encounter` rows for imported `WAITING` patients. Legacy `OCCUPIED` beds
+  without `BedAssignment` rows are not backfilled with fabricated assignment
+  history; `backend/reconcile_encounters.py` can be run idempotently to backfill
+  missing `WAITING` encounters and report orphaned `OCCUPIED` beds.

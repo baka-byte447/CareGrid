@@ -196,7 +196,14 @@ def test_build_hospital_state_populates_admitted_patients(db_session):
     )
     assert bed is not None
 
-    approve_encounter(db_session, patient_id=patient.patient_id, bed_id=bed.bed_id)
+    encounter = (
+        db_session.query(Encounter)
+        .filter(Encounter.patient_id == patient.patient_id, Encounter.status == "WAITING")
+        .first()
+    )
+    assert encounter is not None
+
+    approve_encounter(db_session, encounter_id=encounter.encounter_id, bed_id=bed.bed_id)
     db_session.commit()
 
     state = build_hospital_state(db_session)

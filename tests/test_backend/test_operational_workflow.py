@@ -279,6 +279,9 @@ def test_legacy_waiting_patient_admission_creates_encounter_and_history_and_roll
         .first()
     )
     assert patient is not None
+    # Simulate a legacy pre-Milestone 2C WAITING patient without an Encounter row
+    db_session.query(Encounter).filter_by(patient_id=patient.patient_id).delete()
+    db_session.commit()
     assert db_session.query(Encounter).filter_by(patient_id=patient.patient_id).count() == 0
 
     # Incompatible WARD bed must fail AND roll back any encounter creation

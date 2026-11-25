@@ -73,7 +73,9 @@ def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7
                     los_predictor: Any = None, name: str = "policy",
                     data_dir: Optional[str] = None,
                     record_actions: bool = False,
-                    observation_version: int = 1) -> Dict[str, Any]:
+                    observation_version: int = 1,
+                    shortage_scenario: Optional[str] = None,
+                    isolation_overflow: bool = False) -> Dict[str, Any]:
     """Run one episode over `patients` and return the standard metrics.
 
     The episode lasts until `drain_days` after the last arrival; patients still
@@ -90,9 +92,11 @@ def evaluate_policy(policy: Policy, patients: Sequence, *, drain_days: float = 7
     obs_ver = getattr(policy, "observation_version", observation_version)
     env = CareGridHospitalEnv(data_dir=data_dir, max_episode_days=horizon_days,
                               los_predictor=los_predictor,
-                              observation_version=obs_ver)
+                              observation_version=obs_ver,
+                              isolation_overflow=isolation_overflow)
     obs, _ = env.reset(seed=0, options={"patients": list(patients),
-                                        "on_tick": collector.on_tick})
+                                        "on_tick": collector.on_tick,
+                                        "shortage_scenario": shortage_scenario})
     total_reward, decisions, invalid = 0.0, 0, 0
     action_counts = {str(a): [0, 0, 0, 0] for a in range(1, 6)}
     wait_with_feasible_bed = 0

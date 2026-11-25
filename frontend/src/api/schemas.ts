@@ -19,7 +19,7 @@ export const PatientSchema = z.object({
   ventilator_required: z.boolean(),
   // Simulated arrival time — ISO 8601 string (NOT compared to Date.now())
   arrival_time: z.string(),
-  current_status: z.enum(['WAITING', 'ADMITTED']),
+  current_status: z.enum(['WAITING', 'ADMITTED', 'DISCHARGED']),
 })
 
 export const PatientsResponseSchema = z.object({

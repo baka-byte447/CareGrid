@@ -24,6 +24,13 @@ class SimulationEngine:
         self._pending_patient_id: Optional[str] = None
         self._deferred_waiters = set()
         self._last_event_time: Optional[datetime] = None
+        # Resource Manager hooks (default = standard BED_CLEANING_MINUTES, no interventions)
+        self._cleaning_minutes: Dict[str, int] = {}
+        self.resource_interventions: Dict[str, int] = {
+            "expedite_cleaning": 0,
+            "mobilize_ventilator": 0,
+            "float_staff": 0,
+        }
 
     def seed_arrivals(self) -> None:
         """Converts every loaded patient into a PATIENT_ARRIVAL event."""
@@ -84,12 +91,62 @@ class SimulationEngine:
             self.state.equipment[patient.equipment_id].status = "AVAILABLE"
 
         bed.status = "CLEANING"
-        release_time = self.state.current_time + timedelta(minutes=BED_CLEANING_MINUTES)
+        clean_mins = self._cleaning_minutes.get(bed.bed_type, BED_CLEANING_MINUTES)
+        release_time = self.state.current_time + timedelta(minutes=clean_mins)
         self.queue.schedule(release_time, "BED_RELEASE", {"bed_id": bed.bed_id})
 
     def _handle_bed_release(self, bed_id: str) -> None:
+        if self.state.beds[bed_id].status != "CLEANING":
+            return
         self.state.beds[bed_id].status = "AVAILABLE"
         self._retry_waiting_queue()
+
+    # ------------------------------------------------------------------
+    # Resource Manager Hooks (supply-side interventions)
+    # ------------------------------------------------------------------
+
+    def expedite_cleaning(self, bed_type: str = "ICU", minutes: int = 10) -> int:
+        """Shorten cleaning time for `bed_type` and accelerate any beds
+        currently in CLEANING state. Returns count of beds accelerated."""
+        self._cleaning_minutes[bed_type] = max(1, int(minutes))
+        accelerated = 0
+        now = self.state.current_time
+        if now is not None:
+            new_release = now + timedelta(minutes=self._cleaning_minutes[bed_type])
+            for b in self.state.cleaning_beds_by_type(bed_type):
+                self.queue.schedule(new_release, "BED_RELEASE", {"bed_id": b.bed_id})
+                accelerated += 1
+        self.resource_interventions["expedite_cleaning"] += 1
+        return accelerated
+
+    def mobilize_ventilator(self) -> Optional[str]:
+        """Bring one ventilator out of MAINTENANCE into AVAILABLE status."""
+        maint = sorted(self.state.maintenance_ventilators(), key=lambda e: e.equipment_id)
+        if not maint:
+            return None
+        vent = maint[0]
+        vent.status = "AVAILABLE"
+        self.resource_interventions["mobilize_ventilator"] += 1
+        return vent.equipment_id
+
+    def float_staff(
+        self, from_skill: str = "General", to_skill: str = "Critical-care"
+    ) -> Optional[str]:
+        """Reassign the lowest-workload staff member from `from_skill` to `to_skill`."""
+        candidates = self.state.staff_by_skill(from_skill)
+        if not candidates:
+            return None
+
+        def _wl(s) -> float:
+            try:
+                return float(str(s.workload).rstrip("%"))
+            except ValueError:
+                return 100.0
+
+        chosen = min(candidates, key=_wl)
+        chosen.skill_level = to_skill
+        self.resource_interventions["float_staff"] += 1
+        return chosen.staff_id
 
     def _retry_waiting_queue(self) -> None:
         """After a bed frees up, re-attempt allocation for waiting patients,
@@ -167,7 +224,10 @@ class SimulationEngine:
                 self._handle_discharge(event.payload["patient_id"])
                 self._notify_external_tick()
             elif event.event_type == "BED_RELEASE":
-                self.state.beds[event.payload["bed_id"]].status = "AVAILABLE"
+                bed_id = event.payload["bed_id"]
+                if self.state.beds[bed_id].status != "CLEANING":
+                    continue
+                self.state.beds[bed_id].status = "AVAILABLE"
                 self._notify_external_tick()
                 # Preserve queue order, but only ask the policy to act when at
                 # least one complete, currently feasible allocation exists.

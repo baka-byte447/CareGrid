@@ -31,7 +31,7 @@ import {
   Zap,
   BarChart3,
   ScrollText,
-  Hospital,
+  UserPlus,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -277,61 +277,49 @@ export const CommandCentrePage: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in">
 
-      {/* Hero Welcome Banner (Reference Inspired) */}
-      <div
-        className="relative overflow-hidden rounded-3xl border border-sky-500/25 p-6 sm:p-7 shadow-lg"
-        style={{
-          background:
-            'linear-gradient(120deg, rgba(13,24,62,0.95) 0%, rgba(28,31,84,0.92) 55%, rgba(14,116,144,0.45) 100%)',
-        }}
-      >
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-10 -top-12 w-72 h-72 rounded-full bg-sky-400/20 blur-3xl"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute right-24 -bottom-16 w-64 h-64 rounded-full bg-purple-500/20 blur-3xl"
-        />
+      {/* Editorial Command Header */}
+      <div className="glass-panel border border-border-light rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Live &bull; Synced{' '}
+              {dataUpdatedAt
+                ? new Date(dataUpdatedAt).toLocaleTimeString()
+                : '—'}
+            </span>
+            <span className="text-xs text-text-muted capitalize">
+              Signed in as {user?.username ?? 'Clinician'}
+            </span>
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+            Hospital Command Centre
+          </h1>
+          <p className="text-xs text-text-muted">
+            Real-time bed capacity, triage queue prioritization, and clinical resource telemetry.
+          </p>
+        </div>
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-sky-200/90">
-              Welcome Back, <span className="font-bold text-white capitalize">{user?.username ?? 'Clinician'}</span>
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              Hospital{' '}
-              <span className="text-purple-400">Command</span>{' '}
-              <span className="text-sky-400">Centre</span>
-            </h1>
-            <p className="text-xs text-slate-300">
-              Monitor. Manage. Care Better.
-            </p>
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[11px] font-semibold text-emerald-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Live &bull; Synced{' '}
-                {dataUpdatedAt
-                  ? new Date(dataUpdatedAt).toLocaleTimeString()
-                  : '—'}
-              </span>
+        <div className="flex items-center gap-2.5 self-start md:self-center">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRetryAll}
+            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+          >
+            Sync Data
+          </Button>
+          {(user?.role === 'admin' || user?.role === 'doctor' || user?.role === 'nurse') && (
+            <Link to="/queue">
               <Button
-                variant="outline"
+                variant="primary"
                 size="sm"
-                onClick={handleRetryAll}
-                className="border-white/20 text-white hover:bg-white/10"
-                leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                leftIcon={<UserPlus className="w-3.5 h-3.5" />}
               >
-                Sync
+                New Intake
               </Button>
-            </div>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-4 pr-2 opacity-90">
-            <div className="w-24 h-24 rounded-3xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center shadow-glow">
-              <Hospital className="w-12 h-12 text-sky-300" />
-            </div>
-          </div>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -448,8 +436,8 @@ export const CommandCentrePage: React.FC = () => {
                 >
                   <defs>
                     <linearGradient id="acuityGlow" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.45} />
-                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0.02} />
+                      <stop offset="5%" stopColor="#1d4ed8" stopOpacity={0.28} />
+                      <stop offset="95%" stopColor="#1d4ed8" stopOpacity={0.01} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-light)" />
@@ -466,8 +454,8 @@ export const CommandCentrePage: React.FC = () => {
                   <Area
                     type="monotone"
                     dataKey="Waiting"
-                    stroke="#38bdf8"
-                    strokeWidth={2.5}
+                    stroke="#1d4ed8"
+                    strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#acuityGlow)"
                   />
@@ -499,10 +487,10 @@ export const CommandCentrePage: React.FC = () => {
               {wardStats.map((ward) => {
                 const barGradient =
                   ward.type === 'ICU'
-                    ? 'linear-gradient(90deg, #0ea5e9 0%, #38bdf8 100%)'
+                    ? 'linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%)'
                     : ward.type === 'STEP_DOWN'
-                      ? 'linear-gradient(90deg, #8b5cf6 0%, #c084fc 100%)'
-                      : 'linear-gradient(90deg, #10b981 0%, #34d399 100%)';
+                      ? 'linear-gradient(90deg, #b45309 0%, #d97706 100%)'
+                      : 'linear-gradient(90deg, #15803d 0%, #16a34a 100%)';
                 return (
                   <div key={ward.type} className="space-y-1.5">
                     <div className="flex justify-between items-center text-xs">
@@ -517,7 +505,7 @@ export const CommandCentrePage: React.FC = () => {
                         {formatPct(ward.rate)}
                       </span>
                     </div>
-                    <div className="w-full h-2.5 rounded-full bg-slate-800/70 overflow-hidden">
+                    <div className="w-full h-2.5 rounded-full bg-border-light overflow-hidden">
                       <div
                         className="h-full rounded-full progress-shine transition-all duration-700"
                         style={{

@@ -3,6 +3,7 @@ import { useBeds, useCompleteBedCleaning, getErrorMessage } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthContext';
 import { Bed } from '@/api/schemas';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { MetricCard } from '@/components/domain/MetricCard';
 import { BedTile } from '@/components/domain/BedTile';
 import { WardBadge } from '@/components/domain/WardBadge';
 import { StatusDot } from '@/components/domain/StatusDot';
@@ -13,7 +14,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Input';
 import { formatPct } from '@/lib/format';
-import { BedDouble, Shield, RefreshCw, Sparkles } from 'lucide-react';
+import { BedDouble, Shield, RefreshCw, Sparkles, CheckCircle, Activity } from 'lucide-react';
 
 export const BedManagementPage: React.FC = () => {
   const { user } = useAuth();
@@ -109,36 +110,42 @@ export const BedManagementPage: React.FC = () => {
 
       {/* Summary KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface">
-          <span className="text-xs text-text-muted uppercase font-semibold">Total Fleet</span>
-          <div className="text-2xl font-bold font-mono text-text-primary mt-1">{totalBeds}</div>
-          <span className="text-[11px] text-text-muted">Registered hospital beds</span>
-        </div>
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface">
-          <span className="text-xs text-text-muted uppercase font-semibold">Available</span>
-          <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-            {availableBeds}
-          </div>
-          <span className="text-[11px] text-text-muted">Ready for allocation</span>
-        </div>
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface">
-          <span className="text-xs text-text-muted uppercase font-semibold">Occupied</span>
-          <div className="text-2xl font-bold font-mono text-red-600 dark:text-red-400 mt-1">
-            {occupiedBeds}
-          </div>
-          <span className="text-[11px] text-text-muted">Currently in use</span>
-        </div>
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface">
-          <span className="text-xs text-text-muted uppercase font-semibold">Occupancy Rate</span>
-          <div className="text-2xl font-bold font-mono text-brand-primary mt-1">
-            {formatPct(overallOccupancy)}
-          </div>
-          <span className="text-[11px] text-text-muted">Global bed utilization</span>
-        </div>
+        <MetricCard
+          className="animate-slide-up stagger-1"
+          label="Total Fleet"
+          value={totalBeds}
+          subtext="Registered hospital beds"
+          icon={<BedDouble className="w-5 h-5" />}
+          accent="primary"
+        />
+        <MetricCard
+          className="animate-slide-up stagger-2"
+          label="Available"
+          value={availableBeds}
+          subtext="Ready for allocation"
+          icon={<CheckCircle className="w-5 h-5" />}
+          accent="green"
+        />
+        <MetricCard
+          className="animate-slide-up stagger-3"
+          label="Occupied"
+          value={occupiedBeds}
+          subtext="Currently in use"
+          icon={<Activity className="w-5 h-5" />}
+          accent="purple"
+        />
+        <MetricCard
+          className="animate-slide-up stagger-4"
+          label="Occupancy Rate"
+          value={formatPct(overallOccupancy)}
+          subtext="Global bed utilization"
+          icon={<Sparkles className="w-5 h-5" />}
+          accent="amber"
+        />
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-bg-surface border border-border-light rounded-xl shadow-card text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 glass-panel border border-border-light rounded-2xl text-xs">
         <div className="flex flex-wrap items-center gap-3">
           <Select
             value={wardFilter}

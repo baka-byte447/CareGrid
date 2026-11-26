@@ -303,43 +303,43 @@ export const AdmissionQueuePage: React.FC = () => {
           </div>
 
           {/* Quick status tabs */}
-          <div className="flex items-center gap-1.5 p-1 bg-bg-page rounded-lg border border-border-light w-full md:w-auto">
+          <div className="flex items-center gap-1.5 p-1.5 bg-bg-page/80 backdrop-blur-md rounded-2xl border border-border-light w-full md:w-auto">
             <button
               onClick={() => updateParam('status', 'WAITING')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                 statusFilter === 'WAITING'
-                  ? 'bg-bg-surface text-brand-primary shadow-sm'
-                  : 'text-text-muted hover:text-text-primary'
+                  ? 'bg-brand-primary text-white dark:text-slate-950 shadow-glow animate-tab-pop'
+                  : 'text-text-muted hover:text-text-primary hover:bg-bg-surface-hover/60'
               }`}
             >
               Waiting ({waitingCount})
             </button>
             <button
               onClick={() => updateParam('status', 'ADMITTED')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                 statusFilter === 'ADMITTED'
-                  ? 'bg-bg-surface text-brand-primary shadow-sm'
-                  : 'text-text-muted hover:text-text-primary'
+                  ? 'bg-brand-primary text-white dark:text-slate-950 shadow-glow animate-tab-pop'
+                  : 'text-text-muted hover:text-text-primary hover:bg-bg-surface-hover/60'
               }`}
             >
               Admitted ({admittedCount})
             </button>
             <button
               onClick={() => updateParam('status', 'DISCHARGED')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                 statusFilter === 'DISCHARGED'
-                  ? 'bg-bg-surface text-brand-primary shadow-sm'
-                  : 'text-text-muted hover:text-text-primary'
+                  ? 'bg-brand-primary text-white dark:text-slate-950 shadow-glow animate-tab-pop'
+                  : 'text-text-muted hover:text-text-primary hover:bg-bg-surface-hover/60'
               }`}
             >
               Discharged ({dischargedCount})
             </button>
             <button
               onClick={() => updateParam('status', 'ALL')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
                 statusFilter === 'ALL'
-                  ? 'bg-bg-surface text-brand-primary shadow-sm'
-                  : 'text-text-muted hover:text-text-primary'
+                  ? 'bg-brand-primary text-white dark:text-slate-950 shadow-glow animate-tab-pop'
+                  : 'text-text-muted hover:text-text-primary hover:bg-bg-surface-hover/60'
               }`}
             >
               All ({patients.length})
@@ -434,7 +434,10 @@ export const AdmissionQueuePage: React.FC = () => {
       </div>
 
       {/* Patient Table */}
-      <div className="bg-bg-surface border border-border-light rounded-xl shadow-card overflow-hidden">
+      <div
+        key={statusFilter}
+        className="glass-panel border border-border-light rounded-3xl overflow-hidden animate-page-enter"
+      >
         {sortedPatients.length === 0 ? (
           <EmptyState
             title="No matching patients found"

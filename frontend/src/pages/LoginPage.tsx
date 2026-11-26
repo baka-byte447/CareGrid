@@ -41,28 +41,19 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-screen flex items-center justify-center bg-bg-page bg-cyber-grid p-6 text-text-primary overflow-hidden">
-      {/* Living BioPulse Aurora Glow */}
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0">
-        <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-violet-500/20 blur-3xl animate-float-slow" />
-        <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-cyan-500/20 blur-3xl animate-float-rev" />
-      </div>
-
-      <Card className="relative z-10 max-w-md w-full shadow-modal border-border-light glass animate-scale-in">
+    <div className="relative min-h-screen w-screen flex items-center justify-center bg-bg-page p-6 text-text-primary overflow-hidden">
+      <Card className="relative z-10 max-w-md w-full shadow-modal border-border-light animate-scale-in">
         <CardHeader className="text-center pb-2">
-          <div
-            className="w-12 h-12 rounded-2xl text-white flex items-center justify-center mx-auto mb-3 shadow-glow"
-            style={{ background: 'var(--brand-gradient)' }}
-          >
-            <Lock className="w-6 h-6" />
+          <div className="w-11 h-11 rounded-xl bg-brand-primary text-white dark:text-zinc-950 flex items-center justify-center mx-auto mb-3 shadow-xs">
+            <Lock className="w-5 h-5" />
           </div>
 
-          <CardTitle className="text-xl font-extrabold text-gradient">
-            CareGrid Clinician Authentication
+          <CardTitle className="text-lg font-bold tracking-tight text-text-primary">
+            CareGrid Clinician Sign In
           </CardTitle>
 
           <p className="text-xs text-text-muted mt-1">
-            St. Jude Central Hospital &bull; Aurora Clinical AI Gateway
+            Hospital Clinical Operations Gateway
           </p>
         </CardHeader>
 

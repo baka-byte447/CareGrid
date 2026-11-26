@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useBeds } from '@/api/hooks';
+import { useBeds, useCompleteBedCleaning, getErrorMessage } from '@/api/hooks';
+import { useAuth } from '@/auth/AuthContext';
 import { Bed } from '@/api/schemas';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { BedTile } from '@/components/domain/BedTile';
@@ -7,14 +8,21 @@ import { WardBadge } from '@/components/domain/WardBadge';
 import { StatusDot } from '@/components/domain/StatusDot';
 import { BedGridSkeleton } from '@/components/feedback/Skeletons';
 import { ErrorState } from '@/components/feedback/ErrorState';
+import { useToast } from '@/components/feedback/Toast';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Input';
 import { formatPct } from '@/lib/format';
-import { BedDouble, Shield, RefreshCw } from 'lucide-react';
+import { BedDouble, Shield, RefreshCw, Sparkles } from 'lucide-react';
 
 export const BedManagementPage: React.FC = () => {
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const { data, isLoading, error, refetch } = useBeds();
+  const cleanBedMutation = useCompleteBedCleaning();
+
+  const canCompleteCleaning =
+    user?.role === 'admin' || user?.role === 'nurse' || user?.role === 'operator';
 
   const [wardFilter, setWardFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -153,6 +161,7 @@ export const BedManagementPage: React.FC = () => {
             <option value="ALL">All Statuses</option>
             <option value="AVAILABLE">Available Only</option>
             <option value="OCCUPIED">Occupied Only</option>
+            <option value="CLEANING">Cleaning Only</option>
           </Select>
 
           <button
@@ -234,9 +243,40 @@ export const BedManagementPage: React.FC = () => {
           description={`Clinical Ward: ${inspectedBed.ward}`}
           maxWidth="sm"
           footer={
-            <Button variant="secondary" size="sm" onClick={() => setInspectedBed(null)}>
-              Close
-            </Button>
+            <div className="flex items-center justify-end gap-2 w-full">
+              {inspectedBed.status === 'CLEANING' && canCompleteCleaning && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  isLoading={cleanBedMutation.isPending}
+                  leftIcon={<Sparkles className="w-3.5 h-3.5" />}
+                  onClick={() => {
+                    cleanBedMutation.mutate(inspectedBed.bed_id, {
+                      onSuccess: () => {
+                        showToast({
+                          type: 'success',
+                          title: 'Cleaning Complete',
+                          message: `Bed ${inspectedBed.bed_id} is now AVAILABLE.`,
+                        });
+                        setInspectedBed(null);
+                      },
+                      onError: (err) => {
+                        showToast({
+                          type: 'error',
+                          title: 'Failed to mark clean',
+                          message: getErrorMessage(err),
+                        });
+                      },
+                    });
+                  }}
+                >
+                  Complete Cleaning
+                </Button>
+              )}
+              <Button variant="secondary" size="sm" onClick={() => setInspectedBed(null)}>
+                Close
+              </Button>
+            </div>
           }
         >
           <div className="space-y-4 text-xs">

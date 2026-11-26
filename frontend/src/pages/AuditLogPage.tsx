@@ -108,7 +108,7 @@ export const AuditLogPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Clinical Decision Audit Log"
         description="Immutable record of bed allocations, decision policies, and timestamped actions."
@@ -149,7 +149,7 @@ export const AuditLogPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-bg-surface border border-border-light rounded-xl shadow-card text-xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-bg-surface backdrop-blur-sm border border-border-light rounded-2xl shadow-card text-xs">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <div className="w-full sm:w-64">
             <Input
@@ -194,7 +194,7 @@ export const AuditLogPage: React.FC = () => {
       </div>
 
       {/* Audit Log Table */}
-      <div className="bg-bg-surface border border-border-light rounded-xl shadow-card overflow-hidden">
+      <div className="bg-bg-surface backdrop-blur-sm border border-border-light rounded-2xl shadow-card overflow-hidden">
         {filteredEntries.length === 0 ? (
           <EmptyState
             title="No audit entries found"

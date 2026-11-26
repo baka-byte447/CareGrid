@@ -1,22 +1,66 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { usePatients } from '@/api/hooks';
+import {
+  usePatients,
+  useBeds,
+  useIntakePatient,
+  useDischargePatient,
+  useTransferPatient,
+  getErrorMessage,
+} from '@/api/hooks';
+import { useAuth } from '@/auth/AuthContext';
 import { Patient } from '@/api/schemas';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PatientRow } from '@/components/domain/PatientRow';
 import { TableSkeleton } from '@/components/feedback/Skeletons';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { useToast } from '@/components/feedback/Toast';
 import { Input, Select } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
 import { RecommendationDrawer } from './RecommendationDrawer';
-import { Search, Filter, RefreshCw, Users, ShieldAlert, Wind } from 'lucide-react';
+import {
+  Search,
+  Filter,
+  RefreshCw,
+  Users,
+  ShieldAlert,
+  Wind,
+  UserPlus,
+  ArrowLeftRight,
+} from 'lucide-react';
 
 export const AdmissionQueuePage: React.FC = () => {
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data, isLoading, error, refetch } = usePatients();
+  const { data: bedsData } = useBeds();
+
+  const intakeMutation = useIntakePatient();
+  const dischargeMutation = useDischargePatient();
+  const transferMutation = useTransferPatient();
+
+  const canIntake =
+    user?.role === 'admin' || user?.role === 'doctor' || user?.role === 'nurse';
+  const canAllocate =
+    user?.role === 'admin' || user?.role === 'doctor';
+  const canManageAdmitted =
+    user?.role === 'admin' || user?.role === 'doctor';
 
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [isIntakeOpen, setIsIntakeOpen] = useState(false);
+  const [transferPatient, setTransferPatient] = useState<Patient | null>(null);
+  const [destinationBedId, setDestinationBedId] = useState('');
+
+  // Intake form state
+  const [ageGroup, setAgeGroup] = useState('31-50');
+  const [acuity, setAcuity] = useState(3);
+  const [specialty, setSpecialty] = useState('General Medicine');
+  const [predictedLos, setPredictedLos] = useState('3.5');
+  const [isolationRequired, setIsolationRequired] = useState(false);
+  const [ventilatorRequired, setVentilatorRequired] = useState(false);
 
   // Filters read from URL query params for bookmarking & state persistence
   const statusFilter = searchParams.get('status') || 'WAITING';
@@ -89,6 +133,108 @@ export const AdmissionQueuePage: React.FC = () => {
 
   const waitingCount = patients.filter((p) => p.current_status === 'WAITING').length;
   const admittedCount = patients.filter((p) => p.current_status === 'ADMITTED').length;
+  const dischargedCount = patients.filter((p) => p.current_status === 'DISCHARGED').length;
+
+  const availableBeds = useMemo(
+    () => (bedsData || []).filter((b) => b.status === 'AVAILABLE'),
+    [bedsData]
+  );
+
+  const handleIntakeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const los = parseFloat(predictedLos);
+    if (Number.isNaN(los) || los <= 0) {
+      showToast({
+        type: 'error',
+        title: 'Invalid LOS',
+        message: 'Predicted length of stay must be a positive number.',
+      });
+      return;
+    }
+
+    intakeMutation.mutate(
+      {
+        age_group: ageGroup,
+        acuity,
+        specialty,
+        predicted_los: los,
+        isolation_required: isolationRequired,
+        ventilator_required: ventilatorRequired,
+      },
+      {
+        onSuccess: (res) => {
+          showToast({
+            type: 'success',
+            title: 'Patient Admitted to Queue',
+            message: `Patient ${res.patient_id} registered (Encounter #${res.encounter_id}).`,
+          });
+          setIsIntakeOpen(false);
+          setIsolationRequired(false);
+          setVentilatorRequired(false);
+          updateParam('status', 'WAITING');
+        },
+        onError: (err) => {
+          showToast({
+            type: 'error',
+            title: 'Intake Failed',
+            message: getErrorMessage(err),
+          });
+        },
+      }
+    );
+  };
+
+  const handleDischarge = (patient: Patient) => {
+    dischargeMutation.mutate(
+      { patient_id: patient.patient_id, release_reason: 'clinical_discharge' },
+      {
+        onSuccess: (res) => {
+          showToast({
+            type: 'success',
+            title: 'Patient Discharged',
+            message: `${res.patient_id} discharged. Bed ${res.bed_id} moved to CLEANING.`,
+          });
+        },
+        onError: (err) => {
+          showToast({
+            type: 'error',
+            title: 'Discharge Failed',
+            message: getErrorMessage(err),
+          });
+        },
+      }
+    );
+  };
+
+  const handleTransferSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!transferPatient || !destinationBedId) return;
+    transferMutation.mutate(
+      {
+        patient_id: transferPatient.patient_id,
+        destination_bed_id: destinationBedId,
+        release_reason: 'ward_transfer',
+      },
+      {
+        onSuccess: (res) => {
+          showToast({
+            type: 'success',
+            title: 'Transfer Complete',
+            message: `${res.patient_id} transferred from ${res.from_bed_id} to ${res.to_bed_id}.`,
+          });
+          setTransferPatient(null);
+          setDestinationBedId('');
+        },
+        onError: (err) => {
+          showToast({
+            type: 'error',
+            title: 'Transfer Failed',
+            message: getErrorMessage(err),
+          });
+        },
+      }
+    );
+  };
 
   if (isLoading && !data) {
     return (
@@ -115,19 +261,31 @@ export const AdmissionQueuePage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Patient Admission Queue"
         description="Triage-prioritized admission queue with reinforcement learning bed allocation."
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-          >
-            Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            {canIntake && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setIsIntakeOpen(true)}
+                leftIcon={<UserPlus className="w-3.5 h-3.5" />}
+              >
+                New Patient
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            >
+              Refresh
+            </Button>
+          </div>
         }
       />
 
@@ -165,6 +323,16 @@ export const AdmissionQueuePage: React.FC = () => {
               }`}
             >
               Admitted ({admittedCount})
+            </button>
+            <button
+              onClick={() => updateParam('status', 'DISCHARGED')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                statusFilter === 'DISCHARGED'
+                  ? 'bg-bg-surface text-brand-primary shadow-sm'
+                  : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              Discharged ({dischargedCount})
             </button>
             <button
               onClick={() => updateParam('status', 'ALL')}
@@ -295,7 +463,14 @@ export const AdmissionQueuePage: React.FC = () => {
                     key={patient.patient_id}
                     patient={patient}
                     isSelected={selectedPatient?.patient_id === patient.patient_id}
+                    canAllocate={canAllocate}
+                    canManageAdmitted={canManageAdmitted}
                     onSelect={(p) => setSelectedPatient(p)}
+                    onDischarge={handleDischarge}
+                    onTransfer={(p) => {
+                      setTransferPatient(p);
+                      setDestinationBedId(availableBeds[0]?.bed_id ?? '');
+                    }}
                   />
                 ))}
               </tbody>
@@ -346,6 +521,194 @@ export const AdmissionQueuePage: React.FC = () => {
             refetch();
           }}
         />
+      )}
+
+      {/* New Patient Intake Modal */}
+      <Dialog
+        isOpen={isIntakeOpen}
+        onClose={() => setIsIntakeOpen(false)}
+        title="Register New Patient Intake"
+        description="Creates a new patient record and opens an active clinical encounter."
+        maxWidth="md"
+        footer={
+          <div className="flex items-center justify-end gap-2 w-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsIntakeOpen(false)}
+              disabled={intakeMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              type="submit"
+              form="patient-intake-form"
+              isLoading={intakeMutation.isPending}
+              leftIcon={<UserPlus className="w-3.5 h-3.5" />}
+            >
+              Register Patient
+            </Button>
+          </div>
+        }
+      >
+        <form id="patient-intake-form" onSubmit={handleIntakeSubmit} className="space-y-4 text-xs">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-text-primary mb-1">
+                Age Group
+              </label>
+              <Select
+                value={ageGroup}
+                onChange={(e) => setAgeGroup(e.target.value)}
+                className="w-full h-9 text-xs"
+              >
+                <option value="0-17">0-17 (Pediatric)</option>
+                <option value="18-30">18-30 (Young Adult)</option>
+                <option value="31-50">31-50 (Adult)</option>
+                <option value="51-70">51-70 (Older Adult)</option>
+                <option value="71+">71+ (Geriatric)</option>
+              </Select>
+            </div>
+            <div>
+              <label className="block font-semibold text-text-primary mb-1">
+                Predicted LOS (Days)
+              </label>
+              <Input
+                type="number"
+                step="0.5"
+                min="0.5"
+                max="60"
+                value={predictedLos}
+                onChange={(e) => setPredictedLos(e.target.value)}
+                required
+                className="h-9 text-xs"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-text-primary mb-1.5">
+              Triage Acuity Level
+            </label>
+            <div className="grid grid-cols-5 gap-1.5">
+              {[1, 2, 3, 4, 5].map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => setAcuity(level)}
+                  className={`py-2 rounded-lg border text-xs font-bold transition-all ${
+                    acuity === level
+                      ? 'bg-brand-primary text-white border-brand-primary shadow-sm'
+                      : 'bg-bg-surface border-border-medium text-text-secondary hover:bg-bg-surface-hover'
+                  }`}
+                >
+                  L{level}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-text-primary mb-1">
+              Clinical Specialty
+            </label>
+            <Select
+              value={specialty}
+              onChange={(e) => setSpecialty(e.target.value)}
+              className="w-full h-9 text-xs"
+            >
+              <option value="General Medicine">General Medicine</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Respiratory">Respiratory</option>
+              <option value="Orthopedics">Orthopedics</option>
+              <option value="Emergency">Emergency</option>
+            </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <label className="flex items-center gap-2 p-3 rounded-lg border border-border-light bg-bg-surface-hover cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isolationRequired}
+                onChange={(e) => setIsolationRequired(e.target.checked)}
+                className="rounded border-border-medium text-brand-primary"
+              />
+              <span className="font-medium text-text-primary">Isolation Required</span>
+            </label>
+            <label className="flex items-center gap-2 p-3 rounded-lg border border-border-light bg-bg-surface-hover cursor-pointer">
+              <input
+                type="checkbox"
+                checked={ventilatorRequired}
+                onChange={(e) => setVentilatorRequired(e.target.checked)}
+                className="rounded border-border-medium text-brand-primary"
+              />
+              <span className="font-medium text-text-primary">Ventilator Required</span>
+            </label>
+          </div>
+        </form>
+      </Dialog>
+
+      {/* Transfer Patient Modal */}
+      {transferPatient && (
+        <Dialog
+          isOpen={!!transferPatient}
+          onClose={() => setTransferPatient(null)}
+          title={`Transfer Patient — ${transferPatient.patient_id}`}
+          description="Select an available destination bed. The current bed will move to CLEANING."
+          maxWidth="sm"
+          footer={
+            <div className="flex items-center justify-end gap-2 w-full">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setTransferPatient(null)}
+                disabled={transferMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                type="submit"
+                form="patient-transfer-form"
+                isLoading={transferMutation.isPending}
+                disabled={!destinationBedId}
+                leftIcon={<ArrowLeftRight className="w-3.5 h-3.5" />}
+              >
+                Confirm Transfer
+              </Button>
+            </div>
+          }
+        >
+          <form id="patient-transfer-form" onSubmit={handleTransferSubmit} className="space-y-4 text-xs">
+            {availableBeds.length === 0 ? (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300">
+                No available beds are currently ready for transfer.
+              </div>
+            ) : (
+              <div>
+                <label className="block font-semibold text-text-primary mb-1.5">
+                  Destination Bed
+                </label>
+                <Select
+                  value={destinationBedId}
+                  onChange={(e) => setDestinationBedId(e.target.value)}
+                  className="w-full h-9 text-xs"
+                >
+                  {availableBeds.map((b) => (
+                    <option key={b.bed_id} value={b.bed_id}>
+                      {b.bed_id} — {b.ward} ({b.bed_type})
+                      {b.isolation_capable ? ' [Isolation]' : ''}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
+          </form>
+        </Dialog>
       )}
     </div>
   );

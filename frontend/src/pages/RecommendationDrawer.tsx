@@ -362,10 +362,52 @@ export const RecommendationDrawer: React.FC<RecommendationDrawerProps> = ({
           </div>
         </div>
 
-        <div className="p-3 rounded-xl border border-brand-primary/30 bg-brand-primary/5 space-y-1.5">
-          <label htmlFor="recommendation-algorithm" className="block text-xs font-semibold text-text-primary">
-            Recommendation algorithm
-          </label>
+        <div className="p-3.5 rounded-xl border border-brand-primary/30 bg-brand-primary/5 space-y-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor="recommendation-algorithm" className="block text-xs font-semibold text-text-primary">
+              Allocation Policy Engine
+            </label>
+            <span className="text-[10px] font-mono text-text-muted uppercase tracking-wider">
+              {algorithm === 'dqn_safe' ? 'Deep RL + Guardrails' : 'Heuristic Rules'}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 p-1 rounded-lg bg-bg-surface border border-border-light">
+            <button
+              type="button"
+              disabled={isDecisionPending}
+              onClick={() => {
+                if (algorithm !== 'rule_based') {
+                  setAlgorithm('rule_based');
+                  requestRecommendation('rule_based');
+                }
+              }}
+              className={`py-2 px-3 rounded-md text-xs font-semibold transition-all ${
+                algorithm === 'rule_based'
+                  ? 'bg-brand-primary text-white shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+              }`}
+            >
+              Rule-Based
+            </button>
+            <button
+              type="button"
+              disabled={isDecisionPending}
+              onClick={() => {
+                if (algorithm !== 'dqn_safe') {
+                  setAlgorithm('dqn_safe');
+                  requestRecommendation('dqn_safe');
+                }
+              }}
+              className={`py-2 px-3 rounded-md text-xs font-semibold transition-all ${
+                algorithm === 'dqn_safe'
+                  ? 'bg-brand-primary text-white shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover'
+              }`}
+            >
+              DQN Safe (RL)
+            </button>
+          </div>
+          {/* Hidden accessible select preserved for screen-readers/tests */}
           <select
             id="recommendation-algorithm"
             aria-label="Recommendation algorithm"
@@ -376,7 +418,7 @@ export const RecommendationDrawer: React.FC<RecommendationDrawerProps> = ({
               setAlgorithm(selected);
               requestRecommendation(selected);
             }}
-            className="w-full rounded-md border border-border-medium bg-bg-surface px-3 py-2 text-sm text-text-primary focus:border-brand-primary focus:outline-none focus:ring-1 focus:ring-brand-primary disabled:opacity-60"
+            className="sr-only"
           >
             <option value="rule_based">Rule-Based</option>
             <option value="dqn_safe">DQN Safe</option>
@@ -496,11 +538,39 @@ export const RecommendationDrawer: React.FC<RecommendationDrawerProps> = ({
             )}
 
             {algorithm === 'dqn_safe' && (
-              <div className="p-4 rounded-xl border border-indigo-500/25 bg-indigo-500/5 space-y-3">
-                <div className="flex items-center gap-2 font-semibold text-text-primary">
-                  <Info className="w-4 h-4 text-indigo-500" />
-                  <span>DQN Safe decision details</span>
+              <div className="p-4 rounded-xl border border-indigo-500/25 bg-indigo-500/5 space-y-3 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-semibold text-text-primary">
+                    <Info className="w-4 h-4 text-indigo-500" />
+                    <span>DQN Safe decision details</span>
+                  </div>
+                  {recommendation.los_estimate_days != null && (
+                    <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-700 dark:text-indigo-300">
+                      {recommendation.los_estimate_days.toFixed(1)} days
+                    </span>
+                  )}
                 </div>
+
+                {recommendation.safety?.overridden && (
+                  <div className="p-3 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+                    <ShieldAlert className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                    <div className="space-y-0.5 text-[11px]">
+                      <div className="font-bold">
+                        Safety Override: {actionLabel(recommendation.proposed_action, recommendation.proposed_bed_type)} &rarr; {actionLabel(recommendation.final_action, recommendation.final_bed_type)}
+                      </div>
+                      {recommendation.safety.rule_triggered && (
+                        <div className="font-mono text-[10px] uppercase tracking-wide opacity-90">
+                          Rule: {recommendation.safety.rule_triggered.replace(/_/g, ' ')}
+                        </div>
+                      )}
+                      {recommendation.safety.reason && (
+                        <div className="opacity-90">
+                          {recommendation.safety.reason.replace(/_/g, ' ')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-3 text-[11px]">
                   <div>
@@ -521,22 +591,6 @@ export const RecommendationDrawer: React.FC<RecommendationDrawerProps> = ({
                         : 'Not provided'}
                     </span>
                   </div>
-                  {recommendation.safety?.rule_triggered && (
-                    <div className="col-span-2">
-                      <span className="block text-text-muted">Safety rule</span>
-                      <span className="font-semibold text-text-primary">
-                        {recommendation.safety.rule_triggered.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                  )}
-                  {recommendation.safety?.reason && (
-                    <div className="col-span-2">
-                      <span className="block text-text-muted">Safety reason</span>
-                      <span className="text-text-secondary">
-                        {recommendation.safety.reason.replace(/_/g, ' ')}
-                      </span>
-                    </div>
-                  )}
                   <div>
                     <span className="block text-text-muted">Proposed action</span>
                     <span className="font-semibold text-text-primary">
@@ -549,40 +603,46 @@ export const RecommendationDrawer: React.FC<RecommendationDrawerProps> = ({
                       {actionLabel(recommendation.final_action, recommendation.final_bed_type)}
                     </span>
                   </div>
-                  <div>
-                    <span className="block text-text-muted">Proposed bed type</span>
-                    <span className="font-semibold text-text-primary">
-                      {recommendation.proposed_bed_type ?? 'Not provided'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-text-muted">Final bed type</span>
-                    <span className="font-semibold text-text-primary">
-                      {recommendation.final_bed_type ?? 'Not provided'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-text-muted">Estimated length of stay</span>
-                    <span className="font-semibold text-text-primary">
-                      {recommendation.los_estimate_days == null
-                        ? 'Not provided'
-                        : `${recommendation.los_estimate_days.toFixed(1)} days`}
-                    </span>
-                  </div>
                 </div>
 
                 <div>
-                  <span className="block text-[11px] text-text-muted mb-1">Q-values by action</span>
-                  {recommendation.q_values?.length ? (
-                    <ul className="grid grid-cols-2 gap-1 text-[11px]">
-                      {recommendation.q_values.map((value, index) => (
-                        <li key={`${index}-${value}`} className="flex justify-between rounded bg-bg-surface px-2 py-1">
-                          <span>{actionLabel(index, null)}</span>
-                          <span className="font-mono">{value.toFixed(4)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
+                  <span className="block text-[11px] font-semibold text-text-muted mb-2">
+                    Action Q-Values
+                  </span>
+                  {recommendation.q_values?.length ? (() => {
+                    const qVals = recommendation.q_values;
+                    const minQ = Math.min(...qVals);
+                    const maxQ = Math.max(...qVals);
+                    const span = maxQ - minQ || 1;
+                    return (
+                      <div className="space-y-2">
+                        {qVals.map((value, index) => {
+                          const pct = Math.max(8, Math.round(((value - minQ) / span) * 100));
+                          const isFinal = recommendation.final_action === index;
+                          return (
+                            <div key={`${index}-${value}`} className="space-y-1">
+                              <div className="flex justify-between text-[11px]">
+                                <span className={isFinal ? 'font-bold text-brand-primary' : 'text-text-secondary'}>
+                                  {actionLabel(index, null)} {isFinal ? '(Selected)' : ''}
+                                </span>
+                                <span className="font-mono font-semibold text-text-primary">
+                                  {value.toFixed(4)}
+                                </span>
+                              </div>
+                              <div className="w-full h-2 rounded-full bg-bg-surface border border-border-light overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-300 ${
+                                    isFinal ? 'bg-brand-primary' : 'bg-indigo-400/60'
+                                  }`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })() : (
                     <p className="text-[11px] text-text-secondary">Q-values not provided.</p>
                   )}
                 </div>

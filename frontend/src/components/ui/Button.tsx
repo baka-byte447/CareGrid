@@ -20,21 +20,21 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none select-none';
+  const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none select-none';
 
   const sizeStyles = {
-    sm: 'text-xs px-2.5 py-1.5 gap-1.5',
+    sm: 'text-xs px-3 py-1.5 gap-1.5',
     md: 'text-sm px-4 py-2 gap-2',
     lg: 'text-base px-5 py-2.5 gap-2.5',
   };
 
   const variantStyles = {
-    primary: 'bg-brand-primary text-white hover:bg-brand-primary-dark shadow-sm',
+    primary: 'btn-shine bg-brand-primary text-white dark:text-slate-950 hover:bg-brand-primary-dark shadow-sm hover:shadow-glow',
     secondary: 'bg-bg-surface-hover text-text-primary border border-border-light hover:bg-border-light',
-    danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm',
+    danger: 'bg-rose-600 text-white hover:bg-rose-700 shadow-sm',
     ghost: 'text-text-secondary hover:text-text-primary hover:bg-bg-surface-hover',
-    outline: 'border border-border-medium text-text-primary hover:bg-bg-surface-hover',
-    success: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm',
+    outline: 'border border-border-medium text-text-primary hover:bg-bg-surface-hover hover:border-brand-primary/50',
+    success: 'btn-shine bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm',
   };
 
   return (

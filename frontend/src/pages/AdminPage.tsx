@@ -119,13 +119,13 @@ export const AdminPage: React.FC = () => {
   const mutationPending = updateUser.isPending;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Hospital Administration"
         description="Manage CareGrid user accounts, access roles, and account status."
         badge={
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-500/20">
-            <Settings className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20">
+            <Settings className="w-3 h-3 text-violet-500" />
             Administrative Portal
           </span>
         }

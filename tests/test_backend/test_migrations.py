@@ -103,9 +103,9 @@ def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
     assert "ix_users_username" in user_indexes
     assert "ix_users_email" in user_indexes
 
-    # 2. Downgrade only the decision-tracking revision.
+    # 2. Downgrade the new nullable-audit revision and decision tracking.
     engine.dispose()
-    command.downgrade(cfg, "-1")
+    command.downgrade(cfg, "d7f4c2a91e63")
 
     engine = create_engine(db_url)
     insp = inspect(engine)
@@ -167,6 +167,48 @@ def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
     insp = inspect(engine)
     assert "users" in insp.get_table_names()
     assert "_alembic_users_created_by_migration" in insp.get_table_names()
+    engine.dispose()
+
+
+def test_nullable_audit_downgrade_is_blocked_without_deleting_records(temp_alembic_db):
+    cfg, db_url = temp_alembic_db
+    command.upgrade(cfg, "head")
+
+    engine = create_engine(db_url)
+    with engine.begin() as conn:
+        conn.execute(text(
+            "INSERT INTO audit_logs (patient_id, bed_id, action, algorithm, timestamp) "
+            "VALUES (NULL, 'BED-101', 'BED_CREATED', 'api', '2026-01-01 00:00:00')"
+        ))
+    engine.dispose()
+
+    with pytest.raises(RuntimeError, match="Downgrade blocked.*preserving audit history"):
+        command.downgrade(cfg, "e92d6c41b7a0")
+
+    engine = create_engine(db_url)
+    with engine.connect() as conn:
+        row = conn.execute(text(
+            "SELECT patient_id, bed_id, action FROM audit_logs WHERE bed_id = 'BED-101'"
+        )).mappings().one()
+        assert row["patient_id"] is None
+        assert row["action"] == "BED_CREATED"
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "f2a7c9d18430"
+    engine.dispose()
+
+
+def test_nullable_audit_downgrade_succeeds_without_null_records(temp_alembic_db):
+    cfg, db_url = temp_alembic_db
+    command.upgrade(cfg, "head")
+    command.downgrade(cfg, "e92d6c41b7a0")
+
+    engine = create_engine(db_url)
+    patient_id = next(
+        column for column in inspect(engine).get_columns("audit_logs")
+        if column["name"] == "patient_id"
+    )
+    assert patient_id["nullable"] is False
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT version_num FROM alembic_version")).scalar_one() == "e92d6c41b7a0"
     engine.dispose()
 
 

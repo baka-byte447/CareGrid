@@ -123,6 +123,28 @@ class BedCleaningResponse(BaseModel):
     status: str
 
 
+class BedCreateRequest(BaseModel):
+    model_config = {"extra": "forbid"}
+    bed_id: str = Field(min_length=1, max_length=10)
+    bed_type: str = Field(min_length=1, max_length=30)
+    ward: str = Field(min_length=1, max_length=50)
+    isolation_capable: bool = False
+
+    _strip_bed_id = field_validator("bed_id", mode="before")(_strip_identity)
+    _strip_bed_type = field_validator("bed_type", mode="before")(_strip_identity)
+    _strip_ward = field_validator("ward", mode="before")(_strip_identity)
+
+
+class BedCreateResponse(BaseModel):
+    message: str
+    bed: "BedItemResponse"
+
+
+class BedReleaseResponse(BaseModel):
+    message: str
+    bed: BedCleaningResponse
+
+
 class EquipmentAssignRequest(BaseModel):
     patient_id: Optional[str] = None
     encounter_id: Optional[int] = None
@@ -308,7 +330,7 @@ class MetricsResponse(BaseModel):
 
 
 class AuditItemResponse(BaseModel):
-    patient_id: str
+    patient_id: str | None
     bed_id: str | None
     action: str
     algorithm: str

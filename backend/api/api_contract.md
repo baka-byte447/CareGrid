@@ -43,6 +43,44 @@ example:
 }
 ```
 
+## Bed lifecycle
+
+Permission matrix: `beds:create` is admin only; `beds:release` is granted to admin, doctor, and nurse; `beds:clean` retains the existing admin, nurse, and operator assignments. Other bed reads continue to use `beds:read`.
+
+### `GET /beds`
+
+Returns bed identifiers, types, wards, statuses, and isolation capability. Requires `beds:read`.
+
+### `POST /beds`
+
+Creates a bed with server-controlled `AVAILABLE` status. Requires `beds:create` and administrator role.
+
+```json
+{"bed_id":"BED-101","bed_type":"ICU","ward":"ICU-A","isolation_capable":true}
+```
+
+Returns `201`:
+
+```json
+{"message":"Bed created successfully","bed":{"bed_id":"BED-101","bed_type":"ICU","ward":"ICU-A","status":"AVAILABLE","isolation_capable":true}}
+```
+
+Returns `409` for a duplicate ID and `422` for missing, blank, or oversized fields (including any extra client `status` field). `401` means missing/invalid authentication; `403` means the caller is not an administrator with the permission. Example: `curl -X POST http://localhost:8000/beds -H 'Authorization: Bearer <token>' -H 'Content-Type: application/json' -d '{"bed_id":"BED-101","bed_type":"ICU","ward":"ICU-A","isolation_capable":true}'`.
+
+### `POST /beds/{bed_id}/empty`
+
+Requires `beds:release`, granted to admin, doctor, and nurse. The active admitted encounter is a hard release prerequisite: discharge or transfer through the existing encounter workflow. This endpoint does not discharge patients or duplicate the release. An occupied bed with an active admitted encounter returns `409` with the prerequisite; a bed already in cleaning or available also returns `409`. Missing bed returns `404`; missing/invalid authentication returns `401`; insufficient role returns `403`.
+
+This endpoint currently has no successful release path. Discharge and transfer already close assignment history and move the old bed to `CLEANING`; calling this endpoint then returns `409` because the bed is already awaiting cleaning. For an occupied bed with an active admitted encounter, it returns `409` instructing the caller to discharge or transfer first. No independent lifecycle release operation is defined. Example request: `curl -X POST http://localhost:8000/beds/BED-101/empty -H 'Authorization: Bearer <token>'`.
+
+### Discharge and transfer
+
+`POST /patients/{patient_id}/discharge` and `POST /encounters/{encounter_id}/discharge` require `patients:discharge`. They mark the encounter and patient discharged, close the active assignment, preserve its history, and move the bed to `CLEANING`. `POST /patients/{patient_id}/transfer` and `POST /encounters/{encounter_id}/transfer` require `patients:transfer`; transfer closes the old assignment, moves its bed to `CLEANING`, and assigns the destination bed.
+
+### Cleaning completion
+
+`POST /beds/{bed_id}/cleaning-complete` requires `beds:clean`; it transitions a bed from `CLEANING` to `AVAILABLE` only after confirming it has no active assignment. `409` indicates an invalid state; `404` indicates the bed is missing.
+
 Role requirements below are taken from the route dependencies. They describe the
 roles currently accepted by each route, not an inferred permission matrix.
 

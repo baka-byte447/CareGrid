@@ -12,6 +12,9 @@ from backend.api.schemas import (
     AllocationApproveRequest,
     AllocationRejectRequest,
     BedCleaningResponse,
+    BedCreateRequest,
+    BedCreateResponse,
+    BedReleaseResponse,
     DischargeRequest,
     DischargeResponse,
     DQNAllocationRecommendResponse,
@@ -497,6 +500,65 @@ def get_beds(
             for bed in beds
         ]
     }
+
+
+@app.post("/beds", response_model=BedCreateResponse, status_code=201)
+def create_bed(
+    request: BedCreateRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("beds:create")),
+):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Only administrators may create beds")
+    try:
+        if db.get(Bed, request.bed_id) is not None:
+            raise HTTPException(status_code=409, detail="Bed ID already exists")
+        bed = Bed(
+            bed_id=request.bed_id,
+            bed_type=request.bed_type,
+            ward=request.ward,
+            status="AVAILABLE",
+            isolation_capable=request.isolation_capable,
+        )
+        db.add(bed)
+        db.flush()
+        db.add(AuditLog(patient_id=None, bed_id=bed.bed_id, action="BED_CREATED", algorithm="api"))
+        db.commit()
+        db.refresh(bed)
+    except HTTPException:
+        db.rollback()
+        raise
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="Bed ID already exists") from exc
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Bed creation failed; changes were rolled back") from exc
+    return {"message": "Bed created successfully", "bed": bed}
+
+
+@app.post("/beds/{bed_id}/empty", response_model=BedReleaseResponse)
+def empty_bed(
+    bed_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("beds:release")),
+):
+    bed = db.get(Bed, bed_id)
+    if bed is None:
+        raise HTTPException(status_code=404, detail="Bed not found")
+    if bed.status.upper() == "AVAILABLE":
+        raise HTTPException(status_code=409, detail="Bed is already available")
+    if bed.status.upper() == "CLEANING":
+        raise HTTPException(status_code=409, detail="Bed is already awaiting cleaning")
+    assignment = db.execute(select(BedAssignment).where(
+        BedAssignment.bed_id == bed_id, BedAssignment.released_at.is_(None)
+    )).scalar_one_or_none()
+    if assignment is None:
+        raise HTTPException(status_code=409, detail="Occupied bed has no active patient assignment")
+    encounter = db.get(Encounter, assignment.encounter_id)
+    if encounter is not None and encounter.status.upper() == "ADMITTED":
+        raise HTTPException(status_code=409, detail="Active patient encounter prevents release; discharge or transfer the patient first")
+    raise HTTPException(status_code=409, detail="Bed release must be performed by the discharge or transfer workflow; no eligible release operation exists")
 
 
 @app.post("/beds/{bed_id}/cleaning-complete", response_model=BedCleaningResponse)

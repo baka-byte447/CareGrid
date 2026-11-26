@@ -87,31 +87,39 @@ export const Sidebar: React.FC = () => {
   );
 
   return (
-    <aside className="w-60 bg-[#0a192f] text-slate-200 flex flex-col flex-shrink-0 border-r border-slate-800 select-none">
+    <aside className="relative w-64 bg-bg-sidebar backdrop-blur-xl text-text-primary flex flex-col flex-shrink-0 border-r border-border-light select-none overflow-hidden">
+      {/* Subtle Cosmic Sidebar Glow */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-20 -left-20 w-56 h-56 rounded-full bg-sky-500/15 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-24 -left-16 w-56 h-56 rounded-full bg-purple-600/20 blur-3xl"
+      />
 
       {/* Brand Logo & Name */}
-      <div className="p-5 border-b border-slate-800/80 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-brand-primary flex items-center justify-center text-white shadow-md">
-          <Activity className="w-5 h-5 text-sky-200" />
+      <div className="relative px-5 py-5 flex items-center gap-3 border-b border-border-light/60">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-glow transition-transform duration-300 hover:scale-105"
+          style={{ background: 'var(--brand-gradient)' }}
+        >
+          <Activity className="w-5 h-5 text-white" />
         </div>
 
         <div>
-          <h1 className="text-base font-bold tracking-tight text-white leading-none">
+          <h1 className="text-base font-bold tracking-tight text-text-primary leading-none">
             CareGrid
           </h1>
-          <span className="text-[11px] font-medium text-sky-400/80 tracking-wide block mt-1">
-            HMIS Platform
+          <span className="text-[11px] font-medium text-text-muted tracking-wide block mt-1">
+            Hospital Management
           </span>
         </div>
       </div>
 
       {/* Navigation links */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-          Clinical Operations
-        </div>
-
-        {visibleNavItems.map((item) => {
+      <nav className="relative flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+        {visibleNavItems.map((item, idx) => {
           const Icon = item.icon;
 
           return (
@@ -119,32 +127,54 @@ export const Sidebar: React.FC = () => {
               key={item.path}
               to={item.path}
               end={item.path === '/'}
+              style={{ animationDelay: `${idx * 30}ms` }}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                `relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-medium transition-all duration-200 animate-fade-in ${
                   isActive
-                    ? 'bg-sky-600/90 text-white shadow-sm font-semibold'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                    ? 'text-white font-semibold shadow-glow'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-sidebar-hover hover:translate-x-1'
                 }`
               }
             >
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              <span>{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  {isActive && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 rounded-xl -z-10"
+                      style={{ background: 'var(--brand-gradient-pill)' }}
+                    />
+                  )}
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span>{item.label}</span>
+                </>
+              )}
             </NavLink>
           );
         })}
       </nav>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-slate-800/80 text-[11px] text-slate-400">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-semibold text-slate-300">
-            RL Engine Active
-          </span>
+      {/* Hospital Online Telemetry Card (Reference Inspired) */}
+      <div className="relative p-3.5 m-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md shadow-card">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 pulse-ring" />
+            <span className="text-xs font-bold text-emerald-400">
+              Hospital Online
+            </span>
+          </div>
+          <svg className="w-10 h-4 text-emerald-400" viewBox="0 0 40 16" fill="none">
+            <path
+              d="M0 8 H8 L12 2 L16 14 L20 4 L24 12 L28 8 H40"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
-
-        <p className="text-[10px] text-slate-500">
-          v1.0.0 &bull; St. Jude Central
+        <p className="text-[10px] text-text-muted font-mono">
+          RL Engine Active &bull; St. Jude Central
         </p>
       </div>
     </aside>

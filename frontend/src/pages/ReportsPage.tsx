@@ -104,13 +104,13 @@ export const ReportsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Clinical Analytical Reports"
         description="Operational distributions aggregated directly from current active hospital records."
         badge={
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/20">
-            <BarChart3 className="w-3 h-3 text-sky-500" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-violet-500/10 text-violet-700 dark:text-violet-300 border border-violet-500/20">
+            <BarChart3 className="w-3 h-3 text-violet-500" />
             Live Distribution Analysis
           </span>
         }
@@ -182,7 +182,7 @@ export const ReportsPage: React.FC = () => {
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-15} textAnchor="end" />
                   <YAxis tick={{ fontSize: 11 }} />
                   <RechartsTooltip />
-                  <Bar dataKey="count" fill="#1d6fa4" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#7c3aed" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -207,7 +207,7 @@ export const ReportsPage: React.FC = () => {
                   <XAxis dataKey="ward" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} domain={[0, 100]} />
                   <RechartsTooltip formatter={(val: any) => [`${Number(val).toFixed(1)}%`, 'Occupancy']} />
-                  <Bar dataKey="occupancy" fill="#0284c7" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="occupancy" fill="#06b6d4" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

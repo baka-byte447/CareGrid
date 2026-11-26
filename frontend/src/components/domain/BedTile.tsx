@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bed } from '@/api/schemas';
-import { BedDouble, Shield } from 'lucide-react';
+import { BedDouble, Shield, Sparkles } from 'lucide-react';
 import { Tooltip } from '@/components/ui/Tooltip';
 
 export interface BedTileProps {
@@ -17,17 +17,20 @@ export const BedTile: React.FC<BedTileProps> = ({
   className = '',
 }) => {
   const isAvailable = bed.status === 'AVAILABLE';
+  const isCleaning = bed.status === 'CLEANING';
 
   const statusStyles = isAvailable
     ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 hover:border-emerald-500 hover:bg-emerald-500/15'
-    : 'bg-red-500/10 text-red-800 dark:text-red-300 border-red-500/30 opacity-80';
+    : isCleaning
+      ? 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/35 hover:border-amber-500 hover:bg-amber-500/15'
+      : 'bg-red-500/10 text-red-800 dark:text-red-300 border-red-500/30 opacity-85 hover:opacity-100';
 
   const selectedRing = isSelected ? 'ring-2 ring-brand-primary ring-offset-2' : '';
 
   return (
     <div
       onClick={() => onClick?.(bed)}
-      className={`relative flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all duration-150 cursor-pointer select-none group min-h-[84px] ${statusStyles} ${selectedRing} ${className}`}
+      className={`relative flex flex-col items-center justify-center p-3.5 rounded-2xl border text-center transition-all duration-200 cursor-pointer select-none group min-h-[90px] card-interactive hover:-translate-y-1 hover:shadow-md ${statusStyles} ${selectedRing} ${className}`}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -46,7 +49,17 @@ export const BedTile: React.FC<BedTileProps> = ({
         </div>
       )}
 
-      <BedDouble className={`w-5 h-5 mb-1 ${isAvailable ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`} />
+      {isCleaning ? (
+        <Sparkles className="w-5 h-5 mb-1 text-amber-600 dark:text-amber-400 animate-pulse" />
+      ) : (
+        <BedDouble
+          className={`w-5 h-5 mb-1 ${
+            isAvailable
+              ? 'text-emerald-600 dark:text-emerald-400'
+              : 'text-red-600 dark:text-red-400'
+          }`}
+        />
+      )}
 
       <span className="font-mono text-xs font-bold tracking-tight text-text-primary">
         {bed.bed_id}

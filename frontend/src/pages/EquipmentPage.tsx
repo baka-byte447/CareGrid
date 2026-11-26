@@ -1,21 +1,45 @@
 import React, { useState, useMemo } from 'react';
-import { useEquipment } from '@/api/hooks';
+import {
+  useEquipment,
+  usePatients,
+  useAssignEquipment,
+  useReleaseEquipment,
+  getErrorMessage,
+} from '@/api/hooks';
+import { useAuth } from '@/auth/AuthContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { TableSkeleton } from '@/components/feedback/Skeletons';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
+import { useToast } from '@/components/feedback/Toast';
 import { StatusDot } from '@/components/domain/StatusDot';
 import { Select, Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
 import { Equipment } from '@/api/schemas';
-import { Stethoscope, Wind, Activity, Wrench, RefreshCw, Search } from 'lucide-react';
+import { Stethoscope, Wind, Activity, Wrench, RefreshCw, Search, Link2, Unlink } from 'lucide-react';
 
 export const EquipmentPage: React.FC = () => {
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const { data, isLoading, error, refetch } = useEquipment();
+  const { data: patientsData } = usePatients();
+  const assignMutation = useAssignEquipment();
+  const releaseMutation = useReleaseEquipment();
+
+  const canManageEquipment =
+    user?.role === 'admin' || user?.role === 'nurse' || user?.role === 'doctor';
 
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchLocation, setSearchLocation] = useState('');
+  const [assigningItem, setAssigningItem] = useState<Equipment | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState('');
+
+  const admittedPatients = useMemo(
+    () => (patientsData || []).filter((p) => p.current_status === 'ADMITTED'),
+    [patientsData]
+  );
 
   const equipment: Equipment[] = useMemo(() => data || [], [data]);
 
@@ -167,6 +191,7 @@ export const EquipmentPage: React.FC = () => {
                   <th className="p-3.5">Equipment Type</th>
                   <th className="p-3.5">Assigned Location</th>
                   <th className="p-3.5">Operational Status</th>
+                  {canManageEquipment && <th className="p-3.5 text-right">Action</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-light/60">
@@ -203,6 +228,57 @@ export const EquipmentPage: React.FC = () => {
                           <span className={statusClass[item.status] || 'text-slate-600'}>{item.status}</span>
                         </span>
                       </td>
+                      {canManageEquipment && (
+                        <td className="p-3.5 text-right">
+                          {item.status === 'AVAILABLE' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              leftIcon={<Link2 className="w-3 h-3" />}
+                              onClick={() => {
+                                setAssigningItem(item);
+                                setSelectedPatientId(admittedPatients[0]?.patient_id ?? '');
+                              }}
+                            >
+                              Assign
+                            </Button>
+                          )}
+                          {item.status === 'IN_USE' && (
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              leftIcon={<Unlink className="w-3 h-3" />}
+                              isLoading={
+                                releaseMutation.isPending &&
+                                releaseMutation.variables?.equipment_id === item.equipment_id
+                              }
+                              onClick={() => {
+                                releaseMutation.mutate(
+                                  { equipment_id: item.equipment_id },
+                                  {
+                                    onSuccess: () => {
+                                      showToast({
+                                        type: 'success',
+                                        title: 'Equipment Released',
+                                        message: `${item.equipment_id} is now AVAILABLE.`,
+                                      });
+                                    },
+                                    onError: (err) => {
+                                      showToast({
+                                        type: 'error',
+                                        title: 'Release Failed',
+                                        message: getErrorMessage(err),
+                                      });
+                                    },
+                                  }
+                                );
+                              }}
+                            >
+                              Release
+                            </Button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   );
                 })}
@@ -211,6 +287,87 @@ export const EquipmentPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Assign Equipment Dialog */}
+      {assigningItem && (
+        <Dialog
+          isOpen={!!assigningItem}
+          onClose={() => setAssigningItem(null)}
+          title={`Assign Equipment — ${assigningItem.equipment_id}`}
+          description={`Type: ${assigningItem.type} • Current Location: ${assigningItem.location}`}
+          maxWidth="sm"
+          footer={
+            <div className="flex items-center justify-end gap-2 w-full">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAssigningItem(null)}
+                disabled={assignMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={assignMutation.isPending}
+                disabled={!selectedPatientId}
+                onClick={() => {
+                  assignMutation.mutate(
+                    {
+                      equipment_id: assigningItem.equipment_id,
+                      patient_id: selectedPatientId,
+                    },
+                    {
+                      onSuccess: () => {
+                        showToast({
+                          type: 'success',
+                          title: 'Equipment Assigned',
+                          message: `${assigningItem.equipment_id} assigned to ${selectedPatientId}.`,
+                        });
+                        setAssigningItem(null);
+                      },
+                      onError: (err) => {
+                        showToast({
+                          type: 'error',
+                          title: 'Assignment Failed',
+                          message: getErrorMessage(err),
+                        });
+                      },
+                    }
+                  );
+                }}
+              >
+                Confirm Assignment
+              </Button>
+            </div>
+          }
+        >
+          <div className="space-y-3 text-xs">
+            {admittedPatients.length === 0 ? (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300">
+                No admitted patients currently available for equipment assignment.
+              </div>
+            ) : (
+              <div>
+                <label className="block font-semibold text-text-primary mb-1.5">
+                  Select Admitted Patient
+                </label>
+                <Select
+                  value={selectedPatientId}
+                  onChange={(e) => setSelectedPatientId(e.target.value)}
+                  className="w-full h-9 text-xs"
+                >
+                  {admittedPatients.map((p) => (
+                    <option key={p.patient_id} value={p.patient_id}>
+                      {p.patient_id} — {p.specialty} (Acuity L{p.acuity})
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            )}
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 };

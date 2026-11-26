@@ -1,16 +1,19 @@
 
 import React, { useState } from 'react';
-import { useMetrics, useBeds, usePatients } from '@/api/hooks';
+import { Link } from 'react-router-dom';
+import { useMetrics, useBeds, usePatients, useAudit, useCompleteBedCleaning, getErrorMessage } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthContext';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { MetricCard } from '@/components/domain/MetricCard';
 import { AcuityBadge } from '@/components/domain/AcuityBadge';
 import { RequirementChips } from '@/components/domain/RequirementChips';
+import { WardBadge } from '@/components/domain/WardBadge';
 import { MetricGridSkeleton, TableSkeleton } from '@/components/feedback/Skeletons';
 import { ErrorState } from '@/components/feedback/ErrorState';
+import { useToast } from '@/components/feedback/Toast';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { formatPct } from '@/lib/format';
+import { formatPct, formatServerTimestamp } from '@/lib/format';
 import { ACUITY_LABELS, WARD_TYPE_LIST, AcuityLevel } from '@/lib/constants';
 import { Patient, Bed } from '@/api/schemas';
 import { RecommendationDrawer } from './RecommendationDrawer';
@@ -24,17 +27,35 @@ import {
   ArrowRight,
   RefreshCw,
   Activity,
-  HeartPulse,
+  Sparkles,
+  Zap,
+  BarChart3,
+  ScrollText,
+  Hospital,
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+} from 'recharts';
 
 export const CommandCentrePage: React.FC = () => {
   const { user } = useAuth();
+  const { showToast } = useToast();
+  const cleanBedMutation = useCompleteBedCleaning();
 
   // Permissions
   const canViewMetrics = true;
 
   const canAllocate =
     user?.role === 'admin' || user?.role === 'doctor';
+
+  const canCompleteCleaning =
+    user?.role === 'admin' || user?.role === 'nurse' || user?.role === 'operator';
 
   // Metrics are restricted to Admin and Operator
   const {
@@ -62,6 +83,9 @@ export const CommandCentrePage: React.FC = () => {
     refetch: refetchPatients,
     dataUpdatedAt: patientsUpdatedAt,
   } = usePatients(30_000);
+
+  const { data: auditData } = useAudit();
+  const auditEntries = auditData || [];
 
   const [selectedPatient, setSelectedPatient] =
     useState<Patient | null>(null);
@@ -229,40 +253,93 @@ export const CommandCentrePage: React.FC = () => {
     });
   }
 
+  const cleaningBeds = beds.filter((bed) => bed.status === 'CLEANING');
+
+  const handleCompleteCleaning = (bedId: string) => {
+    cleanBedMutation.mutate(bedId, {
+      onSuccess: () => {
+        showToast({
+          type: 'success',
+          title: 'Bed Ready',
+          message: `Bed ${bedId} marked clean and is now AVAILABLE.`,
+        });
+      },
+      onError: (err) => {
+        showToast({
+          type: 'error',
+          title: 'Cleaning Update Failed',
+          message: getErrorMessage(err),
+        });
+      },
+    });
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
 
-      {/* Page Header */}
-      <PageHeader
-        title="Hospital Command Centre"
-        description="Real-time capacity tracking, triage acuity distribution, and operational alerts."
-        actions={
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-text-muted">
-              Auto-refresh 30s &bull; Last sync:{' '}
-              {dataUpdatedAt
-                ? new Date(dataUpdatedAt).toLocaleTimeString()
-                : '—'}
-            </span>
+      {/* Hero Welcome Banner (Reference Inspired) */}
+      <div
+        className="relative overflow-hidden rounded-3xl border border-sky-500/25 p-6 sm:p-7 shadow-lg"
+        style={{
+          background:
+            'linear-gradient(120deg, rgba(13,24,62,0.95) 0%, rgba(28,31,84,0.92) 55%, rgba(14,116,144,0.45) 100%)',
+        }}
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-10 -top-12 w-72 h-72 rounded-full bg-sky-400/20 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-24 -bottom-16 w-64 h-64 rounded-full bg-purple-500/20 blur-3xl"
+        />
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRetryAll}
-              leftIcon={
-                <RefreshCw className="w-3.5 h-3.5" />
-              }
-            >
-              Sync
-            </Button>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-sky-200/90">
+              Welcome Back, <span className="font-bold text-white capitalize">{user?.username ?? 'Clinician'}</span>
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+              Hospital{' '}
+              <span className="text-purple-400">Command</span>{' '}
+              <span className="text-sky-400">Centre</span>
+            </h1>
+            <p className="text-xs text-slate-300">
+              Monitor. Manage. Care Better.
+            </p>
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[11px] font-semibold text-emerald-300">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                Live &bull; Synced{' '}
+                {dataUpdatedAt
+                  ? new Date(dataUpdatedAt).toLocaleTimeString()
+                  : '—'}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRetryAll}
+                className="border-white/20 text-white hover:bg-white/10"
+                leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+              >
+                Sync
+              </Button>
+            </div>
           </div>
-        }
-      />
+
+          <div className="hidden lg:flex items-center gap-4 pr-2 opacity-90">
+            <div className="w-24 h-24 rounded-3xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center shadow-glow">
+              <Hospital className="w-12 h-12 text-sky-300" />
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Top 4 KPI Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         <MetricCard
+          className="animate-slide-up stagger-1"
           label="Bed Occupancy"
           value={
             metrics
@@ -326,51 +403,181 @@ export const CommandCentrePage: React.FC = () => {
 
       </div>
 
-      {/* Needs Attention + Ward Capacity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Needs Attention Panel */}
-        <Card className="lg:col-span-1 border-amber-500/20 bg-amber-500/5">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-
-                <CardTitle className="text-sm font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200">
-                  Needs Attention
-                </CardTitle>
+      {/* Clinical Alerts Strip */}
+      {attentionItems.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 animate-fade-in">
+          {attentionItems.map((item) => (
+            <div
+              key={item.id}
+              className="p-3.5 rounded-2xl bg-amber-50/90 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-xs flex items-start gap-2.5 shadow-xs"
+            >
+              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="font-bold text-amber-900 dark:text-amber-200">{item.title}</div>
+                <p className="text-amber-800/80 dark:text-amber-300/80 mt-0.5 leading-snug">{item.desc}</p>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300">
-                {attentionItems.length}{' '}
-                {attentionItems.length === 1 ? 'Alert' : 'Alerts'}
-              </span>
+      {/* Middle 3-Column Analytics Row (Reference Inspired) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
+        {/* Patient Acuity & Capacity Curve (AreaChart) */}
+        <Card className="lg:col-span-1 animate-slide-up stagger-2">
+          <CardHeader className="mb-2">
+            <CardTitle className="text-sm font-bold text-text-primary flex items-center gap-2">
+              <Activity className="w-4 h-4 text-sky-400" />
+              Patient Acuity Overview
+            </CardTitle>
+            <p className="text-[11px] text-text-muted">
+              Waiting queue distribution across triage levels
+            </p>
+          </CardHeader>
+
+          <CardContent>
+            <div className="h-52 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={[1, 2, 3, 4, 5].map((lvl) => ({
+                    level: `L${lvl}`,
+                    Waiting: acuityCounts[lvl] || 0,
+                  }))}
+                  margin={{ top: 10, right: 8, left: -24, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="acuityGlow" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.45} />
+                      <stop offset="95%" stopColor="#a855f7" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-light)" />
+                  <XAxis dataKey="level" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip
+                    contentStyle={{
+                      backgroundColor: 'var(--bg-surface-elevated)',
+                      borderColor: 'var(--border-light)',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="Waiting"
+                    stroke="#38bdf8"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#acuityGlow)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Ward Capacity Status (Glowing Bars) */}
+        <Card className="lg:col-span-1 animate-slide-up stagger-3">
+          <CardHeader className="mb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold text-text-primary flex items-center gap-2">
+                <BedDouble className="w-4 h-4 text-purple-400" />
+                Ward Capacity Status
+              </CardTitle>
+              <Link
+                to="/beds"
+                className="text-[11px] font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1"
+              >
+                View Details <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
           </CardHeader>
 
           <CardContent>
-            {attentionItems.length === 0 ? (
-              <div className="text-center py-6 text-text-muted text-xs">
-                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-emerald-500 opacity-80" />
-                No acute capacity or ventilator warnings currently detected.
+            <div className="space-y-4">
+              {wardStats.map((ward) => {
+                const barGradient =
+                  ward.type === 'ICU'
+                    ? 'linear-gradient(90deg, #0ea5e9 0%, #38bdf8 100%)'
+                    : ward.type === 'STEP_DOWN'
+                      ? 'linear-gradient(90deg, #8b5cf6 0%, #c084fc 100%)'
+                      : 'linear-gradient(90deg, #10b981 0%, #34d399 100%)';
+                return (
+                  <div key={ward.type} className="space-y-1.5">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-semibold text-text-primary">
+                        {ward.type === 'STEP_DOWN'
+                          ? 'Step-Down'
+                          : ward.type === 'WARD'
+                            ? 'General Ward'
+                            : 'ICU'}
+                      </span>
+                      <span className="font-mono font-bold text-text-primary">
+                        {formatPct(ward.rate)}
+                      </span>
+                    </div>
+                    <div className="w-full h-2.5 rounded-full bg-slate-800/70 overflow-hidden">
+                      <div
+                        className="h-full rounded-full progress-shine transition-all duration-700"
+                        style={{
+                          width: `${Math.min(ward.rate * 100, 100)}%`,
+                          background: barGradient,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity Feed (Live from /audit) */}
+        <Card className="lg:col-span-1 animate-slide-up stagger-4">
+          <CardHeader className="mb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold text-text-primary flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-400" />
+                Recent Activity
+              </CardTitle>
+              <Link
+                to="/audit"
+                className="text-[11px] font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1"
+              >
+                View All <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </CardHeader>
+
+          <CardContent>
+            {auditEntries.length === 0 ? (
+              <div className="text-center py-8 text-xs text-text-muted">
+                No recent allocation or lifecycle events recorded.
               </div>
             ) : (
-              <div className="space-y-3">
-                {attentionItems.map((item) => (
+              <div className="space-y-2.5">
+                {auditEntries.slice(0, 4).map((entry, idx) => (
                   <div
-                    key={item.id}
-                    className="p-3 rounded-lg bg-bg-surface border border-amber-500/30 text-xs space-y-1 shadow-sm"
+                    key={`${entry.patient_id}-${entry.timestamp}-${idx}`}
+                    className="flex items-center justify-between gap-2 p-2 rounded-xl bg-bg-surface-hover/50 border border-border-light/60 text-xs"
                   >
-                    <div className="font-semibold text-text-primary flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                      {item.title}
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-7 h-7 rounded-full bg-sky-500/15 text-sky-400 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-text-primary truncate">
+                          {entry.action}
+                        </div>
+                        <div className="text-[10px] text-text-muted truncate font-mono">
+                          {entry.patient_id} {entry.bed_id ? `→ ${entry.bed_id}` : ''}
+                        </div>
+                      </div>
                     </div>
-
-                    <p className="text-text-secondary">
-                      {item.desc}
-                    </p>
+                    <span className="text-[10px] text-text-muted whitespace-nowrap">
+                      {formatServerTimestamp(entry.timestamp).replace(' UTC', '')}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -378,106 +585,66 @@ export const CommandCentrePage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Capacity Breakdown by Ward Type */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-2">
-              <Activity className="w-4 h-4 text-brand-primary" />
-              Ward Capacity Status
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent>
-            <div className="space-y-4">
-              {wardStats.map((ward) => (
-                <div
-                  key={ward.type}
-                  className="space-y-1.5"
-                >
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="font-semibold text-text-primary">
-                      {ward.type === 'STEP_DOWN'
-                        ? 'Step-Down Unit'
-                        : ward.type === 'WARD'
-                          ? 'General Ward'
-                          : 'Intensive Care Unit (ICU)'}
-                    </span>
-
-                    <span className="font-mono text-text-secondary">
-                      {ward.available} free / {ward.total} total (
-                      {formatPct(ward.rate)})
-                    </span>
-                  </div>
-
-                  <div className="w-full h-2.5 rounded-full bg-border-light dark:bg-border-medium/30 overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        ward.rate > 0.9
-                          ? 'bg-red-500'
-                          : ward.rate > 0.75
-                            ? 'bg-amber-500'
-                            : 'bg-emerald-500'
-                      }`}
-                      style={{
-                        width: `${Math.min(ward.rate * 100, 100)}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
       </div>
 
-      {/* Triage Queue Breakdown & Critical Waiting Patients */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Bottom Row: Urgent Waiting Patients + Quick Actions */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        {/* Acuity Triage Distribution */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-2">
-              <HeartPulse className="w-4 h-4 text-rose-500" />
-              Queue Acuity Distribution
+        {/* Quick Actions 2x2 Grid (Reference Inspired) */}
+        <Card className="lg:col-span-1 animate-slide-up stagger-5">
+          <CardHeader className="mb-3">
+            <CardTitle className="text-sm font-bold text-text-primary flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-400" />
+              Quick Actions
             </CardTitle>
           </CardHeader>
-
           <CardContent>
-            <div className="space-y-2.5">
-              {[5, 4, 3, 2, 1].map((acuity) => {
-                const count = acuityCounts[acuity] || 0;
-
-                const pct =
-                  waitingPatients.length > 0
-                    ? (count / waitingPatients.length) * 100
-                    : 0;
-
-                return (
-                  <div
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                to="/queue"
+                className="p-3.5 rounded-2xl border border-sky-500/30 bg-sky-500/10 hover:bg-sky-500/20 transition-all flex flex-col items-center justify-center text-center gap-2 card-interactive"
+              >
+                <Users className="w-5 h-5 text-sky-400" />
+                <span className="text-xs font-semibold text-text-primary">Admission Queue</span>
+              </Link>
+              <Link
+                to="/beds"
+                className="p-3.5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all flex flex-col items-center justify-center text-center gap-2 card-interactive"
+              >
+                <BedDouble className="w-5 h-5 text-emerald-400" />
+                <span className="text-xs font-semibold text-text-primary">Manage Beds</span>
+              </Link>
+              <Link
+                to="/reports"
+                className="p-3.5 rounded-2xl border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition-all flex flex-col items-center justify-center text-center gap-2 card-interactive"
+              >
+                <BarChart3 className="w-5 h-5 text-purple-400" />
+                <span className="text-xs font-semibold text-text-primary">View Reports</span>
+              </Link>
+              <Link
+                to="/surge"
+                className="p-3.5 rounded-2xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 transition-all flex flex-col items-center justify-center text-center gap-2 card-interactive"
+              >
+                <ScrollText className="w-5 h-5 text-amber-400" />
+                <span className="text-xs font-semibold text-text-primary">Surge Planner</span>
+              </Link>
+            </div>
+            <div className="mt-4 pt-3 border-t border-border-light space-y-1.5">
+              <div className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
+                Queue Acuity Breakdown
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {[5, 4, 3, 2, 1].map((acuity) => (
+                  <span
                     key={acuity}
-                    className="flex items-center justify-between text-xs"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-bg-surface-hover border border-border-light text-[10px] font-mono"
+                    title={ACUITY_LABELS[acuity as AcuityLevel].label}
                   >
-                    <div className="flex items-center gap-2">
-                      <AcuityBadge acuity={acuity} />
-
-                      <span className="text-text-secondary font-medium">
-                        {ACUITY_LABELS[acuity as AcuityLevel].label}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-text-primary">
-                        {count}
-                      </span>
-
-                      <span className="text-[11px] text-text-muted w-10 text-right">
-                        ({pct.toFixed(0)}%)
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
+                    <AcuityBadge acuity={acuity} />
+                    <span className="font-bold text-text-primary">{acuityCounts[acuity] || 0}</span>
+                  </span>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -571,6 +738,58 @@ export const CommandCentrePage: React.FC = () => {
         </Card>
 
       </div>
+
+      {/* Beds Awaiting Cleaning Queue */}
+      {cleaningBeds.length > 0 && (
+        <Card className="border-amber-500/30 bg-amber-500/5 animate-slide-in-up">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                Beds Awaiting Cleaning Turnover
+              </CardTitle>
+              <span className="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300">
+                {cleaningBeds.length} pending
+              </span>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {cleaningBeds.map((bed) => (
+                <div
+                  key={bed.bed_id}
+                  className="p-3 rounded-xl bg-bg-surface border border-amber-500/30 flex items-center justify-between gap-3 card-interactive"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm font-bold text-text-primary">
+                        {bed.bed_id}
+                      </span>
+                      <WardBadge bedType={bed.bed_type} />
+                    </div>
+                    <span className="text-[11px] text-text-muted block mt-0.5">
+                      {bed.ward}
+                    </span>
+                  </div>
+                  {canCompleteCleaning && (
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      isLoading={
+                        cleanBedMutation.isPending &&
+                        cleanBedMutation.variables === bed.bed_id
+                      }
+                      onClick={() => handleCompleteCleaning(bed.bed_id)}
+                    >
+                      Mark Clean
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Recommendation Drawer Modal */}
       {selectedPatient && (

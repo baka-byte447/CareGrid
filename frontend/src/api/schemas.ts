@@ -122,9 +122,22 @@ export const RecommendResponseSchema = z.object({
 })
 
 // ─── Allocation Approve ──────────────────────────────────────────────────────
-export const ApproveRequestSchema = z.object({
-  recommendation_id: z.number().int().positive(),
-})
+export const ApproveRequestSchema = z
+  .object({
+    recommendation_id: z.number().int().positive().optional(),
+    patient_id: z.string().optional(),
+    bed_id: z.string().optional(),
+    encounter_id: z.number().int().optional(),
+    equipment_id: z.string().optional(),
+  })
+  .refine(
+    (data) =>
+      data.recommendation_id !== undefined ||
+      (Boolean(data.patient_id) && Boolean(data.bed_id)),
+    {
+      message: 'Either recommendation_id or both patient_id and bed_id are required',
+    }
+  )
 
 export const ApproveResponseSchema = z.object({
   patient_id: z.string(),
@@ -200,6 +213,88 @@ export type RejectResponse = z.infer<typeof RejectResponseSchema>
 export type SurgeResponse = z.infer<typeof SurgeResponseSchema>
 export type SurgeMetrics = z.infer<typeof SurgeMetricsSchema>
 
+// ─── Patient Intake ──────────────────────────────────────────────────────────
+export const PatientIntakeRequestSchema = z.object({
+  patient_id: z.string().min(1).max(10).optional().nullable(),
+  age_group: z.string().min(1).max(20),
+  acuity: z.number().int().min(1).max(5),
+  specialty: z.string().min(1).max(50),
+  predicted_los: z.number().positive(),
+  isolation_required: z.boolean().default(false),
+  ventilator_required: z.boolean().default(false),
+  arrival_time: z.string().optional().nullable(),
+})
+export const PatientIntakeResponseSchema = z.object({
+  patient_id: z.string(),
+  encounter_id: z.number().int(),
+  age_group: z.string(),
+  acuity: z.number().int(),
+  specialty: z.string(),
+  predicted_los: z.number(),
+  isolation_required: z.boolean(),
+  ventilator_required: z.boolean(),
+  arrival_time: z.string(),
+  current_status: z.string(),
+  encounter_status: z.string(),
+})
+
+// ─── Patient Discharge ───────────────────────────────────────────────────────
+export const DischargeRequestSchema = z.object({
+  release_reason: z.string().min(1).max(100).default('discharge'),
+  encounter_id: z.number().int().optional().nullable(),
+})
+export const DischargeResponseSchema = z.object({
+  patient_id: z.string(),
+  encounter_id: z.number().int(),
+  bed_id: z.string(),
+  bed_status: z.string(),
+  released_equipment_ids: z.array(z.string()),
+  patient_status: z.string(),
+  encounter_status: z.string(),
+  discharged_at: z.string(),
+})
+
+// ─── Patient Transfer ────────────────────────────────────────────────────────
+export const TransferRequestSchema = z.object({
+  destination_bed_id: z.string().min(1).max(10),
+  release_reason: z.string().min(1).max(100).default('transfer'),
+  encounter_id: z.number().int().optional().nullable(),
+})
+export const TransferResponseSchema = z.object({
+  patient_id: z.string(),
+  encounter_id: z.number().int(),
+  from_bed_id: z.string(),
+  to_bed_id: z.string(),
+  status: z.string(),
+})
+
+// ─── Bed Cleaning ────────────────────────────────────────────────────────────
+export const BedCleaningResponseSchema = z.object({
+  bed_id: z.string(),
+  status: z.string(),
+})
+
+// ─── Equipment Assign/Release ────────────────────────────────────────────────
+export const EquipmentAssignRequestSchema = z.object({
+  patient_id: z.string().optional().nullable(),
+  encounter_id: z.number().int().optional().nullable(),
+})
+export const EquipmentReleaseRequestSchema = z.object({
+  patient_id: z.string().optional().nullable(),
+  encounter_id: z.number().int().optional().nullable(),
+  release_reason: z.string().min(1).max(100).default('released'),
+})
+export const EquipmentAssignmentResponseSchema = z.object({
+  assignment_id: z.number().int(),
+  encounter_id: z.number().int(),
+  patient_id: z.string(),
+  equipment_id: z.string(),
+  status: z.string(),
+  assigned_at: z.string(),
+  released_at: z.string().nullable(),
+  release_reason: z.string().nullable(),
+})
+
 // ─── User Management ────────────────────────────────────────────────────────
 
 export const UserRoleSchema = z.enum([
@@ -236,3 +331,15 @@ export type User = z.infer<typeof UserSchema>
 export type UserRole = z.infer<typeof UserRoleSchema>
 export type CreateUserRequest = z.infer<typeof CreateUserRequestSchema>
 export type UpdateUserRequest = z.infer<typeof UpdateUserRequestSchema>
+
+// ─── Lifecycle type exports ──────────────────────────────────────────────────
+export type PatientIntakeRequest = z.infer<typeof PatientIntakeRequestSchema>
+export type PatientIntakeResponse = z.infer<typeof PatientIntakeResponseSchema>
+export type DischargeRequest = z.infer<typeof DischargeRequestSchema>
+export type DischargeResponse = z.infer<typeof DischargeResponseSchema>
+export type TransferRequest = z.infer<typeof TransferRequestSchema>
+export type TransferResponse = z.infer<typeof TransferResponseSchema>
+export type BedCleaningResponse = z.infer<typeof BedCleaningResponseSchema>
+export type EquipmentAssignRequest = z.infer<typeof EquipmentAssignRequestSchema>
+export type EquipmentReleaseRequest = z.infer<typeof EquipmentReleaseRequestSchema>
+export type EquipmentAssignmentResponse = z.infer<typeof EquipmentAssignmentResponseSchema>

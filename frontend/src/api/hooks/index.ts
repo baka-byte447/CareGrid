@@ -42,6 +42,26 @@ import {
   CreateUserRequest,
   UpdateUserRequest,
   RecommendationAlgorithm,
+  PatientIntakeRequestSchema,
+  PatientIntakeResponseSchema,
+  DischargeRequestSchema,
+  DischargeResponseSchema,
+  TransferRequestSchema,
+  TransferResponseSchema,
+  BedCleaningResponseSchema,
+  EquipmentAssignRequestSchema,
+  EquipmentReleaseRequestSchema,
+  EquipmentAssignmentResponseSchema,
+  PatientIntakeRequest,
+  PatientIntakeResponse,
+  DischargeRequest,
+  DischargeResponse,
+  TransferRequest,
+  TransferResponse,
+  BedCleaningResponse,
+  EquipmentAssignRequest,
+  EquipmentReleaseRequest,
+  EquipmentAssignmentResponse,
 } from '../schemas'
 
 // ─── Validation helper ────────────────────────────────────────────────────────
@@ -338,4 +358,147 @@ export function useSurgeSimulate() {
 }
 
 export const useSimulateSurge = useSurgeSimulate
+
+// ─── Patient Lifecycle & Resource Mutations ─────────────────────────────────
+
+// POST /patients/intake
+export function useIntakePatient() {
+  const queryClient = useQueryClient()
+  return useMutation<PatientIntakeResponse, Error, PatientIntakeRequest>({
+    mutationFn: async (args) => {
+      const request = validate(PatientIntakeRequestSchema, args)
+      const raw = await apiPost<unknown>('/patients/intake', request)
+      return validate(PatientIntakeResponseSchema, raw)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.patients })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.metrics })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit })
+    },
+    retry: 0,
+  })
+}
+
+// POST /patients/{patient_id}/discharge
+export function useDischargePatient() {
+  const queryClient = useQueryClient()
+  return useMutation<
+    DischargeResponse,
+    Error,
+    { patient_id: string } & Partial<DischargeRequest>
+  >({
+    mutationFn: async ({ patient_id, ...body }) => {
+      const request = validate(DischargeRequestSchema, body)
+      const raw = await apiPost<unknown>(
+        `/patients/${encodeURIComponent(patient_id)}/discharge`,
+        request
+      )
+      return validate(DischargeResponseSchema, raw)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.patients })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.beds })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.equipment })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.metrics })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit })
+    },
+    retry: 0,
+  })
+}
+
+// POST /patients/{patient_id}/transfer
+export function useTransferPatient() {
+  const queryClient = useQueryClient()
+  return useMutation<
+    TransferResponse,
+    Error,
+    { patient_id: string } & TransferRequest
+  >({
+    mutationFn: async ({ patient_id, ...body }) => {
+      const request = validate(TransferRequestSchema, body)
+      const raw = await apiPost<unknown>(
+        `/patients/${encodeURIComponent(patient_id)}/transfer`,
+        request
+      )
+      return validate(TransferResponseSchema, raw)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.patients })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.beds })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.metrics })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit })
+    },
+    retry: 0,
+  })
+}
+
+// POST /beds/{bed_id}/cleaning-complete
+export function useCompleteBedCleaning() {
+  const queryClient = useQueryClient()
+  return useMutation<BedCleaningResponse, Error, string>({
+    mutationFn: async (bed_id) => {
+      const raw = await apiPost<unknown>(
+        `/beds/${encodeURIComponent(bed_id)}/cleaning-complete`,
+        {}
+      )
+      return validate(BedCleaningResponseSchema, raw)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.beds })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.metrics })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit })
+    },
+    retry: 0,
+  })
+}
+
+// POST /equipment/{equipment_id}/assign
+export function useAssignEquipment() {
+  const queryClient = useQueryClient()
+  return useMutation<
+    EquipmentAssignmentResponse,
+    Error,
+    { equipment_id: string } & EquipmentAssignRequest
+  >({
+    mutationFn: async ({ equipment_id, ...body }) => {
+      const request = validate(EquipmentAssignRequestSchema, body)
+      const raw = await apiPost<unknown>(
+        `/equipment/${encodeURIComponent(equipment_id)}/assign`,
+        request
+      )
+      return validate(EquipmentAssignmentResponseSchema, raw)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.equipment })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.metrics })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit })
+    },
+    retry: 0,
+  })
+}
+
+// POST /equipment/{equipment_id}/release
+export function useReleaseEquipment() {
+  const queryClient = useQueryClient()
+  return useMutation<
+    EquipmentAssignmentResponse,
+    Error,
+    { equipment_id: string } & Partial<EquipmentReleaseRequest>
+  >({
+    mutationFn: async ({ equipment_id, ...body }) => {
+      const request = validate(EquipmentReleaseRequestSchema, body)
+      const raw = await apiPost<unknown>(
+        `/equipment/${encodeURIComponent(equipment_id)}/release`,
+        request
+      )
+      return validate(EquipmentAssignmentResponseSchema, raw)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.equipment })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.metrics })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit })
+    },
+    retry: 0,
+  })
+}
 

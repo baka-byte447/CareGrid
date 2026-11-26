@@ -51,6 +51,7 @@ from backend.models import (
     User,
 )
 from backend.services.hospital_state import build_hospital_state, to_simulator_patient
+from backend.services.length_of_stay import admission_los_estimates
 from backend.services.patient_lifecycle import (
     LifecycleConflict,
     LifecycleError,
@@ -64,7 +65,7 @@ from backend.services.patient_lifecycle import (
     release_equipment as lifecycle_release_equipment,
     transfer_encounter,
 )
-from rl.serving.service import AllocationService, BED_ACTIONS
+from rl.serving.service import AllocationService, BED_ACTIONS, DEFAULT_LOS_DAYS
 from simulator.patients.patient import Patient as SimulatorPatient
 
 _allocation_service = None
@@ -142,6 +143,7 @@ def _persist_recommendation(
             safety_reason=safety.get("reason"),
             explanation=response.get("explanation"),
             q_values=response.get("q_values"),
+            los_estimate_days=response.get("los_estimate_days"),
             # ServingResult currently exposes no model version, so this remains NULL.
             model_version=None,
             reason=response["reason"],
@@ -235,7 +237,27 @@ def get_patients(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("patients:read")),
 ):
-    patients = db.query(Patient).all()
+    latest_encounter_id = (
+        select(Encounter.encounter_id)
+        .where(Encounter.patient_id == Patient.patient_id)
+        .order_by(Encounter.encounter_id.desc())
+        .limit(1)
+        .correlate(Patient)
+        .scalar_subquery()
+    )
+    patients = db.execute(
+        select(Patient, Encounter).outerjoin(
+            Encounter,
+            and_(
+                Encounter.encounter_id == latest_encounter_id,
+                Encounter.status == Patient.current_status,
+                Encounter.admitted_at.is_not(None),
+            ),
+        )
+    ).all()
+    estimates = admission_los_estimates([
+        (encounter, patient.age_group) for patient, encounter in patients if encounter is not None
+    ])
 
     return {
         "patients": [
@@ -244,13 +266,13 @@ def get_patients(
                 "age_group": patient.age_group,
                 "acuity": patient.acuity,
                 "specialty": patient.specialty,
-                "predicted_los": patient.predicted_los,
+                "predicted_los": estimates.get(encounter.encounter_id) if encounter is not None else None,
                 "isolation_required": patient.isolation_required,
                 "ventilator_required": patient.ventilator_required,
                 "arrival_time": patient.arrival_time,
                 "current_status": patient.current_status,
             }
-            for patient in patients
+            for patient, encounter in patients
         ]
     }
 
@@ -275,7 +297,7 @@ def intake_patient(
                 age_group=request.age_group,
                 acuity=request.acuity,
                 specialty=request.specialty,
-                predicted_los=request.predicted_los,
+                predicted_los=DEFAULT_LOS_DAYS,
                 isolation_required=request.isolation_required,
                 ventilator_required=request.ventilator_required,
                 arrival_time=arrival_time,
@@ -289,7 +311,7 @@ def intake_patient(
             patient.age_group = request.age_group
             patient.acuity = request.acuity
             patient.specialty = request.specialty
-            patient.predicted_los = request.predicted_los
+            patient.predicted_los = DEFAULT_LOS_DAYS
             patient.isolation_required = request.isolation_required
             patient.ventilator_required = request.ventilator_required
             patient.arrival_time = arrival_time
@@ -299,7 +321,6 @@ def intake_patient(
             patient.patient_id,
             acuity=request.acuity,
             specialty=request.specialty,
-            predicted_los=request.predicted_los,
             isolation_required=request.isolation_required,
             ventilator_required=request.ventilator_required,
             arrival_time=arrival_time,
@@ -326,7 +347,7 @@ def intake_patient(
         "age_group": patient.age_group,
         "acuity": encounter.acuity,
         "specialty": encounter.specialty,
-        "predicted_los": encounter.predicted_los,
+        "predicted_los": encounter.los_estimate_days,
         "isolation_required": encounter.isolation_required,
         "ventilator_required": encounter.ventilator_required,
         "arrival_time": encounter.arrival_time,
@@ -495,7 +516,8 @@ def get_beds(
     current_user: User = Depends(require_permission("beds:read")),
 ):
     beds = db.execute(
-        select(Bed, Encounter.patient_id)
+        select(Bed, Encounter, Patient.age_group)
+        .select_from(Bed)
         .outerjoin(
             BedAssignment,
             and_(
@@ -511,7 +533,11 @@ def get_beds(
                 Encounter.status == "ADMITTED",
             ),
         )
+        .outerjoin(Patient, Patient.patient_id == Encounter.patient_id)
     ).all()
+    estimates = admission_los_estimates([
+        (encounter, age_group) for _, encounter, age_group in beds if encounter is not None
+    ])
 
     return {
         "beds": [
@@ -521,9 +547,10 @@ def get_beds(
                 "ward": bed.ward,
                 "status": bed.status,
                 "isolation_capable": bed.isolation_capable,
-                "patient_id": patient_id,
+                "patient_id": encounter.patient_id if encounter is not None else None,
+                "predicted_los": estimates.get(encounter.encounter_id) if encounter is not None else None,
             }
-            for bed, patient_id in beds
+            for bed, encounter, _ in beds
         ]
     }
 
@@ -1216,6 +1243,7 @@ def approve_allocation(
             actor_id=current_user.id,
             equipment_id=request.equipment_id if legacy_operator_override else None,
             algorithm=recommendation.algorithm,
+            los_estimate_days=recommendation.los_estimate_days,
         )
         claimed = db.execute(
             update(AllocationRecommendation)

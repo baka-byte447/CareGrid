@@ -55,7 +55,7 @@ describe('Bed Management', () => {
 
   it('shows the assigned patient on the occupied bed tile and in its details', async () => {
     renderBeds('nurse', [
-      { bed_id: 'ICU-01', bed_type: 'ICU', ward: 'ICU-A', status: 'OCCUPIED', isolation_capable: false, patient_id: 'PAT-101' },
+      { bed_id: 'ICU-01', bed_type: 'ICU', ward: 'ICU-A', status: 'OCCUPIED', isolation_capable: false, patient_id: 'PAT-101', predicted_los: 1.3 },
       { bed_id: 'ICU-02', bed_type: 'ICU', ward: 'ICU-A', status: 'OCCUPIED', isolation_capable: false, patient_id: null },
       { bed_id: 'ICU-03', bed_type: 'ICU', ward: 'ICU-A', status: 'CLEANING', isolation_capable: false, patient_id: 'PAT-103' },
       { bed_id: 'ICU-04', bed_type: 'ICU', ward: 'ICU-A', status: 'OCCUPIED', isolation_capable: false },
@@ -73,6 +73,8 @@ describe('Bed Management', () => {
     const dialog = within(screen.getByRole('dialog', { name: /Bed Details.*ICU-01/ }));
     expect(dialog.getByText('Patient ID')).toBeTruthy();
     expect(dialog.getByText('PAT-101')).toBeTruthy();
+    expect(dialog.getByText('Predicted LOS')).toBeTruthy();
+    expect(dialog.getByText('1.3d')).toBeTruthy();
 
     fireEvent.click(dialog.getByRole('button', { name: 'Close' }));
     fireEvent.click(unlinkedBed);

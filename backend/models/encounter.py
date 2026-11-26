@@ -26,6 +26,7 @@ class Encounter(Base):
     clinical_risk: Mapped[str | None] = mapped_column(String(20))
     specialty: Mapped[str] = mapped_column(String(50), nullable=False)
     predicted_los: Mapped[float] = mapped_column(Float, nullable=False)
+    los_estimate_days: Mapped[float | None] = mapped_column(Float)
     isolation_required: Mapped[bool] = mapped_column(Boolean, nullable=False)
     ventilator_required: Mapped[bool] = mapped_column(Boolean, nullable=False)
     arrival_time: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

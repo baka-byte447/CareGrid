@@ -19,7 +19,6 @@ class PatientIntakeRequest(BaseModel):
     age_group: str = Field(min_length=1, max_length=20)
     acuity: int = Field(ge=1, le=5)
     specialty: str = Field(min_length=1, max_length=50)
-    predicted_los: float = Field(gt=0)
     isolation_required: bool = False
     ventilator_required: bool = False
     arrival_time: Optional[datetime] = None
@@ -35,7 +34,7 @@ class PatientIntakeResponse(BaseModel):
     age_group: str
     acuity: int
     specialty: str
-    predicted_los: float
+    predicted_los: float | None
     isolation_required: bool
     ventilator_required: bool
     arrival_time: datetime
@@ -193,7 +192,7 @@ class PatientItemResponse(BaseModel):
     age_group: str
     acuity: int
     specialty: str
-    predicted_los: float
+    predicted_los: float | None
     isolation_required: bool
     ventilator_required: bool
     arrival_time: datetime
@@ -214,6 +213,7 @@ class BedItemResponse(BaseModel):
 
 class BedListItemResponse(BedItemResponse):
     patient_id: str | None
+    predicted_los: float | None
 
 
 class BedsResponse(BaseModel):

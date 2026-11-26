@@ -49,7 +49,7 @@ Permission matrix: `beds:create` is admin only; `beds:release` is granted to adm
 
 ### `GET /beds`
 
-Returns bed identifiers, types, wards, statuses, isolation capability, and the current `patient_id` for occupied beds with an active admitted assignment. Otherwise, `patient_id` is null. Requires `beds:read`.
+Returns bed identifiers, types, wards, statuses, isolation capability, and the current `patient_id` and model-predicted LOS in days for occupied beds with an active admitted assignment. `predicted_los` is null when there is no estimate. Requires `beds:read`.
 
 ### `POST /beds`
 
@@ -101,7 +101,7 @@ roles currently accepted by each route, not an inferred permission matrix.
 
 ### `GET /patients`
 
-- **Purpose:** List patient records.
+- **Purpose:** List patient records. `predicted_los` is the LOS model estimate for the latest admitted encounter. It is null before assignment or when an estimate is unavailable.
 - **Authentication:** Bearer JWT.
 - **Required roles:** `admin`, `doctor`, `nurse`, `operator`.
 - **Request:** No body or parameters.
@@ -116,7 +116,7 @@ roles currently accepted by each route, not an inferred permission matrix.
       "age_group": "18-35",
       "acuity": 2,
       "specialty": "Pulmonology",
-      "predicted_los": 2.3,
+      "predicted_los": null,
       "isolation_required": true,
       "ventilator_required": false,
       "arrival_time": "2026-10-01T08:09:13",
@@ -131,8 +131,8 @@ roles currently accepted by each route, not an inferred permission matrix.
 - **Purpose:** Register a new patient (or readmit a discharged patient) and create a `WAITING` Encounter.
 - **Authentication:** Bearer JWT.
 - **Required roles:** `admin`, `doctor`, `nurse`.
-- **Request body:** `PatientIntakeRequest` (`patient_id` optional; auto-generated if omitted).
-- **Success:** `201 Created`; `PatientIntakeResponse`.
+- **Request body:** `PatientIntakeRequest` (`patient_id` optional; auto-generated if omitted). LOS requires no intake input.
+- **Success:** `201 Created`; `PatientIntakeResponse` with `predicted_los` null until assignment.
 - **Common errors:** `400` validation error; `401` missing/invalid/inactive credentials; `403` role not allowed; `409` patient already has an active waiting or admitted status; `422` invalid request body.
 
 ### `POST /patients/{patient_id}/discharge` and `POST /encounters/{encounter_id}/discharge`
@@ -189,7 +189,8 @@ roles currently accepted by each route, not an inferred permission matrix.
       "ward": "ICU-Alpha",
       "status": "OCCUPIED",
       "isolation_capable": true,
-      "patient_id": "P001"
+      "patient_id": "P001",
+      "predicted_los": 2.3
     }
   ]
 }

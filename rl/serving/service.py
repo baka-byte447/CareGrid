@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
+from math import isfinite
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -25,6 +26,7 @@ from simulator.patients.patient import Patient
 
 BED_ACTIONS = ("ICU", "STEP_DOWN", "WARD")
 WAIT_ACTION = 3
+DEFAULT_LOS_DAYS = 3.0
 
 DEFAULT_MODEL_PATH = (
     Path(__file__).resolve().parents[2] / "models" / "serving" / "dqn_x6_obs_v2.npz"
@@ -53,7 +55,7 @@ class ServingResult:
     algorithm: str
     safety: SafetyBlock
     q_values: Optional[List[float]] = None
-    los_estimate_days: float = 3.0
+    los_estimate_days: float | None = None
     status: str = "RECOMMENDED"
     reasons: List[str] = field(default_factory=list)
 
@@ -84,27 +86,16 @@ class AllocationService:
 
         self.safety_layer = SafetyLayer(safety_config or SafetyConfig())
         self.los_predictor = los_predictor
-        self._los_predictor_attempted = False
 
-    def _get_los_estimate(self, patient: Patient) -> float:
-        if self.los_predictor is not None:
-            try:
-                return float(self.los_predictor.predict(patient))
-            except Exception:
-                pass
+    def _get_los_estimate(self, patient: Patient) -> float | None:
+        try:
+            from ml.los.predictor import get_los_predictor
 
-        if not self._los_predictor_attempted:
-            self._los_predictor_attempted = True
-            try:
-                from ml.los.predictor import LOSPredictor
-                self.los_predictor = LOSPredictor.load()
-                return float(self.los_predictor.predict(patient))
-            except Exception:
-                self.los_predictor = None
-
-        if patient.predicted_los is not None and patient.predicted_los > 0:
-            return float(patient.predicted_los)
-        return 3.0
+            predictor = self.los_predictor if self.los_predictor is not None else get_los_predictor()
+            estimate = float(predictor.predict(patient))
+            return round(estimate, 2) if isfinite(estimate) and estimate > 0 else None
+        except Exception:
+            return None
 
     def recommend(
         self,
@@ -154,7 +145,7 @@ class AllocationService:
         obs = build_observation(
             patient=patient,
             state=state,
-            los_estimate=los_days,
+            los_estimate=los_days if los_days is not None else DEFAULT_LOS_DAYS,
             now=effective_now,
             version=2,
             patients_by_id=patients_by_id,
@@ -212,7 +203,7 @@ class AllocationService:
             algorithm="dqn_safe",
             safety=safety_block,
             q_values=[round(float(v), 4) for v in q_vals],
-            los_estimate_days=round(float(los_days), 2),
+            los_estimate_days=los_days,
             status=status,
             reasons=reasons,
         )

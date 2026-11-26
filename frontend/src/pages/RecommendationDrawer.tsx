@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { AcuityBadge } from '@/components/domain/AcuityBadge';
 import { RequirementChips } from '@/components/domain/RequirementChips';
 import { useToast } from '@/components/feedback/Toast';
-import { formatLOS, formatSimulatedDate } from '@/lib/format';
+import { formatSimulatedDate } from '@/lib/format';
 import {
   BedDouble,
   Cpu,
@@ -341,12 +341,6 @@ export const RecommendationDrawer: React.FC<RecommendationDrawerProps> = ({
               <span className="font-semibold text-text-primary">{patient.specialty}</span>
             </div>
             <div>
-              <span className="text-text-muted block text-[11px]">Predicted LOS</span>
-              <span className="font-mono font-semibold text-text-primary">
-                {formatLOS(patient.predicted_los)}
-              </span>
-            </div>
-            <div>
               <span className="text-text-muted block text-[11px]">Arrival Time</span>
               <span className="text-text-secondary">
                 {formatSimulatedDate(patient.arrival_time)}
@@ -557,7 +551,7 @@ export const RecommendationDrawer: React.FC<RecommendationDrawerProps> = ({
                   </div>
                   {recommendation.los_estimate_days != null && (
                     <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-500/15 text-indigo-700 dark:text-indigo-300">
-                      {recommendation.los_estimate_days.toFixed(1)} days
+                      Predicted LOS {recommendation.los_estimate_days.toFixed(1)} days
                     </span>
                   )}
                 </div>

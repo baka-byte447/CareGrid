@@ -169,7 +169,7 @@ describe('RecommendationDrawer algorithm selection', () => {
     expect(await screen.findByText('DQN Safe decision details')).toBeTruthy();
     expect(screen.getByText('Safety intervention applied')).toBeTruthy();
     expect(screen.getAllByText('Step-down').length).toBeGreaterThan(0);
-    expect(screen.getByText('4.3 days')).toBeTruthy();
+    expect(screen.getByText('Predicted LOS 4.3 days')).toBeTruthy();
     expect(screen.getByText('0.7000')).toBeTruthy();
   });
 

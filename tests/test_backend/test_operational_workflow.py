@@ -63,7 +63,6 @@ def test_full_operational_workflow_lifecycle(client, db_session):
             "age_group": "36-50",
             "acuity": 5,
             "specialty": "Pulmonology",
-            "predicted_los": 4.5,
             "isolation_required": True,
             "ventilator_required": True,
         },
@@ -74,6 +73,7 @@ def test_full_operational_workflow_lifecycle(client, db_session):
     assert intake_data["patient_id"] == "WF0001"
     assert intake_data["current_status"] == "WAITING"
     assert intake_data["encounter_status"] == "WAITING"
+    assert intake_data["predicted_los"] is None
     encounter_id = intake_data["encounter_id"]
 
     encounter = db_session.get(Encounter, encounter_id)
@@ -121,6 +121,8 @@ def test_full_operational_workflow_lifecycle(client, db_session):
 
     listed_beds = {bed["bed_id"]: bed for bed in client.get("/beds").json()["beds"]}
     assert listed_beds[bed_1_id]["patient_id"] == "WF0001"
+    listed_patients = {p["patient_id"]: p for p in client.get("/patients").json()["patients"]}
+    assert listed_beds[bed_1_id]["predicted_los"] == listed_patients["WF0001"]["predicted_los"]
 
     bed_assignments = db_session.query(BedAssignment).filter_by(encounter_id=encounter_id).all()
     assert len(bed_assignments) == 1
@@ -197,7 +199,9 @@ def test_full_operational_workflow_lifecycle(client, db_session):
     assert db_session.get(Bed, bed_2.bed_id).status == "OCCUPIED"
     listed_beds = {bed["bed_id"]: bed for bed in client.get("/beds").json()["beds"]}
     assert listed_beds[bed_1_id]["patient_id"] is None
+    assert listed_beds[bed_1_id]["predicted_los"] is None
     assert listed_beds[bed_2.bed_id]["patient_id"] == "WF0001"
+    assert listed_beds[bed_2.bed_id]["predicted_los"] == listed_patients["WF0001"]["predicted_los"]
 
     history = (
         db_session.query(BedAssignment)

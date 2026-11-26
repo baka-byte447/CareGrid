@@ -16,7 +16,7 @@ def test_patient_bed_staff_and_equipment_list_envelopes(admin_client):
             "isolation_required", "ventilator_required", "arrival_time", "current_status",
         }),
         "/beds": ("beds", {
-            "bed_id", "bed_type", "ward", "status", "isolation_capable", "patient_id",
+            "bed_id", "bed_type", "ward", "status", "isolation_capable", "patient_id", "predicted_los",
         }),
         "/staff": ("staff", {
             "staff_id", "role", "skill_level", "shift", "workload",

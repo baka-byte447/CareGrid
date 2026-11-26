@@ -14,7 +14,7 @@ export const PatientSchema = z.object({
   age_group: z.string(),
   acuity: z.number().int().min(1).max(5),
   specialty: z.string(),
-  predicted_los: z.number(),
+  predicted_los: z.number().nullable(),
   isolation_required: z.boolean(),
   ventilator_required: z.boolean(),
   // Simulated arrival time — ISO 8601 string (NOT compared to Date.now())
@@ -35,6 +35,7 @@ export const BedSchema = z.object({
   status: z.string(),
   isolation_capable: z.boolean(),
   patient_id: z.string().nullish(),
+  predicted_los: z.number().nullish(),
 })
 
 export const BedsResponseSchema = z.object({
@@ -250,7 +251,6 @@ export const PatientIntakeRequestSchema = z.object({
   age_group: z.string().min(1).max(20),
   acuity: z.number().int().min(1).max(5),
   specialty: z.string().min(1).max(50),
-  predicted_los: z.number().positive(),
   isolation_required: z.boolean().default(false),
   ventilator_required: z.boolean().default(false),
   arrival_time: z.string().optional().nullable(),
@@ -261,7 +261,7 @@ export const PatientIntakeResponseSchema = z.object({
   age_group: z.string(),
   acuity: z.number().int(),
   specialty: z.string(),
-  predicted_los: z.number(),
+  predicted_los: z.number().nullable(),
   isolation_required: z.boolean(),
   ventilator_required: z.boolean(),
   arrival_time: z.string(),

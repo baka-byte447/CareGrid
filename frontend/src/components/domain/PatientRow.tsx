@@ -56,7 +56,7 @@ export const PatientRow: React.FC<PatientRowProps> = ({
       </td>
 
       <td className="p-3.5 text-xs font-mono text-text-secondary">
-        {formatLOS(patient.predicted_los)}
+        {patient.current_status === 'WAITING' ? '—' : formatLOS(patient.predicted_los)}
       </td>
 
       <td className="p-3.5">

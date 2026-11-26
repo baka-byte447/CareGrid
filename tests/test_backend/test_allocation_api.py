@@ -295,7 +295,14 @@ def test_approve_rule_based_recommendation_records_assignments_and_traceability(
     assert _approve_recommendation(client, response).status_code == 409
 
 
-def test_approve_dqn_safe_recommendation_revalidates_safety(client, db_session):
+def test_approve_dqn_safe_recommendation_revalidates_safety(client, db_session, monkeypatch):
+    from types import SimpleNamespace
+    from ml.los import predictor
+
+    monkeypatch.setattr(predictor, "get_los_predictor", lambda: SimpleNamespace(
+        predict=lambda _patient: 1.3,
+        predict_many=lambda patients: [8.5 for _ in patients],
+    ))
     patients = db_session.query(Patient).filter(
         Patient.current_status == "WAITING"
     ).order_by(Patient.patient_id).limit(40).all()
@@ -313,6 +320,8 @@ def test_approve_dqn_safe_recommendation_revalidates_safety(client, db_session):
         Encounter.status == "WAITING",
     ).one()
     recommendation = db_session.get(AllocationRecommendation, result["recommendation_id"])
+    assert result["los_estimate_days"] == recommendation.los_estimate_days == 1.3
+    assert encounter.los_estimate_days is None
     original_metadata = {
         "algorithm": recommendation.algorithm,
         "status": recommendation.status,
@@ -333,6 +342,20 @@ def test_approve_dqn_safe_recommendation_revalidates_safety(client, db_session):
     assert approved.status_code == 200, approved.text
     db_session.refresh(recommendation)
     assert recommendation.decision_status == "APPROVED"
+    db_session.refresh(encounter)
+    assert encounter.los_estimate_days == 1.3
+    patient_rows = {row["patient_id"]: row for row in client.get("/patients").json()["patients"]}
+    bed_rows = {row["bed_id"]: row for row in client.get("/beds").json()["beds"]}
+    assert patient_rows[patient.patient_id]["predicted_los"] == 1.3
+    assert bed_rows[recommendation.recommended_bed_id]["predicted_los"] == 1.3
+
+    # Admissions from before this field existed are estimated from their clinical data.
+    encounter.los_estimate_days = None
+    db_session.commit()
+    patient_rows = {row["patient_id"]: row for row in client.get("/patients").json()["patients"]}
+    bed_rows = {row["bed_id"]: row for row in client.get("/beds").json()["beds"]}
+    assert patient_rows[patient.patient_id]["predicted_los"] == 8.5
+    assert bed_rows[recommendation.recommended_bed_id]["predicted_los"] == 8.5
     assert {
         "algorithm": recommendation.algorithm,
         "status": recommendation.status,

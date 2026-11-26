@@ -1,5 +1,6 @@
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -41,3 +42,8 @@ class LOSPredictor:
 
     def predict(self, patient: Any) -> float:
         return self.predict_many([patient])[0]
+
+
+@lru_cache(maxsize=1)
+def get_los_predictor() -> LOSPredictor:
+    return LOSPredictor.load()

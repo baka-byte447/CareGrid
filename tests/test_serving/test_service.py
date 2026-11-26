@@ -56,7 +56,13 @@ def test_allocation_service_recommendation():
     assert len(result.q_values) == 4
 
 
-def test_allocation_service_fallback():
+def test_allocation_service_fallback(monkeypatch):
+    from ml.los import predictor
+
+    def missing_model():
+        raise FileNotFoundError
+
+    monkeypatch.setattr(predictor, "get_los_predictor", missing_model)
     # Service with missing model should gracefully use rule-based fallback
     service = AllocationService(model_path="nonexistent_model.npz")
     assert service.policy is None
@@ -78,3 +84,4 @@ def test_allocation_service_fallback():
     assert result.algorithm == "rule_based_fallback"
     assert result.status == "RECOMMENDED"
     assert result.recommended_bed_id == "B_W_1"
+    assert result.los_estimate_days is None

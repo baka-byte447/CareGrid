@@ -14,7 +14,7 @@ import { useToast } from '@/components/feedback/Toast';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Input';
-import { formatPct } from '@/lib/format';
+import { formatLOS, formatPct } from '@/lib/format';
 import { BedDouble, Shield, RefreshCw, Sparkles, CheckCircle, Activity, Plus } from 'lucide-react';
 
 export const BedManagementPage: React.FC = () => {
@@ -315,6 +315,14 @@ export const BedManagementPage: React.FC = () => {
                     {inspectedBed.patient_id === null
                       ? 'No assignment recorded'
                       : inspectedBed.patient_id ?? 'Unavailable'}
+                  </span>
+                </div>
+              )}
+              {inspectedBed.status === 'OCCUPIED' && inspectedBed.patient_id && (
+                <div className="flex justify-between items-center">
+                  <span className="text-text-muted">Predicted LOS</span>
+                  <span className="font-mono font-semibold text-text-primary">
+                    {formatLOS(inspectedBed.predicted_los)}
                   </span>
                 </div>
               )}

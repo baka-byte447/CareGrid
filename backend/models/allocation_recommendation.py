@@ -6,7 +6,7 @@ results, without implying that any resource was assigned.
 """
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, JSON, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.database import Base
@@ -44,6 +44,7 @@ class AllocationRecommendation(Base):
     safety_original_action: Mapped[int | None] = mapped_column(Integer)
     safety_reason: Mapped[str | None] = mapped_column(Text)
     q_values: Mapped[list[float] | None] = mapped_column(JSON)
+    los_estimate_days: Mapped[float | None] = mapped_column(Float)
     model_version: Mapped[str | None] = mapped_column(String(100))
     reason: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(

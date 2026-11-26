@@ -15,6 +15,7 @@ from typing import Iterable
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from backend.services.length_of_stay import admission_los_estimates
 
 from backend.models import (
     AuditLog,
@@ -256,6 +257,7 @@ def approve_encounter(
     actor_id: int | object | None = None,
     equipment_id: str | None = None,
     algorithm: str = "lifecycle",
+    los_estimate_days: float | None = None,
 ) -> Encounter:
     """Admit a waiting Encounter and atomically assign its bed/equipment."""
     patient, encounter = _lock_patient_then_encounter(db, encounter_id)
@@ -311,6 +313,9 @@ def approve_encounter(
         ))
     encounter.status = "ADMITTED"
     encounter.admitted_at = now
+    if los_estimate_days is None:
+        los_estimate_days = admission_los_estimates([(encounter, patient.age_group)]).get(encounter_id)
+    encounter.los_estimate_days = los_estimate_days
     patient.current_status = "ADMITTED"
     _record(db, encounter, "ADMITTED", bed.bed_id, algorithm=algorithm)
     _flush(db)

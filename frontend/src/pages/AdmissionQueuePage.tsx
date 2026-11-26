@@ -59,7 +59,6 @@ export const AdmissionQueuePage: React.FC = () => {
   const [ageGroup, setAgeGroup] = useState('31-50');
   const [acuity, setAcuity] = useState(3);
   const [specialty, setSpecialty] = useState('General Medicine');
-  const [predictedLos, setPredictedLos] = useState('3.5');
   const [isolationRequired, setIsolationRequired] = useState(false);
   const [ventilatorRequired, setVentilatorRequired] = useState(false);
 
@@ -120,8 +119,11 @@ export const AdmissionQueuePage: React.FC = () => {
     return [...filteredPatients].sort((a, b) => {
       if (sortBy === 'acuity_desc') return b.acuity - a.acuity;
       if (sortBy === 'acuity_asc') return a.acuity - b.acuity;
-      if (sortBy === 'los_desc') return b.predicted_los - a.predicted_los;
-      if (sortBy === 'los_asc') return a.predicted_los - b.predicted_los;
+      if (sortBy === 'los_desc' || sortBy === 'los_asc') {
+        if (a.predicted_los == null) return b.predicted_los == null ? 0 : 1;
+        if (b.predicted_los == null) return -1;
+        return sortBy === 'los_desc' ? b.predicted_los - a.predicted_los : a.predicted_los - b.predicted_los;
+      }
       if (sortBy === 'arrival_desc') return b.arrival_time.localeCompare(a.arrival_time);
       if (sortBy === 'arrival_asc') return a.arrival_time.localeCompare(b.arrival_time);
       return 0;
@@ -143,22 +145,11 @@ export const AdmissionQueuePage: React.FC = () => {
 
   const handleIntakeSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const los = parseFloat(predictedLos);
-    if (Number.isNaN(los) || los <= 0) {
-      showToast({
-        type: 'error',
-        title: 'Invalid LOS',
-        message: 'Predicted length of stay must be a positive number.',
-      });
-      return;
-    }
-
     intakeMutation.mutate(
       {
         age_group: ageGroup,
         acuity,
         specialty,
-        predicted_los: los,
         isolation_required: isolationRequired,
         ventilator_required: ventilatorRequired,
       },
@@ -560,38 +551,22 @@ export const AdmissionQueuePage: React.FC = () => {
         }
       >
         <form id="patient-intake-form" onSubmit={handleIntakeSubmit} className="space-y-4 text-xs">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block font-semibold text-text-primary mb-1">
-                Age Group
-              </label>
-              <Select
-                value={ageGroup}
-                onChange={(e) => setAgeGroup(e.target.value)}
-                className="w-full h-9 text-xs"
-              >
-                <option value="0-17">0-17 (Pediatric)</option>
-                <option value="18-30">18-30 (Young Adult)</option>
-                <option value="31-50">31-50 (Adult)</option>
-                <option value="51-70">51-70 (Older Adult)</option>
-                <option value="71+">71+ (Geriatric)</option>
-              </Select>
-            </div>
-            <div>
-              <label className="block font-semibold text-text-primary mb-1">
-                Predicted LOS (Days)
-              </label>
-              <Input
-                type="number"
-                step="0.5"
-                min="0.5"
-                max="60"
-                value={predictedLos}
-                onChange={(e) => setPredictedLos(e.target.value)}
-                required
-                className="h-9 text-xs"
-              />
-            </div>
+          <div>
+            <label htmlFor="intake-age-group" className="block font-semibold text-text-primary mb-1">
+              Age Group
+            </label>
+            <Select
+              id="intake-age-group"
+              value={ageGroup}
+              onChange={(e) => setAgeGroup(e.target.value)}
+              className="w-full h-9 text-xs"
+            >
+              <option value="0-17">0-17 (Pediatric)</option>
+              <option value="18-30">18-30 (Young Adult)</option>
+              <option value="31-50">31-50 (Adult)</option>
+              <option value="51-70">51-70 (Older Adult)</option>
+              <option value="71+">71+ (Geriatric)</option>
+            </Select>
           </div>
 
           <div>

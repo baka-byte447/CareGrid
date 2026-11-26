@@ -76,9 +76,11 @@ def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
     recommendation_cols = {
         c["name"]: c for c in insp.get_columns("allocation_recommendations")
     }
-    for col_name in ("decision_status", "decision_reason", "decided_by", "decided_at"):
+    for col_name in ("decision_status", "decision_reason", "decided_by", "decided_at", "los_estimate_days"):
         assert col_name in recommendation_cols
         assert recommendation_cols[col_name]["nullable"]
+    encounter_cols = {c["name"]: c for c in insp.get_columns("encounters")}
+    assert encounter_cols["los_estimate_days"]["nullable"]
     recommendation_fks = insp.get_foreign_keys("allocation_recommendations")
     assert any(
         fk.get("constrained_columns") == ["decided_by"]

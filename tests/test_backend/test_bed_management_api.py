@@ -47,6 +47,13 @@ def test_empty_bed_requires_assignment_and_lifecycle_release(client, db_session)
     bed = db_session.query(Bed).first()
     bed.status = "OCCUPIED"
     db_session.commit()
+
+    beds_response = client.get("/beds")
+    assert beds_response.status_code == 200
+    occupied_bed = next(row for row in beds_response.json()["beds"] if row["bed_id"] == bed.bed_id)
+    assert occupied_bed["status"] == "OCCUPIED"
+    assert occupied_bed["patient_id"] is None
+
     response = client.post(f"/beds/{bed.bed_id}/empty")
     assert response.status_code == 409
 

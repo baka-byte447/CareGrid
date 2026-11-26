@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuditLogPage } from '@/pages/AuditLogPage';
+import type { AuditEntry } from '@/api/schemas';
 
 const ruleBasedAudit = {
   patient_id: 'PAT-RULE',
@@ -19,7 +20,7 @@ const dqnAudit = {
   timestamp: '2026-11-24T11:00:00+00:00',
 };
 
-function renderAudit(entries: typeof ruleBasedAudit[]) {
+function renderAudit(entries: AuditEntry[]) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -38,6 +39,20 @@ function renderAudit(entries: typeof ruleBasedAudit[]) {
 
 describe('AuditLogPage algorithm filter', () => {
   beforeEach(() => vi.restoreAllMocks());
+
+  it('renders and searches bed creation records without a patient ID', async () => {
+    renderAudit([ruleBasedAudit, {
+      ...dqnAudit,
+      patient_id: null,
+      action: 'BED_CREATED',
+      algorithm: 'api',
+    }]);
+
+    await screen.findByRole('cell', { name: 'ICU-02' });
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'icu-02' } });
+    expect(screen.getByRole('cell', { name: 'ICU-02' })).toBeTruthy();
+    expect(screen.queryByRole('cell', { name: 'ICU-01' })).toBeNull();
+  });
 
   it('offers only algorithms present in actual audit records', async () => {
     renderAudit([ruleBasedAudit]);

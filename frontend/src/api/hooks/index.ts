@@ -14,6 +14,8 @@ import { apiGet, apiPost, apiPatch, ApiRequestError } from '../client'
 import {
   PatientsResponseSchema,
   BedsResponseSchema,
+  BedCreateRequestSchema,
+  BedCreateResponseSchema,
   StaffResponseSchema,
   EquipmentResponseSchema,
   MetricsResponseSchema,
@@ -26,6 +28,7 @@ import {
   SurgeResponseSchema,
   Patient,
   Bed,
+  BedCreateRequest,
   Staff,
   Equipment,
   Metrics,
@@ -424,6 +427,24 @@ export function useTransferPatient() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.patients })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.beds })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.metrics })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit })
+    },
+    retry: 0,
+  })
+}
+
+// POST /beds
+export function useCreateBed() {
+  const queryClient = useQueryClient()
+  return useMutation<Bed, Error, BedCreateRequest>({
+    mutationFn: async (body) => {
+      const request = validate(BedCreateRequestSchema, body)
+      const raw = await apiPost<unknown>('/beds', request)
+      return validate(BedCreateResponseSchema, raw).bed
+    },
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.beds })
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.metrics })
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit })

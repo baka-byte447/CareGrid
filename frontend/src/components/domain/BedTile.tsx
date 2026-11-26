@@ -18,6 +18,9 @@ export const BedTile: React.FC<BedTileProps> = ({
 }) => {
   const isAvailable = bed.status === 'AVAILABLE';
   const isCleaning = bed.status === 'CLEANING';
+  const isOccupied = bed.status === 'OCCUPIED';
+  const patientLabel = bed.patient_id === null ? 'No assignment recorded' : 'Patient ID unavailable';
+  const occupancyLabel = bed.patient_id ? `Patient ID ${bed.patient_id}` : patientLabel;
 
   const statusStyles = isAvailable
     ? 'bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 hover:border-emerald-500 hover:bg-emerald-500/15'
@@ -39,7 +42,7 @@ export const BedTile: React.FC<BedTileProps> = ({
           onClick?.(bed);
         }
       }}
-      aria-label={`Bed ${bed.bed_id}, ${bed.status}, Type ${bed.bed_type}, Ward ${bed.ward}`}
+      aria-label={`Bed ${bed.bed_id}, ${bed.status}, Type ${bed.bed_type}, Ward ${bed.ward}${isOccupied ? `, ${occupancyLabel}` : ''}`}
     >
       {bed.isolation_capable && (
         <div className="absolute top-1.5 right-1.5">
@@ -68,6 +71,13 @@ export const BedTile: React.FC<BedTileProps> = ({
       <span className="text-[10px] font-medium tracking-wide uppercase opacity-75 mt-0.5">
         {bed.status}
       </span>
+      {isOccupied && (
+        <span className="mt-1 text-[10px] text-text-secondary [overflow-wrap:anywhere]">
+          {bed.patient_id ? (
+            <>Patient ID <span className="font-mono font-semibold text-text-primary">{bed.patient_id}</span></>
+          ) : patientLabel}
+        </span>
+      )}
     </div>
   );
 };

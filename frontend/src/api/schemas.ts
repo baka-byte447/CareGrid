@@ -34,10 +34,24 @@ export const BedSchema = z.object({
   // Backend may return AVAILABLE, OCCUPIED, or CLEANING
   status: z.string(),
   isolation_capable: z.boolean(),
+  patient_id: z.string().nullish(),
 })
 
 export const BedsResponseSchema = z.object({
   beds: z.array(BedSchema),
+})
+
+export const BedCreateRequestSchema = BedSchema.pick({
+  bed_type: true,
+  isolation_capable: true,
+}).extend({
+  bed_id: z.string().trim().min(1).max(10),
+  ward: z.string().trim().min(1).max(50),
+})
+
+export const BedCreateResponseSchema = z.object({
+  message: z.string(),
+  bed: BedSchema,
 })
 
 // ─── Staff ──────────────────────────────────────────────────────────────────
@@ -83,7 +97,7 @@ export const MetricsResponseSchema = z.object({
 
 // ─── Audit Log ──────────────────────────────────────────────────────────────
 export const AuditEntrySchema = z.object({
-  patient_id: z.string(),
+  patient_id: z.string().nullable(),
   bed_id: z.string().nullable(),
   action: z.string(),
   algorithm: z.string(),
@@ -211,6 +225,7 @@ export const SurgeResponseSchema = z.object({
 // ─── Type exports ────────────────────────────────────────────────────────────
 export type Patient = z.infer<typeof PatientSchema>
 export type Bed = z.infer<typeof BedSchema>
+export type BedCreateRequest = z.infer<typeof BedCreateRequestSchema>
 export type BedType = 'ICU' | 'STEP_DOWN' | 'WARD'
 export type Staff = z.infer<typeof StaffSchema>
 export type Equipment = z.infer<typeof EquipmentSchema>

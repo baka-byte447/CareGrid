@@ -57,7 +57,7 @@ export const AuditLogPage: React.FC = () => {
       if (algoFilter !== 'ALL' && entry.algorithm !== algoFilter) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
-        const matchesPatient = entry.patient_id.toLowerCase().includes(q);
+        const matchesPatient = entry.patient_id?.toLowerCase().includes(q);
         const matchesBed = entry.bed_id ? entry.bed_id.toLowerCase().includes(q) : false;
         if (!matchesPatient && !matchesBed) return false;
       }
@@ -72,7 +72,7 @@ export const AuditLogPage: React.FC = () => {
     const headers = ['Timestamp (UTC)', 'Patient ID', 'Bed ID', 'Action', 'Algorithm'];
     const rows = filteredEntries.map((e: AuditEntry) => [
       `"${e.timestamp}"`,
-      `"${e.patient_id}"`,
+      `"${e.patient_id ?? ''}"`,
       `"${e.bed_id ?? 'N/A'}"`,
       `"${e.action}"`,
       `"${e.algorithm}"`,
@@ -232,7 +232,7 @@ export const AuditLogPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="p-3.5 font-mono font-bold text-brand-primary">
-                      {entry.patient_id}
+                      {entry.patient_id ?? '—'}
                     </td>
                     <td className="p-3.5 font-mono font-semibold text-text-primary">
                       {entry.bed_id}

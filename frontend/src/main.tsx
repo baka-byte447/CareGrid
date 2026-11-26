@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ToastProvider } from '@/components/feedback/Toast';
 import App from './App';
 import './index.css';
+import { AuthProvider } from './auth/AuthProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,7 +29,9 @@ ReactDOM.createRoot(rootElement).render(
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <BrowserRouter>
-            <App />
+            <AuthProvider>
+              <App />
+            </AuthProvider>
           </BrowserRouter>
         </ToastProvider>
       </QueryClientProvider>

@@ -19,7 +19,7 @@ export const PatientSchema = z.object({
   ventilator_required: z.boolean(),
   // Simulated arrival time — ISO 8601 string (NOT compared to Date.now())
   arrival_time: z.string(),
-  current_status: z.enum(['WAITING', 'ADMITTED']),
+  current_status: z.enum(['WAITING', 'ADMITTED', 'DISCHARGED']),
 })
 
 export const PatientsResponseSchema = z.object({
@@ -96,19 +96,65 @@ export const AuditResponseSchema = z.object({
 })
 
 // ─── Allocation Recommend ────────────────────────────────────────────────────
+export type RecommendationAlgorithm = 'rule_based' | 'dqn_safe'
+
+const SafetyBlockSchema = z.object({
+  overridden: z.boolean(),
+  rule_triggered: z.string().nullable().optional(),
+  original_action: z.number().int(),
+  reason: z.string().nullable().optional(),
+})
+
 export const RecommendResponseSchema = z.object({
+  recommendation_id: z.number().int().positive(),
   patient_id: z.string(),
   recommended_bed_id: z.string().nullable(),
   algorithm: z.string(),
   reason: z.string(),
-  status: z.enum(['RECOMMENDED', 'NO_SUITABLE_BED']),
+  status: z.enum(['RECOMMENDED', 'NO_SUITABLE_BED', 'WAIT']),
+  safety: SafetyBlockSchema.optional(),
+  q_values: z.array(z.number()).nullable().optional(),
+  los_estimate_days: z.number().nullable().optional(),
+  proposed_action: z.number().int().nullable().optional(),
+  final_action: z.number().int().nullable().optional(),
+  proposed_bed_type: z.string().nullable().optional(),
+  final_bed_type: z.string().nullable().optional(),
 })
 
 // ─── Allocation Approve ──────────────────────────────────────────────────────
+export const ApproveRequestSchema = z
+  .object({
+    recommendation_id: z.number().int().positive().optional(),
+    patient_id: z.string().optional(),
+    bed_id: z.string().optional(),
+    encounter_id: z.number().int().optional(),
+    equipment_id: z.string().optional(),
+  })
+  .refine(
+    (data) =>
+      data.recommendation_id !== undefined ||
+      (Boolean(data.patient_id) && Boolean(data.bed_id)),
+    {
+      message: 'Either recommendation_id or both patient_id and bed_id are required',
+    }
+  )
+
 export const ApproveResponseSchema = z.object({
   patient_id: z.string(),
   bed_id: z.string(),
   status: z.literal('APPROVED'),
+})
+
+export const RejectRequestSchema = z.object({
+  recommendation_id: z.number().int().positive(),
+  reason: z.string().trim().min(3),
+})
+
+export const RejectResponseSchema = z.object({
+  recommendation_id: z.number().int().positive(),
+  patient_id: z.string(),
+  status: z.literal('REJECTED'),
+  reason: z.string(),
 })
 
 // ─── Surge Simulate ─────────────────────────────────────────────────────────
@@ -160,6 +206,140 @@ export type Equipment = z.infer<typeof EquipmentSchema>
 export type Metrics = z.infer<typeof MetricsResponseSchema>
 export type AuditEntry = z.infer<typeof AuditEntrySchema>
 export type RecommendResponse = z.infer<typeof RecommendResponseSchema>
+export type ApproveArgs = z.infer<typeof ApproveRequestSchema>
 export type ApproveResponse = z.infer<typeof ApproveResponseSchema>
+export type RejectArgs = z.infer<typeof RejectRequestSchema>
+export type RejectResponse = z.infer<typeof RejectResponseSchema>
 export type SurgeResponse = z.infer<typeof SurgeResponseSchema>
 export type SurgeMetrics = z.infer<typeof SurgeMetricsSchema>
+
+// ─── Patient Intake ──────────────────────────────────────────────────────────
+export const PatientIntakeRequestSchema = z.object({
+  patient_id: z.string().min(1).max(10).optional().nullable(),
+  age_group: z.string().min(1).max(20),
+  acuity: z.number().int().min(1).max(5),
+  specialty: z.string().min(1).max(50),
+  predicted_los: z.number().positive(),
+  isolation_required: z.boolean().default(false),
+  ventilator_required: z.boolean().default(false),
+  arrival_time: z.string().optional().nullable(),
+})
+export const PatientIntakeResponseSchema = z.object({
+  patient_id: z.string(),
+  encounter_id: z.number().int(),
+  age_group: z.string(),
+  acuity: z.number().int(),
+  specialty: z.string(),
+  predicted_los: z.number(),
+  isolation_required: z.boolean(),
+  ventilator_required: z.boolean(),
+  arrival_time: z.string(),
+  current_status: z.string(),
+  encounter_status: z.string(),
+})
+
+// ─── Patient Discharge ───────────────────────────────────────────────────────
+export const DischargeRequestSchema = z.object({
+  release_reason: z.string().min(1).max(100).default('discharge'),
+  encounter_id: z.number().int().optional().nullable(),
+})
+export const DischargeResponseSchema = z.object({
+  patient_id: z.string(),
+  encounter_id: z.number().int(),
+  bed_id: z.string(),
+  bed_status: z.string(),
+  released_equipment_ids: z.array(z.string()),
+  patient_status: z.string(),
+  encounter_status: z.string(),
+  discharged_at: z.string(),
+})
+
+// ─── Patient Transfer ────────────────────────────────────────────────────────
+export const TransferRequestSchema = z.object({
+  destination_bed_id: z.string().min(1).max(10),
+  release_reason: z.string().min(1).max(100).default('transfer'),
+  encounter_id: z.number().int().optional().nullable(),
+})
+export const TransferResponseSchema = z.object({
+  patient_id: z.string(),
+  encounter_id: z.number().int(),
+  from_bed_id: z.string(),
+  to_bed_id: z.string(),
+  status: z.string(),
+})
+
+// ─── Bed Cleaning ────────────────────────────────────────────────────────────
+export const BedCleaningResponseSchema = z.object({
+  bed_id: z.string(),
+  status: z.string(),
+})
+
+// ─── Equipment Assign/Release ────────────────────────────────────────────────
+export const EquipmentAssignRequestSchema = z.object({
+  patient_id: z.string().optional().nullable(),
+  encounter_id: z.number().int().optional().nullable(),
+})
+export const EquipmentReleaseRequestSchema = z.object({
+  patient_id: z.string().optional().nullable(),
+  encounter_id: z.number().int().optional().nullable(),
+  release_reason: z.string().min(1).max(100).default('released'),
+})
+export const EquipmentAssignmentResponseSchema = z.object({
+  assignment_id: z.number().int(),
+  encounter_id: z.number().int(),
+  patient_id: z.string(),
+  equipment_id: z.string(),
+  status: z.string(),
+  assigned_at: z.string(),
+  released_at: z.string().nullable(),
+  release_reason: z.string().nullable(),
+})
+
+// ─── User Management ────────────────────────────────────────────────────────
+
+export const UserRoleSchema = z.enum([
+  'admin',
+  'doctor',
+  'nurse',
+  'operator',
+])
+
+export const UserSchema = z.object({
+  id: z.number().int(),
+  username: z.string(),
+  email: z.string().email(),
+  role: UserRoleSchema,
+  is_active: z.boolean(),
+})
+
+export const UsersResponseSchema = z.array(UserSchema)
+
+export const CreateUserRequestSchema = z.object({
+  username: z.string().min(3).max(50),
+  email: z.string().email(),
+  password: z.string().min(8).max(72),
+  role: UserRoleSchema,
+})
+
+export const UpdateUserRequestSchema = z.object({
+  role: UserRoleSchema.optional(),
+  is_active: z.boolean().optional(),
+})
+
+// Type exports
+export type User = z.infer<typeof UserSchema>
+export type UserRole = z.infer<typeof UserRoleSchema>
+export type CreateUserRequest = z.infer<typeof CreateUserRequestSchema>
+export type UpdateUserRequest = z.infer<typeof UpdateUserRequestSchema>
+
+// ─── Lifecycle type exports ──────────────────────────────────────────────────
+export type PatientIntakeRequest = z.infer<typeof PatientIntakeRequestSchema>
+export type PatientIntakeResponse = z.infer<typeof PatientIntakeResponseSchema>
+export type DischargeRequest = z.infer<typeof DischargeRequestSchema>
+export type DischargeResponse = z.infer<typeof DischargeResponseSchema>
+export type TransferRequest = z.infer<typeof TransferRequestSchema>
+export type TransferResponse = z.infer<typeof TransferResponseSchema>
+export type BedCleaningResponse = z.infer<typeof BedCleaningResponseSchema>
+export type EquipmentAssignRequest = z.infer<typeof EquipmentAssignRequestSchema>
+export type EquipmentReleaseRequest = z.infer<typeof EquipmentReleaseRequestSchema>
+export type EquipmentAssignmentResponse = z.infer<typeof EquipmentAssignmentResponseSchema>

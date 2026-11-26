@@ -6,8 +6,9 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
 import { Select } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { MetricCard } from '@/components/domain/MetricCard';
 import { Staff } from '@/api/schemas';
-import { UserCheck, RefreshCw, AlertCircle, Shield } from 'lucide-react';
+import { UserCheck, RefreshCw, AlertCircle, Shield, Users, Activity } from 'lucide-react';
 
 export const StaffPage: React.FC = () => {
   const { data, isLoading, error, refetch } = useStaff();
@@ -72,7 +73,7 @@ export const StaffPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Clinical Staff & Rosters"
         description="Monitoring clinical staff allocation, shift duties, and workload capacity."
@@ -90,29 +91,34 @@ export const StaffPage: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface shadow-card">
-          <span className="text-xs text-text-muted uppercase font-semibold">Active Roster</span>
-          <div className="text-2xl font-bold font-mono text-text-primary mt-1">{totalStaff}</div>
-          <span className="text-[11px] text-text-muted">Physicians and nursing staff</span>
-        </div>
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface shadow-card">
-          <span className="text-xs text-text-muted uppercase font-semibold">Mean Workload</span>
-          <div className="text-2xl font-bold font-mono text-brand-primary mt-1">
-            {avgWorkload.toFixed(0)}%
-          </div>
-          <span className="text-[11px] text-text-muted">Across all departments</span>
-        </div>
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface shadow-card">
-          <span className="text-xs text-text-muted uppercase font-semibold">High Workload (&ge;80%)</span>
-          <div className="text-2xl font-bold font-mono text-red-600 dark:text-red-400 mt-1">
-            {highWorkloadCount}
-          </div>
-          <span className="text-[11px] text-text-muted">Staff nearing peak capacity</span>
-        </div>
+        <MetricCard
+          className="animate-slide-up stagger-1"
+          label="Active Roster"
+          value={totalStaff}
+          subtext="Physicians and nursing staff"
+          icon={<Users className="w-5 h-5" />}
+          accent="primary"
+        />
+        <MetricCard
+          className="animate-slide-up stagger-2"
+          label="Mean Workload"
+          value={`${avgWorkload.toFixed(0)}%`}
+          subtext="Across all departments"
+          icon={<Activity className="w-5 h-5" />}
+          accent="purple"
+        />
+        <MetricCard
+          className="animate-slide-up stagger-3"
+          label="High Workload (≥80%)"
+          value={highWorkloadCount}
+          subtext="Staff nearing peak capacity"
+          icon={<AlertCircle className="w-5 h-5" />}
+          accent={highWorkloadCount > 0 ? 'red' : 'green'}
+        />
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-bg-surface border border-border-light rounded-xl shadow-card text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-bg-surface backdrop-blur-sm border border-border-light rounded-2xl shadow-card text-xs">
         <div className="flex flex-wrap items-center gap-3">
           <Select
             value={roleFilter}
@@ -158,7 +164,7 @@ export const StaffPage: React.FC = () => {
       </div>
 
       {/* Staff Table */}
-      <div className="bg-bg-surface border border-border-light rounded-xl shadow-card overflow-hidden">
+      <div className="bg-bg-surface backdrop-blur-sm border border-border-light rounded-2xl shadow-card overflow-hidden">
         {filteredStaff.length === 0 ? (
           <EmptyState
             title="No staff found"
@@ -208,9 +214,9 @@ export const StaffPage: React.FC = () => {
                           </div>
                           <div className="w-full h-2 rounded-full bg-border-light dark:bg-border-medium/30 overflow-hidden">
                             <div
-                              className={`h-full rounded-full transition-all duration-300 ${
+                              className={`h-full rounded-full progress-shine transition-all duration-500 ${
                                 isOverloaded
-                                  ? 'bg-red-500'
+                                  ? 'bg-rose-500'
                                   : member.workload > 50
                                   ? 'bg-amber-500'
                                   : 'bg-emerald-500'

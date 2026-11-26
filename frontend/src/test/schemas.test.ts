@@ -9,7 +9,10 @@ import {
   MetricsResponseSchema,
   AuditResponseSchema,
   RecommendResponseSchema,
+  ApproveRequestSchema,
   ApproveResponseSchema,
+  RejectRequestSchema,
+  RejectResponseSchema,
   SurgeResponseSchema,
 } from '@/api/schemas';
 import { mockPatients } from './fixtures/patients.fixture';
@@ -109,6 +112,7 @@ describe('Zod API Response Schemas', () => {
 
   it('validates recommendation response schema (recommended)', () => {
     const valid = {
+      recommendation_id: 101,
       patient_id: 'PAT-001',
       recommended_bed_id: 'ICU-01',
       algorithm: 'PPO_Policy',
@@ -121,6 +125,7 @@ describe('Zod API Response Schemas', () => {
 
   it('validates recommendation response schema (no suitable bed)', () => {
     const valid = {
+      recommendation_id: 102,
       patient_id: 'PAT-001',
       recommended_bed_id: null,
       algorithm: 'PPO_Policy',
@@ -132,6 +137,49 @@ describe('Zod API Response Schemas', () => {
     expect(parsed.status).toBe('NO_SUITABLE_BED');
   });
 
+  it('validates DQN recommendation details and nullable safety values', () => {
+    const valid = {
+      recommendation_id: 103,
+      patient_id: 'PAT-001',
+      recommended_bed_id: 'ICU-01',
+      algorithm: 'dqn_safe',
+      reason: 'Safety layer retained the proposed action',
+      status: 'RECOMMENDED',
+      safety: {
+        overridden: false,
+        rule_triggered: null,
+        original_action: 0,
+        reason: null,
+      },
+      q_values: [0.8, 0.4, 0.2, -0.1],
+      los_estimate_days: 4.25,
+      proposed_action: 0,
+      final_action: 0,
+      proposed_bed_type: 'ICU',
+      final_bed_type: 'ICU',
+    };
+
+    const parsed = RecommendResponseSchema.parse(valid);
+    expect(parsed.safety?.overridden).toBe(false);
+    expect(parsed.q_values).toEqual([0.8, 0.4, 0.2, -0.1]);
+    expect(parsed.los_estimate_days).toBe(4.25);
+  });
+
+  it('keeps missing optional DQN details valid without inventing values', () => {
+    const parsed = RecommendResponseSchema.parse({
+      recommendation_id: 104,
+      patient_id: 'PAT-001',
+      recommended_bed_id: null,
+      algorithm: 'dqn_safe',
+      reason: 'Policy or safety layer selected WAIT',
+      status: 'WAIT',
+    });
+
+    expect(parsed.safety).toBeUndefined();
+    expect(parsed.q_values).toBeUndefined();
+    expect(parsed.los_estimate_days).toBeUndefined();
+  });
+
   it('validates allocation approval response schema', () => {
     const valid = {
       patient_id: 'PAT-001',
@@ -140,6 +188,46 @@ describe('Zod API Response Schemas', () => {
     };
     const parsed = ApproveResponseSchema.parse(valid);
     expect(parsed.status).toBe('APPROVED');
+  });
+
+  it('requires and parses a positive persisted recommendation ID', () => {
+    expect(ApproveRequestSchema.parse({ recommendation_id: 248 })).toEqual({
+      recommendation_id: 248,
+    });
+    expect(() => ApproveRequestSchema.parse({})).toThrow();
+    expect(() => ApproveRequestSchema.parse({ recommendation_id: 0 })).toThrow();
+    expect(() => RecommendResponseSchema.parse({
+      patient_id: 'PAT-001',
+      recommended_bed_id: 'ICU-01',
+      algorithm: 'rule_based',
+      reason: 'Ready',
+      status: 'RECOMMENDED',
+    })).toThrow();
+  });
+
+  it('validates rejection requests and responses against the backend contract', () => {
+    expect(RejectRequestSchema.parse({
+      recommendation_id: 248,
+      reason: '  Clinical contraindication  ',
+    })).toEqual({
+      recommendation_id: 248,
+      reason: 'Clinical contraindication',
+    });
+    expect(() => RejectRequestSchema.parse({
+      recommendation_id: 248,
+      reason: '   ',
+    })).toThrow();
+    expect(() => RejectRequestSchema.parse({
+      recommendation_id: 0,
+      reason: 'Clinical contraindication',
+    })).toThrow();
+
+    expect(RejectResponseSchema.parse({
+      recommendation_id: 248,
+      patient_id: 'PAT-001',
+      status: 'REJECTED',
+      reason: 'Clinical contraindication',
+    }).status).toBe('REJECTED');
   });
 
   it('validates surge response schema with nested metrics', () => {

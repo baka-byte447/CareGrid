@@ -10,6 +10,13 @@ import { formatServerTimestamp } from '@/lib/format';
 import { AuditEntry } from '@/api/schemas';
 import { ScrollText, Download, Search, RefreshCw, Cpu, Clock, CheckCircle } from 'lucide-react';
 
+function algorithmLabel(algorithm: string): string {
+  if (algorithm === 'dqn_safe') return 'DQN Safe';
+  if (algorithm === 'rule_based') return 'Rule-Based';
+  if (algorithm === 'rule_based_fallback') return 'Rule-Based fallback';
+  return algorithm;
+}
+
 export const AuditLogPage: React.FC = () => {
   const { data, isLoading, error, refetch } = useAuditLog();
 
@@ -101,7 +108,7 @@ export const AuditLogPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Clinical Decision Audit Log"
         description="Immutable record of bed allocations, decision policies, and timestamped actions."
@@ -142,7 +149,7 @@ export const AuditLogPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-bg-surface border border-border-light rounded-xl shadow-card text-xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-bg-surface backdrop-blur-sm border border-border-light rounded-2xl shadow-card text-xs">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <div className="w-full sm:w-64">
             <Input
@@ -175,7 +182,7 @@ export const AuditLogPage: React.FC = () => {
             <option value="ALL">All Algorithms ({algorithms.length})</option>
             {algorithms.map((alg) => (
               <option key={alg} value={alg}>
-                Policy: {alg}
+                Policy: {algorithmLabel(alg)}
               </option>
             ))}
           </Select>
@@ -187,7 +194,7 @@ export const AuditLogPage: React.FC = () => {
       </div>
 
       {/* Audit Log Table */}
-      <div className="bg-bg-surface border border-border-light rounded-xl shadow-card overflow-hidden">
+      <div className="bg-bg-surface backdrop-blur-sm border border-border-light rounded-2xl shadow-card overflow-hidden">
         {filteredEntries.length === 0 ? (
           <EmptyState
             title="No audit entries found"
@@ -227,7 +234,7 @@ export const AuditLogPage: React.FC = () => {
                     <td className="p-3.5 text-right">
                       <span className="inline-flex items-center gap-1 text-[11px] font-mono text-text-secondary bg-bg-page px-2 py-0.5 rounded border border-border-light">
                         <Cpu className="w-3 h-3 text-brand-primary" />
-                        {entry.algorithm}
+                        {algorithmLabel(entry.algorithm)}
                       </span>
                     </td>
                   </tr>

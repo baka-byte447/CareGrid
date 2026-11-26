@@ -18,7 +18,17 @@ import {
   ShieldAlert,
   Loader2,
   CheckCircle,
+  BarChart3,
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+} from 'recharts';
 
 export const SurgePlannerPage: React.FC = () => {
   const [multiplier, setMultiplier] = useState<number>(2.0);
@@ -346,6 +356,44 @@ export const SurgePlannerPage: React.FC = () => {
               </CardContent>
             </Card>
           </div>
+
+          {/* Acuity Wait-Time Chart */}
+          {metrics.avg_wait_by_acuity_min && (
+            <Card className="animate-fade-in">
+              <CardHeader>
+                <CardTitle className="text-xs uppercase font-bold text-text-muted flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-brand-primary" />
+                  Projected Mean Wait Time by Triage Acuity (Minutes)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-56 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={Object.entries(metrics.avg_wait_by_acuity_min).map(([acuity, mins]) => ({
+                        acuity: `Acuity ${acuity}`,
+                        waitMin: mins ?? 0,
+                      }))}
+                      margin={{ top: 8, right: 16, left: 0, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-light)" />
+                      <XAxis dataKey="acuity" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                      <YAxis tick={{ fontSize: 11, fill: 'var(--text-muted)' }} unit="m" />
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: 'var(--bg-surface)',
+                          borderColor: 'var(--border-light)',
+                          borderRadius: '0.75rem',
+                          fontSize: '12px',
+                        }}
+                      />
+                      <Bar dataKey="waitMin" name="Mean Wait (min)" fill="var(--brand-primary)" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Safety Violations & Constraint Check */}
           <Card className="border-border-light">

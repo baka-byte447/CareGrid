@@ -49,13 +49,21 @@ class AllocationRecommendRequest(BaseModel):
 
 
 class AllocationRejectRequest(BaseModel):
-    patient_id: str
+    recommendation_id: int = Field(gt=0)
+    patient_id: str | None = None
     reason: str = Field(min_length=3)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def strip_rejection_reason(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
 
 
 class AllocationApproveRequest(BaseModel):
-    patient_id: str
-    bed_id: str
+    recommendation_id: int = Field(gt=0)
+    patient_id: str | None = None
+    # Accepted only for compatibility checks; approval always uses the stored bed.
+    bed_id: str | None = None
     encounter_id: Optional[int] = None
     equipment_id: Optional[str] = None
 
@@ -193,6 +201,7 @@ class EquipmentResponse(BaseModel):
     equipment: list[EquipmentItemResponse]
 
 class AllocationRecommendResponse(BaseModel):
+    recommendation_id: int
     patient_id: str
     recommended_bed_id: str | None
     algorithm: str

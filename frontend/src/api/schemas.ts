@@ -159,6 +159,17 @@ export const RejectResponseSchema = z.object({
 
 // ─── Surge Simulate ─────────────────────────────────────────────────────────
 // Source: backend/api/main.py simulate_surge() + simulator/metrics/summary.py
+const ConstraintViolationsSchema = z.union([
+  z.number().int(),
+  z.object({
+    acuity_tier: z.number().int(),
+    isolation: z.number().int(),
+    ventilator: z.number().int(),
+    double_booking: z.number().int(),
+    total: z.number().int(),
+  }),
+])
+
 const SurgeMetricsSchema = z.object({
   patients_total: z.number().int(),
   patients_admitted: z.number().int(),
@@ -179,7 +190,7 @@ const SurgeMetricsSchema = z.object({
   ventilator_utilization: z.number().nullable(),
   bed_turnover_per_bed_per_day: z.number(),
   peak_waiting_queue: z.number().int(),
-  constraint_violations: z.number().int(),
+  constraint_violations: ConstraintViolationsSchema,
   measurement_window_hours: z.number(),
   waiting_patients_elapsed_wait_min: z.object({
     avg: z.number(),

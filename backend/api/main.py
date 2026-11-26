@@ -1122,6 +1122,7 @@ def approve_allocation(
             recommendation.recommended_bed_id,
             actor_id=current_user.id,
             equipment_id=request.equipment_id if legacy_operator_override else None,
+            algorithm=recommendation.algorithm,
         )
         claimed = db.execute(
             update(AllocationRecommendation)

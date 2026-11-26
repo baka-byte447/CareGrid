@@ -410,8 +410,18 @@ export const SurgePlannerPage: React.FC = () => {
                     Constraint Violations Recorded:
                   </span>
                   <span className="ml-2 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                    {metrics.constraint_violations}
+                    {typeof metrics.constraint_violations === 'number'
+                      ? metrics.constraint_violations
+                      : metrics.constraint_violations.total}
                   </span>
+                  {typeof metrics.constraint_violations !== 'number' && (
+                    <div className="flex flex-wrap gap-2 mt-1.5 text-[11px] font-mono text-text-secondary">
+                      <span>Acuity: {metrics.constraint_violations.acuity_tier}</span>
+                      <span>&bull; Isolation: {metrics.constraint_violations.isolation}</span>
+                      <span>&bull; Ventilator: {metrics.constraint_violations.ventilator}</span>
+                      <span>&bull; Double-Booking: {metrics.constraint_violations.double_booking}</span>
+                    </div>
+                  )}
                   <p className="text-text-muted text-[11px] mt-0.5">
                     No clinical safety rules (isolation or ventilator requirements) were breached by the RL policy during the surge window.
                   </p>

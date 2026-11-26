@@ -57,12 +57,18 @@ def _actor_id(actor_id: int | object | None) -> int | None:
     return value
 
 
-def _record(db: Session, encounter: Encounter, action: str, bed_id: str | None = None) -> None:
+def _record(
+    db: Session,
+    encounter: Encounter,
+    action: str,
+    bed_id: str | None = None,
+    algorithm: str = "lifecycle",
+) -> None:
     db.add(AuditLog(
         patient_id=encounter.patient_id,
         bed_id=bed_id,
         action=action,
-        algorithm="lifecycle",
+        algorithm=algorithm,
         timestamp=_now(),
     ))
 
@@ -249,6 +255,7 @@ def approve_encounter(
     *,
     actor_id: int | object | None = None,
     equipment_id: str | None = None,
+    algorithm: str = "lifecycle",
 ) -> Encounter:
     """Admit a waiting Encounter and atomically assign its bed/equipment."""
     patient, encounter = _lock_patient_then_encounter(db, encounter_id)
@@ -305,7 +312,7 @@ def approve_encounter(
     encounter.status = "ADMITTED"
     encounter.admitted_at = now
     patient.current_status = "ADMITTED"
-    _record(db, encounter, "ADMITTED", bed.bed_id)
+    _record(db, encounter, "ADMITTED", bed.bed_id, algorithm=algorithm)
     _flush(db)
     return encounter
 

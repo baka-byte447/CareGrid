@@ -106,7 +106,6 @@ const SafetyBlockSchema = z.object({
 })
 
 export const RecommendResponseSchema = z.object({
-  recommendation_id: z.number().int().positive(),
   patient_id: z.string(),
   recommended_bed_id: z.string().nullable(),
   algorithm: z.string(),
@@ -122,26 +121,10 @@ export const RecommendResponseSchema = z.object({
 })
 
 // ─── Allocation Approve ──────────────────────────────────────────────────────
-export const ApproveRequestSchema = z.object({
-  recommendation_id: z.number().int().positive(),
-})
-
 export const ApproveResponseSchema = z.object({
   patient_id: z.string(),
   bed_id: z.string(),
   status: z.literal('APPROVED'),
-})
-
-export const RejectRequestSchema = z.object({
-  recommendation_id: z.number().int().positive(),
-  reason: z.string().trim().min(3),
-})
-
-export const RejectResponseSchema = z.object({
-  recommendation_id: z.number().int().positive(),
-  patient_id: z.string(),
-  status: z.literal('REJECTED'),
-  reason: z.string(),
 })
 
 // ─── Surge Simulate ─────────────────────────────────────────────────────────
@@ -193,10 +176,7 @@ export type Equipment = z.infer<typeof EquipmentSchema>
 export type Metrics = z.infer<typeof MetricsResponseSchema>
 export type AuditEntry = z.infer<typeof AuditEntrySchema>
 export type RecommendResponse = z.infer<typeof RecommendResponseSchema>
-export type ApproveArgs = z.infer<typeof ApproveRequestSchema>
 export type ApproveResponse = z.infer<typeof ApproveResponseSchema>
-export type RejectArgs = z.infer<typeof RejectRequestSchema>
-export type RejectResponse = z.infer<typeof RejectResponseSchema>
 export type SurgeResponse = z.infer<typeof SurgeResponseSchema>
 export type SurgeMetrics = z.infer<typeof SurgeMetricsSchema>
 

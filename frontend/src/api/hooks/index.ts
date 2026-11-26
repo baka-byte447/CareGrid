@@ -19,10 +19,7 @@ import {
   MetricsResponseSchema,
   AuditResponseSchema,
   RecommendResponseSchema,
-  ApproveRequestSchema,
   ApproveResponseSchema,
-  RejectRequestSchema,
-  RejectResponseSchema,
   SurgeResponseSchema,
   Patient,
   Bed,
@@ -31,10 +28,7 @@ import {
   Metrics,
   AuditEntry,
   RecommendResponse,
-  ApproveArgs,
   ApproveResponse,
-  RejectArgs,
-  RejectResponse,
   SurgeResponse,
   UsersResponseSchema,
   UserSchema,
@@ -267,12 +261,21 @@ export function useRecommendAllocation() {
 
 // ─── POST /allocation/approve ─────────────────────────────────────────────────
 
+export interface ApproveArgs {
+  patientId?: string
+  bedId?: string
+  patient_id?: string
+  bed_id?: string
+}
+
 export function useApprove() {
   const queryClient = useQueryClient()
-  return useMutation<ApproveResponse, Error, ApproveArgs>({
-    mutationFn: async (args: ApproveArgs) => {
-      const request = validate(ApproveRequestSchema, args)
-      const raw = await apiPost<unknown>('/allocation/approve', request)
+  return useMutation<ApproveResponse, Error, { patientId: string; bedId: string }>({
+    mutationFn: async ({ patientId, bedId }: { patientId: string; bedId: string }) => {
+      const raw = await apiPost<unknown>('/allocation/approve', {
+        patient_id: patientId,
+        bed_id: bedId,
+      })
       return validate(ApproveResponseSchema, raw)
     },
     onSuccess: () => {
@@ -290,8 +293,12 @@ export function useApproveAllocation() {
   const queryClient = useQueryClient()
   return useMutation<ApproveResponse, Error, ApproveArgs>({
     mutationFn: async (args: ApproveArgs) => {
-      const request = validate(ApproveRequestSchema, args)
-      const raw = await apiPost<unknown>('/allocation/approve', request)
+      const patient_id = args.patient_id ?? args.patientId ?? ''
+      const bed_id = args.bed_id ?? args.bedId ?? ''
+      const raw = await apiPost<unknown>('/allocation/approve', {
+        patient_id,
+        bed_id,
+      })
       return validate(ApproveResponseSchema, raw)
     },
     onSuccess: () => {
@@ -306,21 +313,6 @@ export function useApproveAllocation() {
 }
 
 // ─── POST /surge/simulate ─────────────────────────────────────────────────────
-
-export function useRejectAllocation() {
-  const queryClient = useQueryClient()
-  return useMutation<RejectResponse, Error, RejectArgs>({
-    mutationFn: async (args: RejectArgs) => {
-      const request = validate(RejectRequestSchema, args)
-      const raw = await apiPost<unknown>('/allocation/reject', request)
-      return validate(RejectResponseSchema, raw)
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.audit })
-    },
-    retry: 0,
-  })
-}
 
 export interface SurgeArgs {
   arrival_rate_multiplier: number

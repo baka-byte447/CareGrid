@@ -1,4 +1,4 @@
-from backend.models import AllocationRecommendation, AuditLog, Bed, Encounter, Patient
+from backend.models import AuditLog, Bed, Patient
 from simulator.hospital.allocation_rules import candidate_bed_types
 
 
@@ -48,11 +48,10 @@ def test_recommendation_response_preserves_null_bed_id(client, db_session):
     assert response.status_code == 200
     body = response.json()
     assert set(body) == {
-        "recommendation_id", "patient_id", "recommended_bed_id", "algorithm", "reason", "status",
+        "patient_id", "recommended_bed_id", "algorithm", "reason", "status",
     }
     assert body["recommended_bed_id"] is None
     assert body["status"] == "NO_SUITABLE_BED"
-    assert db_session.get(AllocationRecommendation, body["recommendation_id"]) is not None
 
 
 def test_allocation_approval_response_shape(client, db_session):
@@ -60,44 +59,25 @@ def test_allocation_approval_response_shape(client, db_session):
         Patient.current_status == "WAITING"
     ).order_by(Patient.patient_id).first()
     assert patient is not None
-    encounter = Encounter(
-        patient_id=patient.patient_id,
-        acuity=patient.acuity,
-        specialty=patient.specialty,
-        predicted_los=patient.predicted_los,
-        isolation_required=patient.isolation_required,
-        ventilator_required=patient.ventilator_required,
-        arrival_time=patient.arrival_time,
-        status="WAITING",
-    )
-    db_session.add(encounter)
-    db_session.commit()
-    recommendation_response = client.post(
-        "/allocation/recommend", json={"patient_id": patient.patient_id}
-    )
-    assert recommendation_response.status_code == 200
-    recommendation = recommendation_response.json()
-    assert recommendation["status"] == "RECOMMENDED"
     compatible_types = candidate_bed_types(patient.acuity)
-
-    recommended_bed = db_session.get(
-        Bed, recommendation["recommended_bed_id"]
+    bed_query = db_session.query(Bed).filter(
+        Bed.status == "AVAILABLE",
+        Bed.bed_type.in_(compatible_types),
     )
-
-    assert recommended_bed is not None
-    assert recommended_bed.bed_type in compatible_types
-
     if patient.isolation_required:
-        assert recommended_bed.isolation_capable is True
+        bed_query = bed_query.filter(Bed.isolation_capable.is_(True))
+    bed = bed_query.order_by(Bed.bed_id).first()
+    assert bed is not None
+
     response = client.post(
         "/allocation/approve",
-        json={"recommendation_id": recommendation["recommendation_id"]},
+        json={"patient_id": patient.patient_id, "bed_id": bed.bed_id},
     )
 
     assert response.status_code == 200
     assert response.json() == {
         "patient_id": patient.patient_id,
-        "bed_id": recommendation["recommended_bed_id"],
+        "bed_id": bed.bed_id,
         "status": "APPROVED",
     }
 

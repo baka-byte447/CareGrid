@@ -7,4 +7,3 @@ from backend.models.user import User
 from backend.models.encounter import Encounter
 from backend.models.bed_assignment import BedAssignment
 from backend.models.equipment_assignment import EquipmentAssignment
-from backend.models.allocation_recommendation import AllocationRecommendation

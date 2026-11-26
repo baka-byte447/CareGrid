@@ -2,8 +2,7 @@ import os
 import uuid
 from datetime import datetime, timedelta, timezone
 from fastapi import Body, Depends, FastAPI, HTTPException
-from sqlalchemy import select, update
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from backend.api.auth import router as auth_router
 
@@ -36,11 +35,6 @@ from backend.api.schemas import (
 )
 from backend.db.database import get_db
 from backend.models import (
-    AllocationRecommendation,
-    AuditLog,
-    Bed,
-    Encounter,
-    Equipment,
     AuditLog,
     Bed,
     BedAssignment,
@@ -95,59 +89,6 @@ app = FastAPI(
 
 app.include_router(auth_router)
 
-
-def _persist_recommendation(
-    db: Session,
-    *,
-    patient: Patient,
-    response: dict,
-    current_user: User,
-) -> dict:
-    """Save the displayed result before returning it to the caller.
-
-    The request contract supplies a patient ID, not an Encounter ID. Associate
-    history only when there is exactly one matching WAITING Encounter; otherwise
-    keep encounter_id NULL rather than guessing which admission it belongs to.
-    """
-    try:
-        waiting_encounters = (
-            db.query(Encounter.encounter_id)
-            .filter(
-                Encounter.patient_id == patient.patient_id,
-                Encounter.status == "WAITING",
-            )
-            .all()
-        )
-        encounter_id = waiting_encounters[0][0] if len(waiting_encounters) == 1 else None
-        safety = response.get("safety") or {}
-        row = AllocationRecommendation(
-            patient_id=patient.patient_id,
-            encounter_id=encounter_id,
-            algorithm=response["algorithm"],
-            status=response["status"],
-            recommended_bed_id=response.get("recommended_bed_id"),
-            proposed_action=response.get("proposed_action"),
-            final_action=response.get("final_action"),
-            proposed_bed_type=response.get("proposed_bed_type"),
-            final_bed_type=response.get("final_bed_type"),
-            safety_overridden=safety.get("overridden"),
-            safety_rule_triggered=safety.get("rule_triggered"),
-            safety_original_action=safety.get("original_action"),
-            safety_reason=safety.get("reason"),
-            q_values=response.get("q_values"),
-            # ServingResult currently exposes no model version, so this remains NULL.
-            model_version=None,
-            reason=response["reason"],
-            requested_by=current_user.id,
-        )
-        db.add(row)
-        db.flush()
-        response["recommendation_id"] = row.recommendation_id
-        db.commit()
-        return response
-    except Exception:
-        db.rollback()
-        raise
 def _raise_lifecycle_http_error(exc: LifecycleError) -> None:
     if isinstance(exc, LifecycleNotFound):
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -721,7 +662,7 @@ def recommend_allocation(
         all_waiting = db.query(Patient).filter(Patient.current_status == "WAITING").all()
         patients_by_id = {p.patient_id: to_simulator_patient(p) for p in all_waiting}
         res = service.recommend(sim_patient, sim_state, patients_by_id=patients_by_id)
-        response = {
+        return {
             "patient_id": patient.patient_id,
             "recommended_bed_id": res.recommended_bed_id,
             "algorithm": res.algorithm,
@@ -735,9 +676,6 @@ def recommend_allocation(
             "proposed_bed_type": res.proposed_bed_type,
             "final_bed_type": res.final_bed_type,
         }
-        return _persist_recommendation(
-            db, patient=patient, response=response, current_user=current_user
-        )
 
     # Default: rule-based allocation (same code the simulator uses)
     result = recommend(
@@ -747,27 +685,21 @@ def recommend_allocation(
     )
 
     if result.decision is None:
-        response = {
+        return {
             "patient_id": patient.patient_id,
             "recommended_bed_id": None,
             "algorithm": DEFAULT_ALGORITHM,
             "reason": result.reason,
             "status": "NO_SUITABLE_BED",
         }
-        return _persist_recommendation(
-            db, patient=patient, response=response, current_user=current_user
-        )
 
-    response = {
+    return {
         "patient_id": patient.patient_id,
         "recommended_bed_id": result.decision.bed_id,
         "algorithm": DEFAULT_ALGORITHM,
         "reason": result.reason,
         "status": "RECOMMENDED",
     }
-    return _persist_recommendation(
-        db, patient=patient, response=response, current_user=current_user
-    )
 
 
 @app.post("/allocation/reject")
@@ -776,29 +708,12 @@ def reject_allocation(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("allocation:reject")),
 ):
-    recommendation = (
-        db.query(AllocationRecommendation)
-        .filter(AllocationRecommendation.recommendation_id == request.recommendation_id)
-        .with_for_update()
-        .populate_existing()
-        .first()
-    )
-
-    if recommendation is None:
-        raise HTTPException(status_code=404, detail="Recommendation not found")
-
-    if request.patient_id is not None and request.patient_id != recommendation.patient_id:
-        raise HTTPException(
-            status_code=409,
-            detail="Recommendation does not belong to the specified patient",
-        )
-
     patient = (
         db.query(Patient)
-        .filter(Patient.patient_id == recommendation.patient_id)
-        .with_for_update()
+        .filter(Patient.patient_id == request.patient_id)
         .first()
     )
+
     if patient is None:
         raise HTTPException(status_code=404, detail="Patient not found")
 
@@ -808,52 +723,16 @@ def reject_allocation(
             detail="Patient is not waiting for allocation",
         )
 
-    if any((
-        recommendation.decision_status is not None,
-        recommendation.decision_reason is not None,
-        recommendation.decided_by is not None,
-        recommendation.decided_at is not None,
-    )):
-        raise HTTPException(status_code=409, detail="Recommendation has already been decided")
-
-    if (
-        recommendation.status.upper() != "RECOMMENDED"
-        or recommendation.recommended_bed_id is None
-    ):
-        raise HTTPException(status_code=409, detail="Recommendation is not eligible for rejection")
-
-    if recommendation.encounter_id is not None:
-        encounter = (
-            db.query(Encounter)
-            .filter(Encounter.encounter_id == recommendation.encounter_id)
-            .with_for_update()
-            .first()
-        )
-        if encounter is None or encounter.status.upper() != "WAITING":
-            raise HTTPException(status_code=409, detail="Recommendation Encounter is no longer waiting")
-
-    now = datetime.now(timezone.utc)
-    recommendation.decision_status = "REJECTED"
-    recommendation.decision_reason = request.reason
-    recommendation.decided_by = current_user.id
-    recommendation.decided_at = now
-    # consumed_at has no defined use in the current workflow; preserve its
-    # existing meaning and leave it unchanged while recording operator choice.
-    db.add(AuditLog(
+    audit_entry = AuditLog(
         patient_id=patient.patient_id,
-        bed_id=recommendation.recommended_bed_id,
+        bed_id=None,
         action="REJECTED",
         algorithm="operator_override",
-        timestamp=now,
-    ))
-    try:
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
+    )
+    db.add(audit_entry)
+    db.commit()
 
     return {
-        "recommendation_id": recommendation.recommendation_id,
         "patient_id": patient.patient_id,
         "status": "REJECTED",
         "reason": request.reason,
@@ -866,182 +745,57 @@ def approve_allocation(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("allocation:approve")),
 ):
-    recommendation = (
-        db.query(AllocationRecommendation)
-        .filter(AllocationRecommendation.recommendation_id == request.recommendation_id)
-        .with_for_update()
-        .populate_existing()
-        .first()
-    )
-    if recommendation is None:
-        raise HTTPException(status_code=404, detail="Recommendation not found")
-
-    if request.patient_id is not None and request.patient_id != recommendation.patient_id:
-        raise HTTPException(
-            status_code=409,
-            detail="Recommendation does not belong to the specified patient",
-        )
-
-    if request.bed_id is not None and request.bed_id != recommendation.recommended_bed_id:
-        raise HTTPException(
-            status_code=409,
-            detail="Requested bed does not match the persisted recommendation",
-        )
-
-    if (
-        recommendation.decision_status is not None
-        or recommendation.decision_reason is not None
-        or recommendation.decided_by is not None
-        or recommendation.decided_at is not None
-    ):
-        raise HTTPException(
-            status_code=409,
-            detail="Recommendation has already been decided",
-        )
-
-    if recommendation.consumed_at is not None:
-        raise HTTPException(
-            status_code=409,
-            detail="Recommendation has already been consumed",
-        )
-
-    if recommendation.status.upper() != "RECOMMENDED":
-        raise HTTPException(status_code=409, detail="Recommendation is not successful")
-    if recommendation.recommended_bed_id is None:
-        raise HTTPException(status_code=409, detail="Recommendation has no bed to approve")
-    if recommendation.encounter_id is None:
-        raise HTTPException(
-            status_code=409,
-            detail="Recommendation is not linked to an Encounter; request a new recommendation",
-        )
-
-    patient = db.query(Patient).filter(
-        Patient.patient_id == recommendation.patient_id
-    ).first()
-    encounter = db.query(Encounter).filter(
-        Encounter.encounter_id == recommendation.encounter_id
-    ).first()
+    patient = db.execute(
+        select(Patient).where(Patient.patient_id == request.patient_id).with_for_update()
+    ).scalar_one_or_none()
     if patient is None:
         raise HTTPException(status_code=404, detail="Patient not found")
-    if encounter is None:
-        raise HTTPException(status_code=409, detail="Recommendation Encounter no longer exists")
-    if encounter.patient_id != recommendation.patient_id:
-        raise HTTPException(status_code=409, detail="Encounter belongs to a different patient")
-    if encounter.status.upper() != "WAITING":
-        raise HTTPException(status_code=409, detail="Encounter is no longer waiting for allocation")
-    if patient.current_status.upper() != "WAITING":
-        raise HTTPException(status_code=409, detail="Patient is not waiting for allocation")
 
-    if recommendation.algorithm not in {"rule_based", "dqn_safe", "rule_based_fallback"}:
-        raise HTTPException(status_code=409, detail="Recommendation algorithm is not supported for approval")
-
-    if recommendation.algorithm == "dqn_safe":
-        if (
-            recommendation.proposed_action is None
-            or recommendation.final_action is None
-            or recommendation.safety_overridden is None
-            or recommendation.safety_original_action != recommendation.proposed_action
-        ):
-            raise HTTPException(status_code=409, detail="DQN recommendation safety metadata is incomplete")
-
-        arrival_time = encounter.arrival_time
-        if arrival_time.tzinfo is not None:
-            arrival_time = arrival_time.astimezone(timezone.utc).replace(tzinfo=None)
-        sim_patient = SimulatorPatient(
-            patient_id=patient.patient_id,
-            age_group=patient.age_group,
-            acuity=encounter.acuity,
-            specialty=encounter.specialty,
-            predicted_los=encounter.predicted_los,
-            isolation_required=encounter.isolation_required,
-            ventilator_required=encounter.ventilator_required,
-            arrival_time=arrival_time,
-        )
-        safety_decision = get_allocation_service().safety_layer.review(
-            sim_patient,
-            build_hospital_state(db),
-            recommendation.proposed_action,
-        )
-        current_safety_reason = "; ".join(safety_decision.reason_codes) or None
-        if (
-            safety_decision.final_action != recommendation.final_action
-            or safety_decision.was_overridden != recommendation.safety_overridden
-            or safety_decision.guardrail_triggered != recommendation.safety_rule_triggered
-            or current_safety_reason != recommendation.safety_reason
-        ):
-            raise HTTPException(status_code=409, detail="DQN recommendation failed current safety validation")
-        if not 0 <= safety_decision.final_action < len(BED_ACTIONS):
-            raise HTTPException(status_code=409, detail="DQN recommendation does not resolve to a bed")
-        expected_bed_type = BED_ACTIONS[safety_decision.final_action]
-        current_bed_type = db.query(Bed.bed_type).filter(
-            Bed.bed_id == recommendation.recommended_bed_id
-        ).scalar()
-        if current_bed_type is None:
-            raise HTTPException(status_code=404, detail="Recommended bed not found")
-        if recommendation.final_bed_type != expected_bed_type or current_bed_type != expected_bed_type:
-            raise HTTPException(status_code=409, detail="DQN recommendation bed no longer matches its safe action")
-
-    now = datetime.now(timezone.utc)
     try:
-        admitted_encounter = approve_encounter(
+        if request.encounter_id is not None:
+            encounter = db.get(Encounter, request.encounter_id)
+            if encounter is None:
+                raise LifecycleNotFound("Encounter not found")
+            if encounter.patient_id != patient.patient_id:
+                raise LifecycleValidationError("Encounter does not belong to the specified patient")
+        else:
+            encounter = db.execute(
+                select(Encounter)
+                .where(
+                    Encounter.patient_id == patient.patient_id,
+                    Encounter.status == "WAITING",
+                )
+                .order_by(Encounter.encounter_id.desc())
+            ).scalar_one_or_none()
+            if encounter is None:
+                if patient.current_status.upper() != "WAITING":
+                    raise LifecycleConflict("Patient is not waiting for allocation")
+                encounter = create_encounter(db, patient.patient_id)
+
+        approve_encounter(
             db,
             encounter.encounter_id,
-            recommendation.recommended_bed_id,
+            request.bed_id,
             actor_id=current_user.id,
+            equipment_id=request.equipment_id,
         )
-
-        # Claim the decision only after lifecycle validation and resource writes
-        # succeed. The predicate is an additional guard against duplicate use
-        # on databases where row-lock semantics are limited.
-        claimed = db.execute(
-            update(AllocationRecommendation)
-            .where(
-                AllocationRecommendation.recommendation_id == recommendation.recommendation_id,
-                AllocationRecommendation.decision_status.is_(None),
-                AllocationRecommendation.decision_reason.is_(None),
-                AllocationRecommendation.decided_by.is_(None),
-                AllocationRecommendation.decided_at.is_(None),
-                AllocationRecommendation.consumed_at.is_(None),
-                AllocationRecommendation.status == "RECOMMENDED",
-                AllocationRecommendation.recommended_bed_id == recommendation.recommended_bed_id,
-                AllocationRecommendation.encounter_id == admitted_encounter.encounter_id,
-            )
-            .values(
-                decision_status="APPROVED",
-                decided_by=current_user.id,
-                decided_at=now,
-            )
-        )
-        if claimed.rowcount != 1:
-            raise LifecycleConflict("Recommendation has already been decided or consumed")
-
-        db.add(AuditLog(
-            patient_id=admitted_encounter.patient_id,
-            bed_id=recommendation.recommended_bed_id,
-            action="APPROVED",
-            algorithm=recommendation.algorithm,
-            timestamp=now,
-        ))
         db.commit()
-    except LifecycleNotFound as exc:
+    except LifecycleError as exc:
         db.rollback()
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except LifecycleValidationError as exc:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-    except LifecycleConflict as exc:
-        db.rollback()
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
-    except IntegrityError as exc:
-        db.rollback()
-        raise HTTPException(status_code=409, detail="Approval conflicts with current resource assignments") from exc
-    except Exception:
+        _raise_lifecycle_http_error(exc)
+    except HTTPException:
         db.rollback()
         raise
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Allocation failed; changes were rolled back",
+        ) from exc
 
     return {
-        "patient_id": admitted_encounter.patient_id,
-        "bed_id": recommendation.recommended_bed_id,
+        "patient_id": patient.patient_id,
+        "bed_id": request.bed_id,
         "status": "APPROVED",
     }
 

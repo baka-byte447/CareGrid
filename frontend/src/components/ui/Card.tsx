@@ -11,9 +11,9 @@ export const Card: React.FC<CardProps> = ({
   ...props
 }) => {
   const variantStyles = {
-    default: 'bg-bg-surface border border-border-light shadow-card',
-    outline: 'bg-transparent border border-border-medium',
-    flat: 'bg-bg-surface-hover border border-border-light',
+    default: 'glass-panel border border-border-light',
+    outline: 'bg-transparent border border-border-medium backdrop-blur-sm',
+    flat: 'bg-bg-surface-hover/80 border border-border-light backdrop-blur-sm',
   };
 
   return (

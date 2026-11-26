@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { StaleBanner } from '@/components/feedback/StaleBanner';
@@ -7,6 +7,7 @@ import { useMetrics } from '@/api/hooks';
 import { STALE_THRESHOLD_MS } from '@/lib/constants';
 
 export const AppShell: React.FC = () => {
+  const location = useLocation();
   const { dataUpdatedAt, isError, refetch } = useMetrics();
 
   // Check if data is stale (> 2 minutes)
@@ -14,15 +15,11 @@ export const AppShell: React.FC = () => {
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden bg-bg-page text-text-primary antialiased">
-      {/* Cosmic Space-Navy & Cyan-Violet Aurora Waves */}
+      {/* Subtle Top Architectural Vignette */}
       <div
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-0 overflow-hidden"
-      >
-        <div className="absolute -top-36 -left-24 w-[580px] h-[580px] rounded-full bg-sky-500/15 dark:bg-sky-500/20 blur-3xl animate-float-slow" />
-        <div className="absolute top-1/4 -right-28 w-[540px] h-[540px] rounded-full bg-purple-600/15 dark:bg-purple-600/20 blur-3xl animate-float-rev" />
-        <div className="absolute -bottom-36 left-1/3 w-[480px] h-[480px] rounded-full bg-indigo-500/12 dark:bg-cyan-500/12 blur-3xl animate-float-slow" />
-      </div>
+        className="pointer-events-none fixed inset-x-0 top-0 h-72 z-0 bg-gradient-to-b from-emerald-500/[0.04] dark:from-emerald-500/[0.05] to-transparent"
+      />
 
       {/* Sidebar */}
       <Sidebar />
@@ -40,9 +37,11 @@ export const AppShell: React.FC = () => {
           onRefresh={() => refetch()}
         />
 
-        {/* Page Body */}
+        {/* Page Body with Tab/Route Transition Animation */}
         <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-          <Outlet />
+          <div key={location.pathname} className="animate-page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

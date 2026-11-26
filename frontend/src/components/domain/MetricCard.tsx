@@ -17,77 +17,38 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   accent = 'primary',
   className = '',
 }) => {
-  const kpiTheme = {
-    primary: 'kpi-cyan',
-    purple: 'kpi-purple',
-    green: 'kpi-emerald',
-    amber: 'kpi-amber',
-    red: 'kpi-amber',
-  };
-
-  const iconBubble = {
-    primary: 'bg-sky-500/20 text-sky-400 border-sky-400/40',
-    purple: 'bg-purple-500/20 text-purple-400 border-purple-400/40',
-    green: 'bg-emerald-500/20 text-emerald-400 border-emerald-400/40',
-    amber: 'bg-amber-500/20 text-amber-400 border-amber-400/40',
-    red: 'bg-rose-500/20 text-rose-400 border-rose-400/40',
-  };
-
-  const sparkColor = {
-    primary: '#38bdf8',
-    purple: '#a855f7',
-    green: '#34d399',
-    amber: '#fbbf24',
-    red: '#fb7185',
+  const iconTone = {
+    primary: 'text-brand-primary bg-brand-primary/10',
+    purple: 'text-indigo-500 dark:text-indigo-400 bg-indigo-500/10',
+    green: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10',
+    amber: 'text-amber-600 dark:text-amber-400 bg-amber-500/10',
+    red: 'text-rose-600 dark:text-rose-400 bg-rose-500/10',
   };
 
   return (
     <div
-      className={`relative overflow-hidden border rounded-2xl p-4 backdrop-blur-md card-interactive flex flex-col justify-between min-h-[124px] ${kpiTheme[accent]} ${className}`}
+      className={`glass-panel border border-border-light rounded-2xl p-5 card-interactive flex flex-col justify-between min-h-[118px] ${className}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {icon && (
-            <div
-              className={`w-10 h-10 rounded-full border flex items-center justify-center flex-shrink-0 ${iconBubble[accent]}`}
-            >
-              {icon}
-            </div>
-          )}
-          <div>
-            <span className="text-xs font-medium text-text-secondary block">
-              {label}
-            </span>
-            <div className="text-2xl font-bold font-mono tracking-tight text-text-primary mt-0.5">
-              {value}
-            </div>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-medium text-text-muted">
+          {label}
+        </span>
+        {icon && (
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${iconTone[accent]}`}>
+            {icon}
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="flex items-end justify-between gap-2 mt-2">
-        {subtext ? (
-          <p className="text-[11px] font-medium text-text-muted leading-snug">
+      <div className="mt-3">
+        <div className="text-2xl font-bold font-mono tracking-tight text-text-primary">
+          {value}
+        </div>
+        {subtext && (
+          <p className="text-[11px] text-text-muted mt-1 leading-snug">
             {subtext}
           </p>
-        ) : (
-          <span />
         )}
-
-        {/* Mini Sparkline Wave (Reference Inspired) */}
-        <svg className="w-16 h-7 flex-shrink-0 opacity-85" viewBox="0 0 64 28" fill="none">
-          <path
-            d="M2 24 C10 24, 14 14, 22 16 C30 18, 34 8, 42 12 C50 16, 54 4, 62 6"
-            stroke={sparkColor[accent]}
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          <path
-            d="M2 24 C10 24, 14 14, 22 16 C30 18, 34 8, 42 12 C50 16, 54 4, 62 6 L62 28 L2 28 Z"
-            fill={sparkColor[accent]}
-            fillOpacity="0.18"
-          />
-        </svg>
       </div>
     </div>
   );

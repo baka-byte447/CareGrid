@@ -8,6 +8,7 @@ import {
 } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthContext';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { MetricCard } from '@/components/domain/MetricCard';
 import { TableSkeleton } from '@/components/feedback/Skeletons';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { EmptyState } from '@/components/feedback/EmptyState';
@@ -108,36 +109,42 @@ export const EquipmentPage: React.FC = () => {
 
       {/* Summary KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface shadow-card">
-          <span className="text-xs text-text-muted uppercase font-semibold">Total Inventory</span>
-          <div className="text-2xl font-bold font-mono text-text-primary mt-1">{total}</div>
-          <span className="text-[11px] text-text-muted">Registered hospital units</span>
-        </div>
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface shadow-card">
-          <span className="text-xs text-text-muted uppercase font-semibold">Available</span>
-          <div className="text-2xl font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-1">
-            {available}
-          </div>
-          <span className="text-[11px] text-text-muted">Ready for deployment</span>
-        </div>
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface shadow-card">
-          <span className="text-xs text-text-muted uppercase font-semibold">In Active Use</span>
-          <div className="text-2xl font-bold font-mono text-sky-600 dark:text-sky-400 mt-1">
-            {inUse}
-          </div>
-          <span className="text-[11px] text-text-muted">Attached to patient beds</span>
-        </div>
-        <div className="p-4 rounded-xl border border-border-light bg-bg-surface shadow-card">
-          <span className="text-xs text-text-muted uppercase font-semibold">In Maintenance</span>
-          <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-1">
-            {maintenance}
-          </div>
-          <span className="text-[11px] text-text-muted">Servicing / Calibration</span>
-        </div>
+        <MetricCard
+          className="animate-slide-up stagger-1"
+          label="Total Inventory"
+          value={total}
+          subtext="Registered hospital units"
+          icon={<Stethoscope className="w-5 h-5" />}
+          accent="primary"
+        />
+        <MetricCard
+          className="animate-slide-up stagger-2"
+          label="Available"
+          value={available}
+          subtext="Ready for deployment"
+          icon={<Wind className="w-5 h-5" />}
+          accent="green"
+        />
+        <MetricCard
+          className="animate-slide-up stagger-3"
+          label="In Active Use"
+          value={inUse}
+          subtext="Attached to patient beds"
+          icon={<Activity className="w-5 h-5" />}
+          accent="purple"
+        />
+        <MetricCard
+          className="animate-slide-up stagger-4"
+          label="In Maintenance"
+          value={maintenance}
+          subtext="Servicing / Calibration"
+          icon={<Wrench className="w-5 h-5" />}
+          accent="amber"
+        />
       </div>
 
       {/* Filter and Search */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-bg-surface border border-border-light rounded-xl shadow-card text-xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 glass-panel border border-border-light rounded-2xl text-xs">
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <Select
             value={typeFilter}

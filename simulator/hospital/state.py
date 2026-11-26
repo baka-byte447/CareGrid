@@ -50,6 +50,16 @@ class HospitalState:
         return [e for e in self.equipment.values()
                 if e.type == "VENTILATOR" and e.status == "AVAILABLE"]
 
+    def maintenance_ventilators(self) -> List[Equipment]:
+        return [e for e in self.equipment.values()
+                if e.type == "VENTILATOR" and e.status == "MAINTENANCE"]
+
+    def cleaning_beds_by_type(self, bed_type: str) -> List[Bed]:
+        return [b for b in self.beds_by_type(bed_type) if b.status == "CLEANING"]
+
+    def staff_by_skill(self, skill_level: str) -> List[StaffMember]:
+        return [s for s in self.staff.values() if s.skill_level == skill_level]
+
     def snapshot(self) -> dict:
         """A point-in-time summary of hospital occupancy ."""
         summary = {}

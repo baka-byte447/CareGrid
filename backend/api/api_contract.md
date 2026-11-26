@@ -88,6 +88,51 @@ roles currently accepted by each route, not an inferred permission matrix.
 }
 ```
 
+### `POST /patients/intake`
+
+- **Purpose:** Register a new patient (or readmit a discharged patient) and create a `WAITING` Encounter.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`, `nurse`.
+- **Request body:** `PatientIntakeRequest` (`patient_id` optional; auto-generated if omitted).
+- **Success:** `201 Created`; `PatientIntakeResponse`.
+- **Common errors:** `400` validation error; `401` missing/invalid/inactive credentials; `403` role not allowed; `409` patient already has an active waiting or admitted status; `422` invalid request body.
+
+### `POST /patients/{patient_id}/discharge` and `POST /encounters/{encounter_id}/discharge`
+
+- **Purpose:** Discharge an admitted patient/encounter, releasing all active bed and equipment assignments, moving the bed to `CLEANING`, and marking the patient `DISCHARGED`.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`.
+- **Request body:** Optional `DischargeRequest`.
+- **Success:** `200 OK`; `DischargeResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed; `404` patient or encounter not found; `409` encounter is not admitted or has no active assignment.
+
+### `POST /patients/{patient_id}/transfer` and `POST /encounters/{encounter_id}/transfer`
+
+- **Purpose:** Transfer an admitted patient/encounter to another compatible `AVAILABLE` bed, closing the prior `BedAssignment`, moving the old bed to `CLEANING`, and recording a new `BedAssignment`.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`.
+- **Request body:** `TransferRequest`.
+- **Success:** `200 OK`; `TransferResponse`.
+- **Common errors:** `400` incompatible destination bed; `401` missing/invalid/inactive credentials; `403` role not allowed; `404` patient, encounter, or bed not found; `409` encounter not admitted or bed unavailable.
+
+### `POST /beds/{bed_id}/cleaning-complete`
+
+- **Purpose:** Mark a `CLEANING` bed as `AVAILABLE`.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `nurse`, `operator`.
+- **Request:** No body.
+- **Success:** `200 OK`; `BedCleaningResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed; `404` bed not found; `409` bed is not in `CLEANING` status or still has an active assignment.
+
+### `POST /equipment/{equipment_id}/assign` and `POST /equipment/{equipment_id}/release`
+
+- **Purpose:** Assign an `AVAILABLE` equipment item to an admitted encounter or release an `IN_USE` equipment item from its active encounter assignment.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`, `nurse`.
+- **Request body:** `EquipmentAssignRequest` / optional `EquipmentReleaseRequest`.
+- **Success:** `200 OK`; `EquipmentAssignmentResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed; `404` equipment, patient, or encounter not found; `409` encounter not admitted, equipment unavailable, or no active assignment.
+
 ### `GET /beds`
 
 - **Purpose:** List beds and their current state.
@@ -473,3 +518,20 @@ be `null` depending on the simulated state.
 Public `POST /auth/register` is not registered and is unavailable (an unknown
 route returns `404`). Account creation is administrator-only through
 `POST /auth/users`.
+
+## Simulated Time & Lifecycle Reconciliation
+
+- **Simulated clock:** `build_hospital_state()` derives `state.current_time` from
+  the latest `patients.arrival_time` in the database (stored as naive simulated
+  datetime) rather than wall-clock UTC, falling back to UTC now only when the
+  database has no patients. Wait-time calculations, G2 max-wait guardrails, and
+  RL `wait_so_far` observations all operate on this simulated timeline.
+- **Queue membership & status:** `encounters.status` is the authoritative
+  lifecycle status (`WAITING`, `ADMITTED`, `DISCHARGED`), and
+  `patients.current_status` is kept in sync as a denormalized cache by
+  `backend/services/patient_lifecycle.py`.
+- **Import & reconciliation:** `backend/import_data.py` creates `WAITING`
+  `Encounter` rows for imported `WAITING` patients. Legacy `OCCUPIED` beds
+  without `BedAssignment` rows are not backfilled with fabricated assignment
+  history; `backend/reconcile_encounters.py` can be run idempotently to backfill
+  missing `WAITING` encounters and report orphaned `OCCUPIED` beds.

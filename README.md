@@ -36,7 +36,7 @@ _Last updated: 2026-11-23_
 - [x] Policy evaluation harness: baselines and learned agents scored by the same metrics (`python -m rl.evaluation.evaluate`)
 - [x] DQN agent trained on the simulator and compared with the baseline
 - [x] Safety layer (independent validation of every proposed action)
-- [x] Hierarchical MARL (Bed Agent + Surge Agent, `rl/marl`)
+- [x] 3-Agent Hierarchical MARL (Bed Agent + Surge Agent + Resource Manager Agent, `rl/marl`)
 
 **Application**
 - [x] PostgreSQL schema, Alembic migrations, CSV import
@@ -51,7 +51,7 @@ _Last updated: 2026-11-23_
 - [ ] End-to-end demo
 
 **Quality**
-- [x] Automated tests: **302 tests passing** — simulator, metrics, load calibration, LOS model, Gymnasium env, DQN / Double DQN, safety layer, serving parity, MARL, shortage scenarios
+- [x] Automated tests: **305 tests passing** — simulator, metrics, load calibration, LOS model, Gymnasium env, DQN / Double DQN, safety layer, serving parity, MARL (Surge + Resource Manager), shortage scenarios
 
 ### Quick start
 
@@ -70,6 +70,10 @@ python -m ml.los.train                         # train LOS model once (model fil
 python -m rl.training.run_experiments          # run all factor experiments (X0-X7)
 python -m rl.training.train --factor x6_obs_v2 --steps 300000   # single factor
 
+# -- MARL: Train & benchmark 3-agent system ---------------------------------
+python -m rl.marl.train_marl                   # train Surge Agent & Resource Manager
+python -m rl.marl.evaluate_marl --streams 50   # 50-seed benchmark across 7 scenarios
+
 # -- RL: Diagnose & evaluate -------------------------------------------------
 python -m rl.evaluation.diagnose --model rl/agents/models/x6_obs_v2/best.zip --mode surge
 python -m rl.evaluation.evaluate --policy rule_based --mode normal
@@ -82,7 +86,7 @@ uvicorn backend.api.main:app --reload          # FastAPI server  ->  http://loca
 cd frontend && npm install && npm run dev      # React dashboard ->  http://localhost:5173
 
 # -- Test suite --------------------------------------------------------------
-python -m pytest tests --ignore=tests/test_backend -q   # 290 tests, ~55 s
+python -m pytest tests --ignore=tests/test_backend -q   # 305 tests, ~50 s
 ```
 
 Work happens on short-lived `feature/<area>-<desc>` branches merged into `main` by pull request; `main` must always run.

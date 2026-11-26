@@ -155,9 +155,9 @@ def _validate_bed(encounter: Encounter, bed: Bed) -> None:
     except ValueError as exc:
         raise LifecycleValidationError("Invalid encounter acuity") from exc
     if bed.bed_type not in allowed_types:
-        raise LifecycleValidationError("Bed type is incompatible with encounter acuity")
+        raise LifecycleValidationError("Bed type is incompatible with patient acuity")
     if encounter.isolation_required and not bed.isolation_capable:
-        raise LifecycleValidationError("Encounter requires an isolation-capable bed")
+        raise LifecycleValidationError("Patient requires an isolation-capable bed")
 
 
 def _flush(db: Session) -> None:
@@ -235,6 +235,7 @@ def create_encounter(
         arrival_time=patient.arrival_time if arrival_time is None else arrival_time,
         status="WAITING",
     )
+    patient.current_status = "WAITING"
     db.add(encounter)
     _record(db, encounter, "ENCOUNTER_CREATED")
     _flush(db)
@@ -346,9 +347,9 @@ def discharge_encounter(
         equipment[assignment.equipment_id].status = "AVAILABLE"
     encounter.status = "DISCHARGED"
     encounter.discharged_at = now
-    # Keep the legacy API status limited to WAITING/ADMITTED while permitting
-    # a later admission to create a new Encounter for the same identity.
-    patient.current_status = "WAITING"
+    # Discharged patients leave the waiting queue; only a new admission
+    # (create_encounter) can place the patient back in WAITING.
+    patient.current_status = "DISCHARGED"
     _record(db, encounter, "DISCHARGED", bed.bed_id)
     _flush(db)
     return encounter

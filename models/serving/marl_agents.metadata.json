@@ -1,0 +1,7 @@
+{
+  "episodes": 30,
+  "bed_model": "models/serving/dqn_x6_obs_v2.npz",
+  "surge_agent": "models\\serving\\surge_agent.npz",
+  "resource_agent": "models\\serving\\resource_agent.npz",
+  "mean_reward_last_10": -267.6868
+}

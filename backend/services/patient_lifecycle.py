@@ -72,7 +72,6 @@ def _lock_encounter(db: Session, encounter_id: int) -> Encounter:
         select(Encounter)
         .where(Encounter.encounter_id == encounter_id)
         .with_for_update()
-        .execution_options(populate_existing=True)
     ).scalar_one_or_none()
     if encounter is None:
         raise LifecycleNotFound("Encounter not found")
@@ -87,10 +86,7 @@ def _lock_patient_then_encounter(db: Session, encounter_id: int) -> tuple[Patien
     if patient_id is None:
         raise LifecycleNotFound("Encounter not found")
     patient = db.execute(
-        select(Patient)
-        .where(Patient.patient_id == patient_id)
-        .with_for_update()
-        .execution_options(populate_existing=True)
+        select(Patient).where(Patient.patient_id == patient_id).with_for_update()
     ).scalar_one_or_none()
     if patient is None:
         raise LifecycleNotFound("Patient not found")
@@ -252,8 +248,6 @@ def approve_encounter(
 ) -> Encounter:
     """Admit a waiting Encounter and atomically assign its bed/equipment."""
     patient, encounter = _lock_patient_then_encounter(db, encounter_id)
-    if patient.current_status.upper() != "WAITING":
-        raise LifecycleConflict("Patient is not waiting for admission")
     if encounter.status.upper() != "WAITING":
         raise LifecycleConflict("Encounter is not waiting for allocation")
     actor = _actor_id(actor_id)

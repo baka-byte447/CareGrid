@@ -30,7 +30,7 @@ describe('HTTP API Client', () => {
       json: async () => fakeResponse,
     } as unknown as Response);
 
-    const payload = { recommendation_id: 12 };
+    const payload = { patient_id: 'PAT-01', bed_id: 'ICU-01' };
     const result = await apiPost('/allocation/approve', payload);
     expect(result).toEqual(fakeResponse);
     expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -50,7 +50,7 @@ describe('HTTP API Client', () => {
     } as unknown as Response);
 
     await expect(
-      apiPost('/allocation/approve', { recommendation_id: 12 })
+      apiPost('/allocation/approve', { patient_id: 'P1', bed_id: 'B1' })
     ).rejects.toThrow(ApiRequestError);
   });
 

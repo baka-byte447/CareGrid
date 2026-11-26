@@ -88,7 +88,6 @@ describe('TanStack Query Hooks Integration', () => {
 
   it('useRecommendAllocation sends the selected DQN algorithm', async () => {
     const dqnResponse = {
-      recommendation_id: 801,
       patient_id: 'PAT-001',
       recommended_bed_id: 'ICU-01',
       algorithm: 'dqn_safe',
@@ -134,7 +133,6 @@ describe('TanStack Query Hooks Integration', () => {
       ok: true,
       status: 200,
       json: async () => ({
-        recommendation_id: 802,
         patient_id: 'PAT-001',
         recommended_bed_id: 'ICU-01',
         algorithm: 'rule_based',

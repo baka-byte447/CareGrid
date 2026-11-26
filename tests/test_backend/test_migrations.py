@@ -69,27 +69,8 @@ def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
         "staff",
         "users",
         "_alembic_users_created_by_migration",
-        "allocation_recommendations",
     }
     assert expected_tables.issubset(tables), f"Missing tables: {expected_tables - tables}"
-
-    recommendation_cols = {
-        c["name"]: c for c in insp.get_columns("allocation_recommendations")
-    }
-    for col_name in ("decision_status", "decision_reason", "decided_by", "decided_at"):
-        assert col_name in recommendation_cols
-        assert recommendation_cols[col_name]["nullable"]
-    recommendation_fks = insp.get_foreign_keys("allocation_recommendations")
-    assert any(
-        fk.get("constrained_columns") == ["decided_by"]
-        and fk.get("referred_table") == "users"
-        for fk in recommendation_fks
-    )
-    recommendation_indexes = {
-        idx["name"] for idx in insp.get_indexes("allocation_recommendations")
-    }
-    assert "ix_allocation_recommendations_decision_status_decided_at" in recommendation_indexes
-    assert "ix_allocation_recommendations_decided_by" in recommendation_indexes
 
     # Verify users columns
     user_cols = {c["name"]: c for c in insp.get_columns("users")}
@@ -103,7 +84,7 @@ def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
     assert "ix_users_username" in user_indexes
     assert "ix_users_email" in user_indexes
 
-    # 2. Downgrade only the decision-tracking revision.
+    # 2. Downgrade only the latest lifecycle revision; users remains applied.
     engine.dispose()
     command.downgrade(cfg, "-1")
 
@@ -111,16 +92,9 @@ def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
     insp = inspect(engine)
     tables_after_downgrade = set(insp.get_table_names())
 
-    assert "allocation_recommendations" in tables_after_downgrade
-    cols_after_downgrade = {
-        c["name"] for c in insp.get_columns("allocation_recommendations")
-    }
-    assert {"decision_status", "decision_reason", "decided_by", "decided_at"}.isdisjoint(
-        cols_after_downgrade
-    )
-    assert {"encounters", "bed_assignments", "equipment_assignments"}.issubset(
+    assert {"encounters", "bed_assignments", "equipment_assignments"}.isdisjoint(
         tables_after_downgrade
-    ), "The preceding lifecycle revision should remain applied"
+    ), "Lifecycle tables were not removed by downgrading the latest revision"
     assert "users" in tables_after_downgrade, "users table should remain after one-revision downgrade"
     assert "_alembic_users_created_by_migration" in tables_after_downgrade, (
         "users migration marker should remain after one-revision downgrade"
@@ -129,38 +103,18 @@ def test_fresh_database_upgrade_and_downgrade(temp_alembic_db):
         "Other tables must remain intact after downgrade"
     )
 
-    # 3. Downgrade recommendation history; the lifecycle revision remains.
+    # 3. Full downgrade explicitly reverses the users revision too.
     engine.dispose()
-    command.downgrade(cfg, "-1")
-
-    engine = create_engine(db_url)
-    tables_after_history_downgrade = set(inspect(engine).get_table_names())
-    assert "allocation_recommendations" not in tables_after_history_downgrade
-    assert {"encounters", "bed_assignments", "equipment_assignments"}.issubset(
-        tables_after_history_downgrade
-    )
-    assert "users" in tables_after_history_downgrade
-    engine.dispose()
-
-    # 4. Downgrade lifecycle tables; users remains.
-    command.downgrade(cfg, "-1")
-    engine = create_engine(db_url)
-    tables_after_lifecycle_downgrade = set(inspect(engine).get_table_names())
-    assert {"encounters", "bed_assignments", "equipment_assignments"}.isdisjoint(
-        tables_after_lifecycle_downgrade
-    )
-    assert "users" in tables_after_lifecycle_downgrade
-    engine.dispose()
-
-    # 5. Full downgrade explicitly reverses the users migration too.
     command.downgrade(cfg, "base")
+
     engine = create_engine(db_url)
     tables_after_full_downgrade = set(inspect(engine).get_table_names())
     assert "users" not in tables_after_full_downgrade
     assert "_alembic_users_created_by_migration" not in tables_after_full_downgrade
     engine.dispose()
 
-    # 6. Upgrade back to head re-creates the full schema.
+    # 4. Upgrade back to head re-creates the full schema.
+    engine.dispose()
     command.upgrade(cfg, "head")
 
     engine = create_engine(db_url)

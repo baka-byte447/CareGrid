@@ -119,6 +119,9 @@ def test_full_operational_workflow_lifecycle(client, db_session):
     assert db_session.get(Patient, "WF0001").current_status == "ADMITTED"
     assert db_session.get(Bed, bed_1_id).status == "OCCUPIED"
 
+    listed_beds = {bed["bed_id"]: bed for bed in client.get("/beds").json()["beds"]}
+    assert listed_beds[bed_1_id]["patient_id"] == "WF0001"
+
     bed_assignments = db_session.query(BedAssignment).filter_by(encounter_id=encounter_id).all()
     assert len(bed_assignments) == 1
     assert bed_assignments[0].bed_id == bed_1_id
@@ -192,6 +195,10 @@ def test_full_operational_workflow_lifecycle(client, db_session):
     db_session.expire_all()
     assert db_session.get(Bed, bed_1_id).status == "CLEANING"
     assert db_session.get(Bed, bed_2.bed_id).status == "OCCUPIED"
+    listed_beds = {bed["bed_id"]: bed for bed in client.get("/beds").json()["beds"]}
+    assert listed_beds[bed_1_id]["patient_id"] is None
+    assert listed_beds[bed_2.bed_id]["patient_id"] == "WF0001"
+
     history = (
         db_session.query(BedAssignment)
         .filter_by(encounter_id=encounter_id)
@@ -248,6 +255,10 @@ def test_full_operational_workflow_lifecycle(client, db_session):
     assert set(discharge_body["released_equipment_ids"]) == {vent_id, monitor.equipment_id}
     assert discharge_body["patient_status"] == "DISCHARGED"
     assert discharge_body["encounter_status"] == "DISCHARGED"
+
+    listed_beds = {bed["bed_id"]: bed for bed in client.get("/beds").json()["beds"]}
+    assert listed_beds[bed_1_id]["patient_id"] == "WF0002"
+    assert listed_beds[bed_2.bed_id]["patient_id"] is None
 
     db_session.expire_all()
     assert db_session.get(Bed, bed_2.bed_id).status == "CLEANING"

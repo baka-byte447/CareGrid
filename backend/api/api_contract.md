@@ -49,7 +49,7 @@ Permission matrix: `beds:create` is admin only; `beds:release` is granted to adm
 
 ### `GET /beds`
 
-Returns bed identifiers, types, wards, statuses, and isolation capability. Requires `beds:read`.
+Returns bed identifiers, types, wards, statuses, isolation capability, and the current `patient_id` for occupied beds with an active admitted assignment. Otherwise, `patient_id` is null. Requires `beds:read`.
 
 ### `POST /beds`
 
@@ -188,7 +188,8 @@ roles currently accepted by each route, not an inferred permission matrix.
       "bed_type": "ICU",
       "ward": "ICU-Alpha",
       "status": "OCCUPIED",
-      "isolation_capable": true
+      "isolation_capable": true,
+      "patient_id": "P001"
     }
   ]
 }

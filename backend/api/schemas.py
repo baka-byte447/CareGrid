@@ -212,8 +212,12 @@ class BedItemResponse(BaseModel):
     isolation_capable: bool
 
 
+class BedListItemResponse(BedItemResponse):
+    patient_id: str | None
+
+
 class BedsResponse(BaseModel):
-    beds: list[BedItemResponse]
+    beds: list[BedListItemResponse]
 
 
 class StaffItemResponse(BaseModel):

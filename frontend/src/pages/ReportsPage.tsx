@@ -56,7 +56,7 @@ export const ReportsPage: React.FC = () => {
 
   // 3. Ward Utilization data
   const wardData = useMemo(() => {
-    const map: Record<string, { total: number; occupied: number }> = {};
+    const map: Record<string, { total: number; occupied: number }> = Object.create(null);
     beds.forEach((b) => {
       if (!map[b.ward]) map[b.ward] = { total: 0, occupied: 0 };
       map[b.ward].total++;

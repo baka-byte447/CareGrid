@@ -2,7 +2,7 @@ import os
 import uuid
 from datetime import datetime, timedelta, timezone
 from fastapi import Body, Depends, FastAPI, HTTPException
-from sqlalchemy import select, update
+from sqlalchemy import and_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from backend.api.auth import router as auth_router
@@ -494,7 +494,24 @@ def get_beds(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("beds:read")),
 ):
-    beds = db.query(Bed).all()
+    beds = db.execute(
+        select(Bed, Encounter.patient_id)
+        .outerjoin(
+            BedAssignment,
+            and_(
+                BedAssignment.bed_id == Bed.bed_id,
+                BedAssignment.released_at.is_(None),
+                Bed.status == "OCCUPIED",
+            ),
+        )
+        .outerjoin(
+            Encounter,
+            and_(
+                Encounter.encounter_id == BedAssignment.encounter_id,
+                Encounter.status == "ADMITTED",
+            ),
+        )
+    ).all()
 
     return {
         "beds": [
@@ -504,8 +521,9 @@ def get_beds(
                 "ward": bed.ward,
                 "status": bed.status,
                 "isolation_capable": bed.isolation_capable,
+                "patient_id": patient_id,
             }
-            for bed in beds
+            for bed, patient_id in beds
         ]
     }
 

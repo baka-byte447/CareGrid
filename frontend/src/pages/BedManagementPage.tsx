@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useBeds, useCompleteBedCleaning, getErrorMessage } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthContext';
+import { AddBedDialog } from './AddBedDialog';
 import { Bed } from '@/api/schemas';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { MetricCard } from '@/components/domain/MetricCard';
@@ -14,7 +15,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Input';
 import { formatPct } from '@/lib/format';
-import { BedDouble, Shield, RefreshCw, Sparkles, CheckCircle, Activity } from 'lucide-react';
+import { BedDouble, Shield, RefreshCw, Sparkles, CheckCircle, Activity, Plus } from 'lucide-react';
 
 export const BedManagementPage: React.FC = () => {
   const { user } = useAuth();
@@ -25,12 +26,14 @@ export const BedManagementPage: React.FC = () => {
   const canCompleteCleaning =
     user?.role === 'admin' || user?.role === 'nurse' || user?.role === 'operator';
 
-  const [wardFilter, setWardFilter] = useState('ALL');
+  const [isAddBedOpen, setAddBedOpen] = useState(false);
+  const [wardFilter, setWardFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isolationFilter, setIsolationFilter] = useState(false);
-  const [inspectedBed, setInspectedBed] = useState<Bed | null>(null);
+  const [inspectedBedId, setInspectedBedId] = useState<string | null>(null);
 
   const beds: Bed[] = useMemo(() => data || [], [data]);
+  const inspectedBed = beds.find((bed) => bed.bed_id === inspectedBedId);
 
   // Extract unique ward names
   const wards = useMemo(() => {
@@ -42,7 +45,7 @@ export const BedManagementPage: React.FC = () => {
   // Filter beds
   const filteredBeds = useMemo(() => {
     return beds.filter((b) => {
-      if (wardFilter !== 'ALL' && b.ward !== wardFilter) return false;
+      if (wardFilter !== '' && b.ward !== wardFilter) return false;
       if (statusFilter !== 'ALL' && b.status !== statusFilter) return false;
       if (isolationFilter && !b.isolation_capable) return false;
       return true;
@@ -51,7 +54,7 @@ export const BedManagementPage: React.FC = () => {
 
   // Group filtered beds by ward
   const bedsByWard = useMemo(() => {
-    const groups: Record<string, Bed[]> = {};
+    const groups: Record<string, Bed[]> = Object.create(null);
     filteredBeds.forEach((bed) => {
       if (!groups[bed.ward]) {
         groups[bed.ward] = [];
@@ -97,16 +100,27 @@ export const BedManagementPage: React.FC = () => {
         title="Hospital Bed Management"
         description="Real-time bed availability across clinical wards and isolation facilities."
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-          >
-            Refresh
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+            >
+              Refresh
+            </Button>
+            {user?.role === 'admin' && (
+              <Button size="sm" onClick={() => setAddBedOpen(true)} leftIcon={<Plus className="w-3.5 h-3.5" />}>
+                Add Bed
+              </Button>
+            )}
+          </>
         }
       />
+
+      {user?.role === 'admin' && isAddBedOpen && (
+        <AddBedDialog wards={wards} onClose={() => setAddBedOpen(false)} />
+      )}
 
       {/* Summary KPI Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -152,7 +166,7 @@ export const BedManagementPage: React.FC = () => {
             onChange={(e) => setWardFilter(e.target.value)}
             className="text-xs h-8"
           >
-            <option value="ALL">All Wards ({wards.length})</option>
+            <option value="">All Wards ({wards.length})</option>
             {wards.map((w) => (
               <option key={w} value={w}>
                 Ward: {w}
@@ -232,7 +246,7 @@ export const BedManagementPage: React.FC = () => {
                   <BedTile
                     key={bed.bed_id}
                     bed={bed}
-                    onClick={(b) => setInspectedBed(b)}
+                    onClick={(b) => setInspectedBedId(b.bed_id)}
                   />
                 ))}
               </div>
@@ -245,7 +259,7 @@ export const BedManagementPage: React.FC = () => {
       {inspectedBed && (
         <Dialog
           isOpen={!!inspectedBed}
-          onClose={() => setInspectedBed(null)}
+          onClose={() => setInspectedBedId(null)}
           title={`Bed Details — ${inspectedBed.bed_id}`}
           description={`Clinical Ward: ${inspectedBed.ward}`}
           maxWidth="sm"
@@ -265,7 +279,7 @@ export const BedManagementPage: React.FC = () => {
                           title: 'Cleaning Complete',
                           message: `Bed ${inspectedBed.bed_id} is now AVAILABLE.`,
                         });
-                        setInspectedBed(null);
+                        setInspectedBedId(null);
                       },
                       onError: (err) => {
                         showToast({
@@ -280,7 +294,7 @@ export const BedManagementPage: React.FC = () => {
                   Complete Cleaning
                 </Button>
               )}
-              <Button variant="secondary" size="sm" onClick={() => setInspectedBed(null)}>
+              <Button variant="secondary" size="sm" onClick={() => setInspectedBedId(null)}>
                 Close
               </Button>
             </div>
@@ -294,6 +308,16 @@ export const BedManagementPage: React.FC = () => {
                   {inspectedBed.bed_id}
                 </span>
               </div>
+              {inspectedBed.status === 'OCCUPIED' && (
+                <div className="flex justify-between items-center gap-3">
+                  <span className="text-text-muted">Patient ID</span>
+                  <span className="text-right font-semibold text-text-primary [overflow-wrap:anywhere]">
+                    {inspectedBed.patient_id === null
+                      ? 'No assignment recorded'
+                      : inspectedBed.patient_id ?? 'Unavailable'}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between items-center">
                 <span className="text-text-muted">Ward Location</span>
                 <span className="font-semibold text-text-primary">{inspectedBed.ward}</span>

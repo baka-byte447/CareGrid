@@ -40,6 +40,9 @@ class HospitalState:
     admitted_patients: Dict[str, str] = field(default_factory=dict)     
 
 
+    nurse_fatigue_index: float = 0.0
+    turnaround_overtime_minutes: float = 0.0
+
     def beds_by_type(self, bed_type: str) -> List[Bed]:
         return [b for b in self.beds.values() if b.bed_type == bed_type]
 

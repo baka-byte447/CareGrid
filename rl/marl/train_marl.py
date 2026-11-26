@@ -82,6 +82,8 @@ def train_marl(
                 s_act = surge_agent.predict(surge_obs)
 
             # 2. Resource Manager action (masked to valid interventions)
+            ma_env.current_mode = s_act
+            res_obs = ma_env.get_resource_obs()
             res_mask = ma_env.valid_resource_actions()
             if rng.random() < eps:
                 valid_idx = np.flatnonzero(res_mask)
@@ -104,7 +106,8 @@ def train_marl(
 
             # Q-learning update for ResourceManagerAgent
             resource_agent.update(
-                res_obs, r_act, reward, next_res_obs, done, lr=lr, gamma=gamma
+                res_obs, r_act, reward, next_res_obs, done, lr=lr, gamma=gamma,
+                fatigue=step_info["fatigue"], overtime=step_info["overtime"],
             )
 
             surge_obs = next_surge_obs

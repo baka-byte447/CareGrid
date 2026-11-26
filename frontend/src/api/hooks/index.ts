@@ -343,6 +343,7 @@ export function useRejectAllocation() {
 }
 
 export interface SurgeArgs {
+  adaptive?: boolean
   arrival_rate_multiplier: number
   duration_hours: number
 }

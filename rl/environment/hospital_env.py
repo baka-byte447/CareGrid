@@ -202,7 +202,7 @@ class CareGridHospitalEnv(gym.Env):
         super().reset(seed=seed)
         # Seed is accepted for Gymnasium reproducibility. The supplied patient
         # arrival file is fixed; stochastic extensions should use self.np_random.
-        self.state = load_hospital_state(str(self.data_dir), start_empty=True)
+        self.state = (options or {}).get("initial_state") or load_hospital_state(str(self.data_dir), start_empty=True)
         shortage = (options or {}).get("shortage_scenario") or self.shortage_scenario
         if shortage:
             from simulator.hospital.scenarios import apply_shortage
@@ -217,7 +217,8 @@ class CareGridHospitalEnv(gym.Env):
             raise ValueError("The episode has no patients (empty file, stream or options)")
         self._patients = {patient.patient_id: patient for patient in loaded_patients}
         self._los_estimates = self._estimate_los(loaded_patients)
-        self.engine = SimulationEngine(self.state, list(self._patients.values()))
+        self.engine = SimulationEngine(self.state, list(self._patients.values()), seed=seed or 0,
+                                       deterioration=(options or {}).get("deterioration", False))
         self._user_tick = (options or {}).get("on_tick")
         self._tracker.reset()
         self.engine.enable_external_decisions(on_tick=self._on_tick)

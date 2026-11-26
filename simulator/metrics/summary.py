@@ -27,7 +27,7 @@ def compute_metrics(engine, collector: MetricsCollector, as_of=None) -> Dict:
 
     waits_by_acuity={}
     for a in range(1,6):
-        w = [p.wait_minutes for p in patients if p.acuity == a and p.wait_minutes is not None]
+        w = [p.wait_minutes for p in patients if (p.admission_acuity or p.acuity) == a and p.wait_minutes is not None]
         waits_by_acuity[str(a)] = round(sum(w) / len(w), 2) if w else None
 
     # Patients never admitted would otherwise be silently dropped from the averages,

@@ -50,6 +50,8 @@ class CareGridMAEnv(gym.Env):
         super().__init__()
         self.env = base_env or CareGridHospitalEnv(observation_version=2)
         self.macro_interval = int(macro_interval)
+        if self.macro_interval < 1:
+            raise ValueError("macro_interval must be positive")
         self.icu_reserve_ratio = float(icu_reserve_ratio)
         self.resource_intervention_cost = float(resource_intervention_cost)
 
@@ -160,18 +162,23 @@ class CareGridMAEnv(gym.Env):
         mask[RESOURCE_EXPEDITE_CLEANING] = bool(
             state.cleaning_beds_by_type("ICU") or state.cleaning_beds_by_type("STEP_DOWN")
         )
+        mask[RESOURCE_EXPEDITE_CLEANING] &= state.turnaround_overtime_minutes < 300
         mask[RESOURCE_MOBILIZE_VENT] = bool(state.maintenance_ventilators())
         mask[RESOURCE_FLOAT_STAFF] = bool(
             state.staff_by_skill("General") or state.staff_by_skill("Step-down")
         )
+        if state.nurse_fatigue_index > 0.7 and self.current_mode == MODE_NORMAL:
+            mask[RESOURCE_FLOAT_STAFF] &= self._check_macro_interrupt(state, self.env.current_patient)
         return mask
 
     def _apply_resource_action(self, action: int) -> Tuple[bool, float]:
         """Execute a Resource Manager intervention on the underlying engine."""
         engine = self.env.engine
-        if engine is None or action == RESOURCE_HOLD:
+        if engine is None:
             return False, 0.0
-
+        engine.denied_overtime = 0.0
+        if action == RESOURCE_HOLD:
+            return False, 0.0
         applied = False
         if action == RESOURCE_EXPEDITE_CLEANING:
             acc_icu = engine.expedite_cleaning("ICU", minutes=10)
@@ -192,7 +199,7 @@ class CareGridMAEnv(gym.Env):
         self, *, seed: Optional[int] = None, options: Optional[dict] = None
     ) -> Tuple[np.ndarray, Dict[str, Any]]:
         super().reset(seed=seed)
-        obs, info = self.env.reset(seed=seed, options=options)
+        obs, info = self.env.reset(seed=seed, options={"deterioration": True, **(options or {})})
         self.current_mode = MODE_NORMAL
         self.episode_decisions = 0
         self.mode_history = []
@@ -227,6 +234,17 @@ class CareGridMAEnv(gym.Env):
                 return tier_idx
         return WAIT_ACTION
 
+    def _check_macro_interrupt(self, state, current_patient) -> bool:
+        if current_patient is None:
+            return False
+        if current_patient.acuity == 5 and len(state.available_beds_by_type("ICU")) <= 1:
+            return True
+        occupied = sum(b.status == "OCCUPIED" for b in state.beds.values())
+        if state.beds and occupied / len(state.beds) >= 0.90 and self.current_mode == MODE_NORMAL:
+            return True
+        waiting = (self.env._patients[key] for key in state.waiting_queue)
+        return sum(p.acuity >= 4 or p.ventilator_required for p in waiting) >= 5
+
     def step(
         self,
         action: Union[int, Tuple[int, int], Dict[str, int]],
@@ -253,10 +271,17 @@ class CareGridMAEnv(gym.Env):
         truncated = False
         last_micro_info = {}
 
+        interrupted = False
+        fatigue = self.env.state.nurse_fatigue_index
+        overtime = self.env.state.turnaround_overtime_minutes + self.env.engine.denied_overtime
         for _ in range(self.macro_interval):
             if self.env._done:
                 break
 
+            # Return control to both external policies before allocating the pending arrival.
+            if decisions_executed and self._check_macro_interrupt(self.env.state, self.env.current_patient):
+                interrupted = True
+                break
             micro_obs = self.env._observation()
             bed_action = self._select_bed_action(micro_obs)
             next_obs, r, term, trunc, info = self.env.step(bed_action)
@@ -284,6 +309,9 @@ class CareGridMAEnv(gym.Env):
             "resource_intervened": intervened,
             "resource_obs": resource_obs,
             "decisions_in_macro_step": decisions_executed,
+            "macro_interrupt": interrupted,
+            "fatigue": fatigue,
+            "overtime": overtime,
             "total_decisions": self.episode_decisions,
             "micro_info": last_micro_info,
         }

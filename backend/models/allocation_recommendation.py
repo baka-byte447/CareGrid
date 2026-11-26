@@ -13,6 +13,7 @@ from backend.db.database import Base
 
 
 class AllocationRecommendation(Base):
+    explanation: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     __tablename__ = "allocation_recommendations"
     __table_args__ = (
         Index("ix_allocation_recommendations_patient_created", "patient_id", "created_at"),

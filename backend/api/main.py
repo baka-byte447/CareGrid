@@ -76,6 +76,8 @@ def get_allocation_service() -> AllocationService:
         _allocation_service = AllocationService(model_path=model_path)
     return _allocation_service
 
+from dataclasses import asdict
+from rl.serving.explainability import explain, ACTIONS
 from pathlib import Path
 
 from simulator.hospital.allocation_rules import candidate_bed_types
@@ -93,7 +95,12 @@ app = FastAPI(
     version="1.0.0",
 )
 
+from backend.api.telemetry import router as telemetry_router
+from backend.api.fhir import router as fhir_router
+
 app.include_router(auth_router)
+app.include_router(telemetry_router)
+app.include_router(fhir_router, prefix="/fhir")
 
 def _persist_recommendation(
     db: Session,
@@ -133,6 +140,7 @@ def _persist_recommendation(
             safety_rule_triggered=safety.get("rule_triggered"),
             safety_original_action=safety.get("original_action"),
             safety_reason=safety.get("reason"),
+            explanation=response.get("explanation"),
             q_values=response.get("q_values"),
             # ServingResult currently exposes no model version, so this remains NULL.
             model_version=None,
@@ -736,7 +744,7 @@ def release_equipment_endpoint(
     }
 
 
-@app.post("/allocation/recommend", response_model=AllocationRecommendResponse | DQNAllocationRecommendResponse,)
+@app.post("/allocation/recommend", response_model=AllocationRecommendResponse | DQNAllocationRecommendResponse, response_model_exclude_unset=True,)
 def recommend_allocation(
     request: AllocationRecommendRequest,
     db: Session = Depends(get_db),
@@ -769,12 +777,12 @@ def recommend_allocation(
             detail="Invalid patient acuity",
         )
 
+    sim_patient = to_simulator_patient(patient)
+    sim_state = build_hospital_state(db)
     # 4. Handle requested algorithm
     algo = getattr(request, "algorithm", "rule_based") or "rule_based"
     if algo == "dqn_safe":
         service = get_allocation_service()
-        sim_patient = to_simulator_patient(patient)
-        sim_state = build_hospital_state(db)
         all_waiting = db.query(Patient).filter(Patient.current_status == "WAITING").all()
         patients_by_id = {p.patient_id: to_simulator_patient(p) for p in all_waiting}
         res = service.recommend(sim_patient, sim_state, patients_by_id=patients_by_id)
@@ -784,6 +792,8 @@ def recommend_allocation(
             "algorithm": res.algorithm,
             "reason": "; ".join(res.reasons) if res.reasons else "",
             "status": res.status,
+            "explanation": asdict(explain(sim_patient, sim_state, res.proposed_action, res.final_action,
+                                          res.q_values, res.safety.to_dict())),
             "safety": res.safety.to_dict(),
             "q_values": res.q_values,
             "los_estimate_days": res.los_estimate_days,
@@ -796,17 +806,19 @@ def recommend_allocation(
             db, patient=patient, response=response, current_user=current_user
         )
 
+    # Legacy requests without an explicit algorithm retain their original response shape.
     # Default: rule-based allocation (same code the simulator uses)
     result = recommend(
-        to_simulator_patient(patient),
-        build_hospital_state(db),
-        DEFAULT_ALGORITHM,
+        sim_patient, sim_state, DEFAULT_ALGORITHM,
     )
 
+    action = ACTIONS.index(sim_state.beds[result.decision.bed_id].bed_type) if result.decision else 3
+    explanation = asdict(explain(sim_patient, sim_state, action, action, None, None))
     if result.decision is None:
         response = {
             "patient_id": patient.patient_id,
             "recommended_bed_id": None,
+            **({"explanation": explanation} if "algorithm" in request.model_fields_set else {}),
             "algorithm": DEFAULT_ALGORITHM,
             "reason": result.reason,
             "status": "NO_SUITABLE_BED",
@@ -818,6 +830,7 @@ def recommend_allocation(
     response = {
         "patient_id": patient.patient_id,
         "recommended_bed_id": result.decision.bed_id,
+        **({"explanation": explanation} if "algorithm" in request.model_fields_set else {}),
         "algorithm": DEFAULT_ALGORITHM,
         "reason": result.reason,
         "status": "RECOMMENDED",
@@ -1242,9 +1255,10 @@ def approve_allocation(
     }
 
 
-@app.post("/surge/simulate", response_model=SurgeSimulationResponse)
+@app.post("/surge/simulate", response_model=SurgeSimulationResponse, response_model_exclude_unset=True)
 def simulate_surge(
     request: SurgeSimulationRequest,
+    db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("surge:simulate")),
 ):
     try:
@@ -1274,12 +1288,23 @@ def simulate_surge(
 
         # Collect measurements across the requested simulation window.
         collector = MetricsCollector(window_start, window_end)
-        engine = SimulationEngine(state, patients)
-        engine.seed_arrivals()
-        engine.run(max_time=window_end, on_tick=collector.on_tick)
+        operations = None
+        if request.adaptive:
+            from backend.services.surge import run_adaptive
+            engine, interrupts = run_adaptive(state, patients, request.duration_hours, collector)
+            operations = {
+                "macro_interrupts": interrupts,
+                "fatigue": engine.state.nurse_fatigue_index,
+                "overtime_minutes": engine.state.turnaround_overtime_minutes,
+                "transfer_requests": len(engine.transfer_requests),
+            }
+        else:
+            engine = SimulationEngine(state, patients)
+            engine.seed_arrivals()
+            engine.run(max_time=window_end, on_tick=collector.on_tick)
 
         # Account for the interval between the last event and window end.
-        state.current_time = window_end
+        engine._advance_clock(window_end)
         collector.on_tick(state)
 
         patients_arrived = sum(
@@ -1307,8 +1332,16 @@ def simulate_surge(
             if elapsed_waits else 0.0,
         }
 
+        if operations is not None:
+            from backend.models import SurgeSimulationRun
+            operations.update(fatigue=state.nurse_fatigue_index, overtime_minutes=state.turnaround_overtime_minutes)
+            run = SurgeSimulationRun(requested_by=current_user.id, parameters=request.model_dump(),
+                                     operations=operations)
+            db.add(run)
+            db.commit()
         return {
             "status": "COMPLETED",
+            **({"operations": operations} if operations is not None else {}),
             "arrival_rate_multiplier": multiplier,
             "duration_hours": request.duration_hours,
             "patients_arrived": patients_arrived,

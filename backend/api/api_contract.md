@@ -622,3 +622,52 @@ route returns `404`). Account creation is administrator-only through
   without `BedAssignment` rows are not backfilled with fabricated assignment
   history; `backend/reconcile_encounters.py` can be run idempotently to backfill
   missing `WAITING` encounters and report orphaned `OCCUPIED` beds.
+
+
+## Clinical ingestion and monitoring
+
+Both FHIR endpoints accept R4 JSON and require the existing bearer permission
+`patients:intake`. A transaction Bundle can contain Patient, Encounter, Condition
+and Device entries in any order. Use POST with the resource type or PUT with
+`Type/id`. References can use local resource identities or a matching entry
+`fullUrl`. Unconditional writes are supported. Invalid input rolls back the
+transaction and returns a 422 OperationOutcome.
+
+New patient identities require a Condition referencing that patient with a
+`severity.coding` using system `urn:caregrid:acuity` and code 1 through 5.
+Patient extensions `urn:caregrid:isolation-required` and
+`urn:caregrid:ventilator-required` carry `valueBoolean`; the intake defaults
+are false. New records use General specialty and a three-day estimated stay.
+For in-progress encounters send one active location referencing
+`Location/<CareGrid bed ID>`. Changing the active location transfers an
+admitted encounter. Finished encounters release their assigned resources.
+New devices enter maintenance until availability is established locally.
+
+`POST /patients/{patient_id}/telemetry` records an adult inpatient observation.
+Supply respiratory_rate (breaths/min), spo2 (%), systolic_bp (mmHg), pulse
+(beats/min), temperature (Celsius, tenths), consciousness (ACVPU), and an
+explicit supplemental_oxygen boolean. Oxygen scale 1 is the default; specify
+2 only when directed by the clinician. C represents new confusion. A high
+score sets clinical risk and acuity and records an emergency audit event.
+For ward and step-down patients it also records an ICU review request.
+An optional `sofa` object supplies worst daily values for the classic six-organ
+SOFA score. The schema names the lab units. Catecholamine doses are in
+micrograms/kg/min sustained for at least one hour; use zero for an unused drug.
+Supply the oxygenation ratio with its contemporaneous respiratory support.
+The response includes the total and six components. NEWS2 drives the transfer
+request. [Scoring table](https://jamanetwork.com/journals/jama/fullarticle/2492881)
+
+The assigned bed remains active until a transfer is approved. Audit alerts
+and clinical activity are visible inside the application.
+
+Explicit algorithm selection on `POST /allocation/recommend` includes a
+structured explanation. A model score margin is a difference in Q-values.
+Rule-based decisions and safety overrides return a null margin. The legacy
+patient-ID-only request retains its original response fields.
+
+Set `adaptive: true` on `POST /surge/simulate` to run the coordinated policies
+on the synthetic scenario. The operations result includes early macro decisions,
+end-of-window fatigue, expedited cleaning minutes on the final simulated day,
+and ICU requests during the run. Adaptive run parameters and results are stored
+in `surge_simulation_runs`. The fatigue and deterioration parameters are simulation
+assumptions. Historical benchmark results predate this policy change.

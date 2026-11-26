@@ -35,7 +35,7 @@ from rl.evaluation.policies import (
     rule_based_policy,
     safe_policy,
 )
-from rl.marl.multi_agent_env import MODE_SURGE
+from rl.marl.multi_agent_env import CareGridMAEnv, MODE_SURGE
 from rl.marl.resource_agent import (
     RESOURCE_EXPEDITE_CLEANING,
     RESOURCE_FLOAT_STAFF,
@@ -91,6 +91,7 @@ def evaluate_marl_episode(
         seed=0,
         options={
             "patients": list(patients),
+            "deterioration": True,
             "on_tick": collector.on_tick,
             "shortage_scenario": shortage_scenario,
         },
@@ -103,67 +104,16 @@ def evaluate_marl_episode(
     current_mode = 0
     surge_steps = 0
 
+    coordinator = CareGridMAEnv(base_env=env, bed_policy=bed_policy, macro_interval=macro_interval)
+    next_macro = 0
     while True:
-        # Macro + Meso coordination every `macro_interval` decisions
-        if decisions % macro_interval == 0 and env.state is not None:
-            state = env.state
-            icu_beds = state.beds_by_type("ICU")
-            icu_avail = sum(b.status == "AVAILABLE" for b in icu_beds) / len(icu_beds) if icu_beds else 0.0
-            sd_beds = state.beds_by_type("STEP_DOWN")
-            sd_avail = sum(b.status == "AVAILABLE" for b in sd_beds) / len(sd_beds) if sd_beds else 0.0
-            q_norm = min(float(np.log1p(len(state.waiting_queue))) / np.log1p(200), 1.0)
-            crit_share = (
-                sum(env._patients[pid].acuity >= 4 for pid in state.waiting_queue if pid in env._patients)
-                / len(state.waiting_queue)
-                if state.waiting_queue
-                else 0.0
-            )
-            if state.current_time:
-                hr = state.current_time.hour + state.current_time.minute / 60.0
-                tod_sin = (np.sin(2.0 * np.pi * hr / 24.0) + 1.0) / 2.0
-                tod_cos = (np.cos(2.0 * np.pi * hr / 24.0) + 1.0) / 2.0
-            else:
-                tod_sin, tod_cos = 0.5, 0.5
-
-            surge_obs = np.asarray(
-                [icu_avail, sd_avail, q_norm, crit_share, tod_sin, tod_cos], dtype=np.float32
-            )
-            current_mode = surge_agent.predict(surge_obs)
-            if current_mode == MODE_SURGE:
-                surge_steps += 1
-
-            # Resource Manager observation & action
-            icu_clean = len(state.cleaning_beds_by_type("ICU")) / len(icu_beds) if icu_beds else 0.0
-            sd_clean = len(state.cleaning_beds_by_type("STEP_DOWN")) / len(sd_beds) if sd_beds else 0.0
-            vents = [e for e in state.equipment.values() if e.type == "VENTILATOR"]
-            vent_maint = len(state.maintenance_ventilators()) / len(vents) if vents else 0.0
-            vent_avail = len(state.available_ventilators()) / len(vents) if vents else 0.0
-            total_staff = len(state.staff)
-            crit_staff = len(state.staff_by_skill("Critical-care")) / total_staff if total_staff else 0.0
-            res_obs = np.asarray(
-                [icu_clean, sd_clean, vent_maint, vent_avail, crit_staff, q_norm, crit_share, float(current_mode)],
-                dtype=np.float32,
-            )
-            res_mask = np.array(
-                [
-                    True,
-                    bool(state.cleaning_beds_by_type("ICU") or state.cleaning_beds_by_type("STEP_DOWN")),
-                    bool(state.maintenance_ventilators()),
-                    bool(state.staff_by_skill("General") or state.staff_by_skill("Step-down")),
-                ],
-                dtype=bool,
-            )
-            r_act = resource_agent.predict(res_obs, valid_mask=res_mask)
-            if env.engine is not None:
-                if r_act == RESOURCE_EXPEDITE_CLEANING:
-                    env.engine.expedite_cleaning("ICU", minutes=10)
-                    env.engine.expedite_cleaning("STEP_DOWN", minutes=12)
-                elif r_act == RESOURCE_MOBILIZE_VENT:
-                    env.engine.mobilize_ventilator()
-                elif r_act == RESOURCE_FLOAT_STAFF:
-                    moved = env.engine.float_staff("General", "Critical-care")
-                    if moved is None:
-                        env.engine.float_staff("Step-down", "Critical-care")
+        if decisions >= next_macro or coordinator._check_macro_interrupt(env.state, env.current_patient):
+            current_mode = surge_agent.predict(coordinator._get_surge_obs())
+            coordinator.current_mode = current_mode
+            surge_steps += int(current_mode == MODE_SURGE)
+            action = resource_agent.predict(coordinator.get_resource_obs(), valid_mask=coordinator.valid_resource_actions())
+            coordinator._apply_resource_action(action)
+            next_macro = decisions + macro_interval
 
         # Micro Bed Agent decision
         patient = env.current_patient

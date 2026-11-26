@@ -35,6 +35,7 @@ export const SurgePlannerPage: React.FC = () => {
   const [durationHours, setDurationHours] = useState<number>(12);
   const [activePreset, setActivePreset] = useState<string | null>('moderate_flu');
 
+  const [adaptive, setAdaptive] = useState(false);
   const surgeMutation = useSimulateSurge();
 
   const handleApplyPreset = (preset: SurgePreset) => {
@@ -47,6 +48,7 @@ export const SurgePlannerPage: React.FC = () => {
     surgeMutation.mutate({
       arrival_rate_multiplier: multiplier,
       duration_hours: durationHours,
+      adaptive,
     });
   };
 
@@ -69,6 +71,19 @@ export const SurgePlannerPage: React.FC = () => {
           </span>
         }
       />
+
+      <label className="flex gap-2 items-center">
+        <input type="checkbox" checked={adaptive} onChange={e => setAdaptive(e.target.checked)} />
+        Simulate adaptive surge and resource decisions
+      </label>
+      {result?.operations && (
+        <Card><CardContent>
+          <p>Event-driven decisions: {result.operations.macro_interrupts}</p>
+          <p>Staff fatigue at window end: {formatPct(result.operations.fatigue)}</p>
+          <p>Cleaning overtime today: {result.operations.overtime_minutes.toFixed(1)} minutes</p>
+          <p>ICU transfer requests: {result.operations.transfer_requests}</p>
+        </CardContent></Card>
+      )}
 
       {/* Preset Banner Label Note (Strict prompt requirement) */}
       <div className="p-3 bg-bg-surface border border-border-light rounded-xl text-xs flex items-center justify-between">

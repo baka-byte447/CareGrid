@@ -23,6 +23,7 @@ class Encounter(Base):
     encounter_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     patient_id: Mapped[str] = mapped_column(ForeignKey("patients.patient_id", ondelete="RESTRICT"), nullable=False)
     acuity: Mapped[int] = mapped_column(Integer, nullable=False)
+    clinical_risk: Mapped[str | None] = mapped_column(String(20))
     specialty: Mapped[str] = mapped_column(String(50), nullable=False)
     predicted_los: Mapped[float] = mapped_column(Float, nullable=False)
     isolation_required: Mapped[bool] = mapped_column(Boolean, nullable=False)

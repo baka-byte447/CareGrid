@@ -59,13 +59,13 @@ def wait_group_metrics(patients, as_of, weights=None) -> Dict[str, Any]:
     def mean(selected):
         return round(sum(w for _, w in selected) / len(selected), 2) if selected else None
 
-    total_w = sum(weights[p.acuity] for p, _ in rows)
-    weighted = (sum(weights[p.acuity] * w for p, w in rows) / total_w) if total_w else 0.0
+    total_w = sum(weights[p.admission_acuity or p.acuity] for p, _ in rows)
+    weighted = (sum(weights[p.admission_acuity or p.acuity] * w for p, w in rows) / total_w) if total_w else 0.0
     return {
         "acuity_weighted_avg_wait_min": round(weighted, 2),
-        "critical_avg_wait_min": mean([r for r in rows if r[0].acuity >= 4]),
+        "critical_avg_wait_min": mean([r for r in rows if (r[0].admission_acuity or r[0].acuity) >= 4]),
         "low_acuity_isolation_avg_wait_min": mean(
-            [r for r in rows if r[0].acuity <= 2 and r[0].isolation_required]),
+            [r for r in rows if (r[0].admission_acuity or r[0].acuity) <= 2 and r[0].isolation_required]),
     }
 
 

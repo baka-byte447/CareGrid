@@ -106,6 +106,10 @@ const SafetyBlockSchema = z.object({
 })
 
 export const RecommendResponseSchema = z.object({
+  explanation: z.object({
+    summary: z.string(), chosen_reason: z.string(), counterfactual: z.string(),
+    safety_guarantee: z.string(), confidence_margin: z.number().nullable(),
+  }).nullish(),
   recommendation_id: z.number().int().positive(),
   patient_id: z.string(),
   recommended_bed_id: z.string().nullable(),
@@ -200,6 +204,7 @@ const SurgeMetricsSchema = z.object({
 
 export const SurgeResponseSchema = z.object({
   status: z.literal('COMPLETED'),
+  operations: z.object({ macro_interrupts: z.number(), fatigue: z.number(), overtime_minutes: z.number(), transfer_requests: z.number() }).optional(),
   arrival_rate_multiplier: z.number(),
   duration_hours: z.number().int(),
   patients_arrived: z.number().int(),

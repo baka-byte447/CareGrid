@@ -1,0 +1,17 @@
+{
+  "episodes": 30,
+  "bed_model": "models/serving/dqn_x6_obs_v2.npz",
+  "surge_agent": "models\\candidates\\adaptive_marl_v1\\surge_agent.npz",
+  "resource_agent": "models\\candidates\\adaptive_marl_v1\\resource_agent.npz",
+  "mean_reward_last_10": -264.1473,
+  "training_seed": 0,
+  "patient_stream_seeds": [
+    10000,
+    10029
+  ],
+  "training_days_per_stream": 30,
+  "learning_rate": 0.015,
+  "gamma": 0.95,
+  "bed_agent_frozen": true,
+  "command": "python -m rl.marl.train_marl --episodes 30 --out-dir models/candidates/adaptive_marl_v1 --seed 0"
+}

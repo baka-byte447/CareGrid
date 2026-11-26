@@ -317,6 +317,18 @@ def approve_encounter(
     return encounter
 
 
+def close_waiting_encounter(db: Session, encounter_id: int, finished_at: datetime | None) -> Encounter:
+    """Close an externally finished encounter that never had a local bed assignment."""
+    patient, encounter = _lock_patient_then_encounter(db, encounter_id)
+    if encounter.status != "WAITING":
+        raise LifecycleConflict("Expected a waiting encounter")
+    encounter.status = patient.current_status = "DISCHARGED"
+    encounter.discharged_at = finished_at or _now()
+    _record(db, encounter, "DISCHARGED")
+    _flush(db)
+    return encounter
+
+
 def discharge_encounter(
     db: Session,
     encounter_id: int,

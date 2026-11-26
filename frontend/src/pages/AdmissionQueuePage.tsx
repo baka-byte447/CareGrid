@@ -10,6 +10,7 @@ import {
 } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthContext';
 import { Patient } from '@/api/schemas';
+import { ClinicalActivity } from '@/components/domain/ClinicalActivity';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { PatientRow } from '@/components/domain/PatientRow';
 import { TableSkeleton } from '@/components/feedback/Skeletons';
@@ -288,6 +289,8 @@ export const AdmissionQueuePage: React.FC = () => {
           </div>
         }
       />
+
+      <ClinicalActivity />
 
       {/* Filter and Search Bar */}
       <div className="bg-bg-surface border border-border-light rounded-xl p-4 shadow-card space-y-3">

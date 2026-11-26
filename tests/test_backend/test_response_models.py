@@ -60,18 +60,10 @@ def test_allocation_approval_response_shape(client, db_session):
         Patient.current_status == "WAITING"
     ).order_by(Patient.patient_id).first()
     assert patient is not None
-    encounter = Encounter(
-        patient_id=patient.patient_id,
-        acuity=patient.acuity,
-        specialty=patient.specialty,
-        predicted_los=patient.predicted_los,
-        isolation_required=patient.isolation_required,
-        ventilator_required=patient.ventilator_required,
-        arrival_time=patient.arrival_time,
-        status="WAITING",
-    )
-    db_session.add(encounter)
-    db_session.commit()
+    encounter = db_session.query(Encounter).filter(
+        Encounter.patient_id == patient.patient_id,
+        Encounter.status == "WAITING",
+    ).one()
     recommendation_response = client.post(
         "/allocation/recommend", json={"patient_id": patient.patient_id}
     )

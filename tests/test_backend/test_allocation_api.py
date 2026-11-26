@@ -46,17 +46,30 @@ def _pattern_sets(beds, vents, name):
 
 
 def _create_waiting_encounter(db_session, patient, **overrides):
-    encounter = Encounter(
-        patient_id=patient.patient_id,
-        acuity=overrides.get("acuity", patient.acuity),
-        specialty=overrides.get("specialty", patient.specialty),
-        predicted_los=overrides.get("predicted_los", patient.predicted_los),
-        isolation_required=overrides.get("isolation_required", patient.isolation_required),
-        ventilator_required=overrides.get("ventilator_required", patient.ventilator_required),
-        arrival_time=overrides.get("arrival_time", patient.arrival_time),
-        status=overrides.get("status", "WAITING"),
+    values = {
+        "acuity": overrides.get("acuity", patient.acuity),
+        "specialty": overrides.get("specialty", patient.specialty),
+        "predicted_los": overrides.get("predicted_los", patient.predicted_los),
+        "isolation_required": overrides.get("isolation_required", patient.isolation_required),
+        "ventilator_required": overrides.get("ventilator_required", patient.ventilator_required),
+        "arrival_time": overrides.get("arrival_time", patient.arrival_time),
+        "status": overrides.get("status", "WAITING"),
+    }
+    encounter = (
+        db_session.query(Encounter)
+        .filter(
+            Encounter.patient_id == patient.patient_id,
+            Encounter.status == "WAITING",
+        )
+        .order_by(Encounter.encounter_id.desc())
+        .first()
     )
-    db_session.add(encounter)
+    if encounter is None:
+        encounter = Encounter(patient_id=patient.patient_id, **values)
+        db_session.add(encounter)
+    else:
+        for field, value in values.items():
+            setattr(encounter, field, value)
     db_session.commit()
     return encounter
 
@@ -204,7 +217,7 @@ def test_approve_rejects_wrong_tier_and_non_isolation_beds(client, db_session):
     db_session.commit()
     r = _approve_recommendation(client, recommendation)
     assert r.status_code == 400
-    assert r.json()["detail"] == "Bed type is incompatible with encounter acuity"
+    assert r.json()["detail"] == "Bed type is incompatible with patient acuity"
 
     iso = db_session.query(Patient).filter(
     Patient.current_status == "WAITING",
@@ -220,7 +233,7 @@ def test_approve_rejects_wrong_tier_and_non_isolation_beds(client, db_session):
     db_session.commit()
     r = _approve_recommendation(client, recommendation)
     assert r.status_code == 400
-    assert r.json()["detail"] == "Encounter requires an isolation-capable bed"
+    assert r.json()["detail"] == "Patient requires an isolation-capable bed"
 
 
 def test_approve_rule_based_recommendation_records_assignments_and_traceability(client, db_session):
@@ -348,6 +361,11 @@ def test_approve_rejects_missing_recommendation(client):
 
 def test_approve_rejects_recommendation_without_encounter(client, db_session):
     patient = db_session.query(Patient).filter(Patient.current_status == "WAITING").first()
+    db_session.query(Encounter).filter(
+        Encounter.patient_id == patient.patient_id,
+        Encounter.status == "WAITING",
+    ).delete(synchronize_session=False)
+    db_session.commit()
     recommendation = _request_recommendation(client, patient)
     saved = db_session.get(AllocationRecommendation, recommendation["recommendation_id"])
     assert saved.encounter_id is None
@@ -660,6 +678,11 @@ def test_recommendation_links_unique_waiting_encounter(client, db_session):
     from backend.models import Encounter
 
     p = db_session.query(Patient).filter(Patient.current_status == "WAITING").first()
+    db_session.query(Encounter).filter(
+        Encounter.patient_id == p.patient_id,
+        Encounter.status == "WAITING",
+    ).delete(synchronize_session=False)
+    db_session.commit()
     encounter = Encounter(
         patient_id=p.patient_id,
         acuity=p.acuity,

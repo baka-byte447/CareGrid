@@ -3,6 +3,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
+from backend.auth.roles import ROLE_PERMISSIONS, Role
 from backend.auth.security import decode_access_token
 from backend.db.database import get_db
 from backend.models import User
@@ -67,3 +68,26 @@ def require_roles(*allowed_roles: str):
         return current_user
 
     return role_checker
+
+
+def require_permission(permission: str):
+    def permission_checker(
+        current_user: User = Depends(get_current_user),
+    ) -> User:
+        try:
+            role = Role(current_user.role)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to perform this action",
+            )
+
+        if permission not in ROLE_PERMISSIONS.get(role, set()):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to perform this action",
+            )
+
+        return current_user
+
+    return permission_checker

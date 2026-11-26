@@ -88,6 +88,51 @@ roles currently accepted by each route, not an inferred permission matrix.
 }
 ```
 
+### `POST /patients/intake`
+
+- **Purpose:** Register a new patient (or readmit a discharged patient) and create a `WAITING` Encounter.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`, `nurse`.
+- **Request body:** `PatientIntakeRequest` (`patient_id` optional; auto-generated if omitted).
+- **Success:** `201 Created`; `PatientIntakeResponse`.
+- **Common errors:** `400` validation error; `401` missing/invalid/inactive credentials; `403` role not allowed; `409` patient already has an active waiting or admitted status; `422` invalid request body.
+
+### `POST /patients/{patient_id}/discharge` and `POST /encounters/{encounter_id}/discharge`
+
+- **Purpose:** Discharge an admitted patient/encounter, releasing all active bed and equipment assignments, moving the bed to `CLEANING`, and marking the patient `DISCHARGED`.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`.
+- **Request body:** Optional `DischargeRequest`.
+- **Success:** `200 OK`; `DischargeResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed; `404` patient or encounter not found; `409` encounter is not admitted or has no active assignment.
+
+### `POST /patients/{patient_id}/transfer` and `POST /encounters/{encounter_id}/transfer`
+
+- **Purpose:** Transfer an admitted patient/encounter to another compatible `AVAILABLE` bed, closing the prior `BedAssignment`, moving the old bed to `CLEANING`, and recording a new `BedAssignment`.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`.
+- **Request body:** `TransferRequest`.
+- **Success:** `200 OK`; `TransferResponse`.
+- **Common errors:** `400` incompatible destination bed; `401` missing/invalid/inactive credentials; `403` role not allowed; `404` patient, encounter, or bed not found; `409` encounter not admitted or bed unavailable.
+
+### `POST /beds/{bed_id}/cleaning-complete`
+
+- **Purpose:** Mark a `CLEANING` bed as `AVAILABLE`.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `nurse`, `operator`.
+- **Request:** No body.
+- **Success:** `200 OK`; `BedCleaningResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed; `404` bed not found; `409` bed is not in `CLEANING` status or still has an active assignment.
+
+### `POST /equipment/{equipment_id}/assign` and `POST /equipment/{equipment_id}/release`
+
+- **Purpose:** Assign an `AVAILABLE` equipment item to an admitted encounter or release an `IN_USE` equipment item from its active encounter assignment.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`, `nurse`.
+- **Request body:** `EquipmentAssignRequest` / optional `EquipmentReleaseRequest`.
+- **Success:** `200 OK`; `EquipmentAssignmentResponse`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not allowed; `404` equipment, patient, or encounter not found; `409` encounter not admitted, equipment unavailable, or no active assignment.
+
 ### `GET /beds`
 
 - **Purpose:** List beds and their current state.
@@ -177,6 +222,7 @@ Recommended response:
 
 ```json
 {
+  "recommendation_id": 108,
   "patient_id": "P0001",
   "recommended_bed_id": "B025",
   "algorithm": "rule_based",
@@ -189,6 +235,7 @@ When no suitable resource is available, `recommended_bed_id` is nullable:
 
 ```json
 {
+  "recommendation_id": 109,
   "patient_id": "P0001",
   "recommended_bed_id": null,
   "algorithm": "rule_based",
@@ -199,25 +246,72 @@ When no suitable resource is available, `recommended_bed_id` is nullable:
 
 ### `POST /allocation/approve`
 
-- **Purpose:** Validate and approve a patient/bed allocation. This route accepts
-  the patient and bed IDs directly; it does not require a recommendation token.
+- **Purpose:** Approve a persisted recommendation after revalidating the patient,
+  encounter, bed, equipment, and (for DQN Safe) current safety result.
 - **Authentication:** Bearer JWT.
 - **Required roles:** `admin`, `doctor`.
-- **Request body:** `AllocationApproveRequest`.
+- **Preferred request body:** `AllocationApproveRequest` with the exact
+  `recommendation_id` returned by `POST /allocation/recommend`.
 
 ```json
-{"patient_id":"P0001","bed_id":"B025"}
+{"recommendation_id":108}
 ```
 
+- Optional `patient_id`, `bed_id`, and `encounter_id` values are consistency
+  checks against the persisted recommendation. They cannot replace or override
+  its stored patient, bed, or encounter.
+- **Legacy compatibility:** A request with `patient_id` and `bed_id` and no
+  `recommendation_id` is recorded as an `operator_override` recommendation and
+  sent through the same lifecycle validation and transaction. If the patient has
+  no WAITING Encounter, one is created in that transaction. A failed approval
+  rolls back both the Encounter and override record. This path does not represent
+  a rule-based or DQN result.
+- `equipment_id` is accepted only with the legacy compatibility request; the
+  lifecycle service validates that equipment and records its assignment.
 - **Success:** `200 OK`; `AllocationApproveResponse`.
 - **Common errors:** `400` invalid acuity, incompatible bed type, or isolation
   requirement not met; `401` missing/invalid/inactive credentials; `403` role not
   allowed; `404` patient or bed not found; `409` patient is not waiting, bed is no
-  longer available, or no ventilator is available when required; `422` invalid
-  request body; `500` allocation transaction failed and was rolled back.
+  longer available, the recommendation is missing/stale/already decided, or no
+  ventilator is available when required; `422` invalid request body; `500`
+  allocation transaction failed and was rolled back.
 
 ```json
 {"patient_id":"P0001","bed_id":"B025","status":"APPROVED"}
+```
+
+### `POST /allocation/reject`
+
+- **Purpose:** Record an operator rejection decision against a persisted
+  recommendation without changing the algorithm result.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`.
+- **Preferred request body:** `recommendation_id` and a nonblank `reason` of at
+  least three characters after trimming. The backend obtains the operator ID from
+  the authenticated token.
+
+```json
+{"recommendation_id":108,"reason":"Clinical contraindication"}
+```
+
+- Optional `patient_id` is checked against the recommendation. For legacy
+  compatibility, a patient-only request is accepted only if it identifies one
+  eligible, undecided recommendation; ambiguous requests must use
+  `recommendation_id`.
+- **Success:** `200 OK`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not
+  allowed; `404` patient or recommendation not found; `409` patient/encounter no
+  longer waiting, ownership mismatch, recommendation ineligible or already
+  decided, or legacy recommendation lookup ambiguous; `422` invalid or missing
+  rejection reason/request body.
+
+```json
+{
+  "recommendation_id": 108,
+  "patient_id": "P0001",
+  "status": "REJECTED",
+  "reason": "Clinical contraindication"
+}
 ```
 
 ### `POST /surge/simulate`
@@ -473,3 +567,20 @@ be `null` depending on the simulated state.
 Public `POST /auth/register` is not registered and is unavailable (an unknown
 route returns `404`). Account creation is administrator-only through
 `POST /auth/users`.
+
+## Simulated Time & Lifecycle Reconciliation
+
+- **Simulated clock:** `build_hospital_state()` derives `state.current_time` from
+  the latest `patients.arrival_time` in the database (stored as naive simulated
+  datetime) rather than wall-clock UTC, falling back to UTC now only when the
+  database has no patients. Wait-time calculations, G2 max-wait guardrails, and
+  RL `wait_so_far` observations all operate on this simulated timeline.
+- **Queue membership & status:** `encounters.status` is the authoritative
+  lifecycle status (`WAITING`, `ADMITTED`, `DISCHARGED`), and
+  `patients.current_status` is kept in sync as a denormalized cache by
+  `backend/services/patient_lifecycle.py`.
+- **Import & reconciliation:** `backend/import_data.py` creates `WAITING`
+  `Encounter` rows for imported `WAITING` patients. Legacy `OCCUPIED` beds
+  without `BedAssignment` rows are not backfilled with fabricated assignment
+  history; `backend/reconcile_encounters.py` can be run idempotently to backfill
+  missing `WAITING` encounters and report orphaned `OCCUPIED` beds.

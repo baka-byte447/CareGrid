@@ -10,10 +10,14 @@ import { formatServerTimestamp } from '@/lib/format';
 import { AuditEntry } from '@/api/schemas';
 import { ScrollText, Download, Search, RefreshCw, Cpu, Clock, CheckCircle } from 'lucide-react';
 
+const GOVERNING_POLICIES = new Set(['rule_based', 'dqn_safe', 'rule_based_fallback']);
+
 function algorithmLabel(algorithm: string): string {
   if (algorithm === 'dqn_safe') return 'DQN Safe';
   if (algorithm === 'rule_based') return 'Rule-Based';
   if (algorithm === 'rule_based_fallback') return 'Rule-Based fallback';
+  if (algorithm === 'lifecycle') return 'System Lifecycle';
+  if (algorithm === 'operator_override') return 'Manual Override';
   return algorithm;
 }
 
@@ -26,11 +30,13 @@ export const AuditLogPage: React.FC = () => {
 
   const auditEntries: AuditEntry[] = useMemo(() => data || [], [data]);
 
-  // Extract algorithms for filter dropdown
+  // Extract governing policies for filter dropdown (exclude internal lifecycle/override tags)
   const algorithms = useMemo(() => {
     const set = new Set<string>();
     auditEntries.forEach((e: AuditEntry) => {
-      if (e.algorithm) set.add(e.algorithm);
+      if (e.algorithm && GOVERNING_POLICIES.has(e.algorithm)) {
+        set.add(e.algorithm);
+      }
     });
     return Array.from(set).sort();
   }, [auditEntries]);

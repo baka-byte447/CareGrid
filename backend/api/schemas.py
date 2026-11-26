@@ -49,15 +49,38 @@ class AllocationRecommendRequest(BaseModel):
 
 
 class AllocationRejectRequest(BaseModel):
-    patient_id: str
+    recommendation_id: Optional[int] = Field(default=None, gt=0)
+    patient_id: Optional[str] = None
     reason: str = Field(min_length=3)
+
+    _strip_patient_id = field_validator("patient_id", mode="before")(_strip_identity)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def strip_rejection_reason(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+    @model_validator(mode="after")
+    def require_recommendation_or_patient(self) -> "AllocationRejectRequest":
+        if self.recommendation_id is None and not self.patient_id:
+            raise ValueError("recommendation_id is required unless patient_id is provided for legacy compatibility")
+        return self
 
 
 class AllocationApproveRequest(BaseModel):
-    patient_id: str
-    bed_id: str
+    recommendation_id: Optional[int] = Field(default=None, gt=0)
+    patient_id: Optional[str] = None
+    bed_id: Optional[str] = None
     encounter_id: Optional[int] = None
     equipment_id: Optional[str] = None
+
+    @model_validator(mode="after")
+    def validate_approval_target(self) -> "AllocationApproveRequest":
+        if self.recommendation_id is None and (not self.patient_id or not self.bed_id):
+            raise ValueError("recommendation_id or both patient_id and bed_id are required")
+        if self.recommendation_id is not None and self.equipment_id is not None:
+            raise ValueError("equipment_id cannot be supplied with a persisted recommendation")
+        return self
 
 
 class DischargeRequest(BaseModel):
@@ -193,6 +216,7 @@ class EquipmentResponse(BaseModel):
     equipment: list[EquipmentItemResponse]
 
 class AllocationRecommendResponse(BaseModel):
+    recommendation_id: int
     patient_id: str
     recommended_bed_id: str | None
     algorithm: str

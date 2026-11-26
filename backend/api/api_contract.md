@@ -222,6 +222,7 @@ Recommended response:
 
 ```json
 {
+  "recommendation_id": 108,
   "patient_id": "P0001",
   "recommended_bed_id": "B025",
   "algorithm": "rule_based",
@@ -234,6 +235,7 @@ When no suitable resource is available, `recommended_bed_id` is nullable:
 
 ```json
 {
+  "recommendation_id": 109,
   "patient_id": "P0001",
   "recommended_bed_id": null,
   "algorithm": "rule_based",
@@ -244,25 +246,72 @@ When no suitable resource is available, `recommended_bed_id` is nullable:
 
 ### `POST /allocation/approve`
 
-- **Purpose:** Validate and approve a patient/bed allocation. This route accepts
-  the patient and bed IDs directly; it does not require a recommendation token.
+- **Purpose:** Approve a persisted recommendation after revalidating the patient,
+  encounter, bed, equipment, and (for DQN Safe) current safety result.
 - **Authentication:** Bearer JWT.
 - **Required roles:** `admin`, `doctor`.
-- **Request body:** `AllocationApproveRequest`.
+- **Preferred request body:** `AllocationApproveRequest` with the exact
+  `recommendation_id` returned by `POST /allocation/recommend`.
 
 ```json
-{"patient_id":"P0001","bed_id":"B025"}
+{"recommendation_id":108}
 ```
 
+- Optional `patient_id`, `bed_id`, and `encounter_id` values are consistency
+  checks against the persisted recommendation. They cannot replace or override
+  its stored patient, bed, or encounter.
+- **Legacy compatibility:** A request with `patient_id` and `bed_id` and no
+  `recommendation_id` is recorded as an `operator_override` recommendation and
+  sent through the same lifecycle validation and transaction. If the patient has
+  no WAITING Encounter, one is created in that transaction. A failed approval
+  rolls back both the Encounter and override record. This path does not represent
+  a rule-based or DQN result.
+- `equipment_id` is accepted only with the legacy compatibility request; the
+  lifecycle service validates that equipment and records its assignment.
 - **Success:** `200 OK`; `AllocationApproveResponse`.
 - **Common errors:** `400` invalid acuity, incompatible bed type, or isolation
   requirement not met; `401` missing/invalid/inactive credentials; `403` role not
   allowed; `404` patient or bed not found; `409` patient is not waiting, bed is no
-  longer available, or no ventilator is available when required; `422` invalid
-  request body; `500` allocation transaction failed and was rolled back.
+  longer available, the recommendation is missing/stale/already decided, or no
+  ventilator is available when required; `422` invalid request body; `500`
+  allocation transaction failed and was rolled back.
 
 ```json
 {"patient_id":"P0001","bed_id":"B025","status":"APPROVED"}
+```
+
+### `POST /allocation/reject`
+
+- **Purpose:** Record an operator rejection decision against a persisted
+  recommendation without changing the algorithm result.
+- **Authentication:** Bearer JWT.
+- **Required roles:** `admin`, `doctor`.
+- **Preferred request body:** `recommendation_id` and a nonblank `reason` of at
+  least three characters after trimming. The backend obtains the operator ID from
+  the authenticated token.
+
+```json
+{"recommendation_id":108,"reason":"Clinical contraindication"}
+```
+
+- Optional `patient_id` is checked against the recommendation. For legacy
+  compatibility, a patient-only request is accepted only if it identifies one
+  eligible, undecided recommendation; ambiguous requests must use
+  `recommendation_id`.
+- **Success:** `200 OK`.
+- **Common errors:** `401` missing/invalid/inactive credentials; `403` role not
+  allowed; `404` patient or recommendation not found; `409` patient/encounter no
+  longer waiting, ownership mismatch, recommendation ineligible or already
+  decided, or legacy recommendation lookup ambiguous; `422` invalid or missing
+  rejection reason/request body.
+
+```json
+{
+  "recommendation_id": 108,
+  "patient_id": "P0001",
+  "status": "REJECTED",
+  "reason": "Clinical contraindication"
+}
 ```
 
 ### `POST /surge/simulate`

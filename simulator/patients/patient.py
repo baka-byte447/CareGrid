@@ -19,6 +19,8 @@ class Patient:
     admission_time: Optional[datetime] = None
     discharge_time : Optional[datetime] = None
 
+    admission_acuity: Optional[int] = None
+
     @property
     def wait_minutes(self) -> Optional[float]:
         if self.admission_time is None:

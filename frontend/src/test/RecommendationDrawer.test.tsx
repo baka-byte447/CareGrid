@@ -531,3 +531,18 @@ describe('RecommendationDrawer algorithm selection', () => {
     expect(await screen.findAllByText(expected)).not.toHaveLength(0);
   });
 });
+
+
+it('shows the clinical explanation and model score difference', async () => {
+  mockApi(async () => response({
+    ...ruleBasedRecommendation(),
+    explanation: {
+      summary: 'ICU recommended.', chosen_reason: 'A compatible bed is available.',
+      counterfactual: 'Ward cannot meet this acuity.', safety_guarantee: 'Bed compatibility checked.',
+      confidence_margin: 0.25,
+    },
+  }));
+  renderDrawer();
+  expect(await screen.findByText('Ward cannot meet this acuity.')).toBeTruthy();
+  expect(screen.getByText('Q-value difference: 0.250')).toBeTruthy();
+});

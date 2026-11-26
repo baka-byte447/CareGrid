@@ -457,6 +457,17 @@ export const RecommendationDrawer: React.FC<RecommendationDrawerProps> = ({
 
         {recommendation && !isRecommending && (
           <div className="space-y-4">
+            {recommendation.explanation && (
+              <section className="rounded-xl border p-4 space-y-2">
+                <h3 className="font-semibold">Clinical Rationale &amp; Counterfactual</h3>
+                <p>{recommendation.explanation.summary} {recommendation.explanation.chosen_reason}</p>
+                <p>{recommendation.explanation.counterfactual}</p>
+                <p>{recommendation.explanation.safety_guarantee}</p>
+                {recommendation.explanation.confidence_margin != null && (
+                  <p>Q-value difference: {recommendation.explanation.confidence_margin.toFixed(3)}</p>
+                )}
+              </section>
+            )}
             {isNoSuitableBed ? (
               <div className="p-5 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2">
                 <div className="flex items-center gap-2 font-bold text-amber-800 dark:text-amber-300">

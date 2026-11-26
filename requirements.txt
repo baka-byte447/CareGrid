@@ -24,3 +24,8 @@ passlib[bcrypt]
 bcrypt==4.0.1
 python-multipart
 email-validator
+fhirclient==4.4.0
+-r rl/requirements.txt
+scikit-learn>=1.4
+pandas>=2.1
+joblib>=1.3

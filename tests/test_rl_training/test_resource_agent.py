@@ -95,3 +95,30 @@ def test_three_agent_marl_step():
     assert step_info["resource_action"] == "MOBILIZE_VENTILATOR"
     assert step_info["resource_intervened"] is True
     assert isinstance(reward, float)
+
+
+def test_float_penalty_increases_above_fatigue_threshold():
+    obs = np.zeros(8, dtype=np.float32)
+    fresh, tired = ResourceManagerAgent(), ResourceManagerAgent()
+    fresh.update(obs, RESOURCE_FLOAT_STAFF, 0, obs, True, fatigue=.7)
+    tired.update(obs, RESOURCE_FLOAT_STAFF, 0, obs, True, fatigue=1.0)
+    assert tired.q_values(obs)[RESOURCE_FLOAT_STAFF] < fresh.q_values(obs)[RESOURCE_FLOAT_STAFF]
+
+
+def test_repeated_floating_and_budget_reset():
+    state = load_hospital_state("data/synthetic", start_empty=True)
+    state.current_time = datetime(2026, 1, 1, 22)
+    engine = SimulationEngine(state, [])
+    for _ in range(5):
+        assert engine.float_staff()
+    assert np.isclose(state.nurse_fatigue_index, .75)
+    bed = state.beds_by_type("ICU")[0]
+    bed.status = "CLEANING"
+    state.turnaround_overtime_minutes = 290
+    assert engine.expedite_cleaning() == 0
+    assert state.turnaround_overtime_minutes == 290
+    engine._advance_clock(state.current_time + timedelta(hours=2))
+    assert np.isclose(state.nurse_fatigue_index, .71)
+    assert state.turnaround_overtime_minutes == 0
+    assert engine.expedite_cleaning() == 1
+    assert state.turnaround_overtime_minutes == 15

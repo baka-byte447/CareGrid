@@ -89,7 +89,12 @@ class ResourceManagerAgent:
         done: bool,
         lr: float = 0.01,
         gamma: float = 0.95,
+        *, fatigue: float = 0.0, overtime: float = 0.0,
     ) -> float:
+        if action == RESOURCE_FLOAT_STAFF:
+            reward -= 10.0 * max(0.0, fatigue - 0.7) ** 2
+        elif action == RESOURCE_EXPEDITE_CLEANING:
+            reward -= 0.05 * max(0.0, overtime - 300.0)
         target = reward + (0.0 if done else gamma * float(np.max(self.q_values(next_obs))))
         curr_q = float(self.q_values(obs)[action])
         error = float(np.clip(target - curr_q, -10.0, 10.0))

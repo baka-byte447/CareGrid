@@ -179,6 +179,7 @@ class EquipmentAssignmentResponse(BaseModel):
 
 
 class SurgeSimulationRequest(BaseModel):
+    adaptive: bool = False
     arrival_rate_multiplier: float = Field(gt=0)
     duration_hours: int = Field(gt=0)
 
@@ -237,7 +238,11 @@ class EquipmentItemResponse(BaseModel):
 class EquipmentResponse(BaseModel):
     equipment: list[EquipmentItemResponse]
 
+from rl.serving.explainability import ClinicalExplanation
+
+
 class AllocationRecommendResponse(BaseModel):
+    explanation: ClinicalExplanation | None = None
     recommendation_id: int
     patient_id: str
     recommended_bed_id: str | None
@@ -305,7 +310,15 @@ class SurgeMetricsResponse(BaseModel):
     waiting_patients_elapsed_wait_min: WaitingPatientsElapsedResponse
 
 
+class SimulatedOperations(BaseModel):
+    macro_interrupts: int
+    fatigue: float
+    overtime_minutes: float
+    transfer_requests: int
+
+
 class SurgeSimulationResponse(BaseModel):
+    operations: SimulatedOperations | None = None
     status: str
     arrival_rate_multiplier: float
     duration_hours: int

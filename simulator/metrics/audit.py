@@ -22,7 +22,7 @@ def audit_violations(engine) -> Dict[str, int]:
         if p.admission_time is None:
             continue
         bed  = beds[p.bed_id]
-        allowed = ALLOWED_TIERS.get(p.acuity)
+        allowed = ALLOWED_TIERS.get(p.admission_acuity or p.acuity)
         if allowed is not None and bed.bed_type not in allowed:
             counts["acuity_tier"]+=1
         if p.isolation_required and not bed.isolation_capable:

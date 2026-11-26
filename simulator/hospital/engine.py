@@ -1,3 +1,5 @@
+from random import Random
+from simulator.hospital.deterioration import news2
 from datetime import datetime, timedelta
 from typing import Callable, Dict, List, Optional
 
@@ -12,10 +14,15 @@ BED_CLEANING_MINUTES = 25
 
 
 class SimulationEngine:
-    def __init__(self, state: HospitalState, patients: List[Patient]):
+    def __init__(self, state: HospitalState, patients: List[Patient], *, deterioration=True, seed=0):
         self.state = state
         self.patients: Dict[str, Patient] = {p.patient_id: p for p in patients}
         self.queue = EventQueue()
+        self.denied_overtime = 0.0
+        self._release_times = {}
+        self.transfer_requests = []
+        self._rng = Random(seed)
+        self.deterioration = deterioration
         self.admitted_count = 0
         self.discharged_count = 0
         # External-decision mode is opt-in; the legacy run() path is unchanged.
@@ -59,6 +66,7 @@ class SimulationEngine:
         patient.status = "ADMITTED"
         patient.bed_id = decision.bed_id
         patient.equipment_id = decision.equipment_id
+        patient.admission_acuity = patient.acuity
         patient.admission_time = self.state.current_time
 
         self.state.admitted_patients[patient.patient_id] = decision.bed_id
@@ -70,6 +78,15 @@ class SimulationEngine:
         )
 
         patient.discharge_time = discharge_time
+        risk = 0.015 * patient.acuity + (0.04 if patient.age_group in ("65+", "65-79", "80+") else 0)
+        if self.deterioration and bed.bed_type in ("WARD", "STEP_DOWN") and los_minutes > 0:
+            if self._rng.random() < risk * (1.5 if bed.bed_type == "STEP_DOWN" else 1):
+                when = patient.admission_time + timedelta(minutes=los_minutes * self._rng.uniform(.1, .9))
+                self.queue.schedule(when, "DETERIORATION", {
+                    "patient_id": patient.patient_id, "respiratory_rate": self._rng.randint(20, 32),
+                    "spo2": self._rng.randint(87, 95), "systolic_bp": self._rng.randint(85, 115),
+                    "pulse": self._rng.randint(95, 135), "temperature": 38.2, "consciousness": "A",
+                })
 
         self.queue.schedule(
             discharge_time,
@@ -77,6 +94,31 @@ class SimulationEngine:
             {"patient_id": patient.patient_id},
         )
 
+
+    def _advance_clock(self, now):
+        previous = self.state.current_time
+        if previous and now >= previous:
+            hours = (now - previous).total_seconds() / 3600
+            self.state.nurse_fatigue_index = max(0, self.state.nurse_fatigue_index - .02 * hours)
+            if now.date() != previous.date():
+                self.state.turnaround_overtime_minutes = 0
+        self.state.current_time = now
+
+    def _clinical_event(self, event):
+        patient = self.patients[event.payload["patient_id"]]
+        if patient.status != "ADMITTED" or self.state.beds[patient.bed_id].bed_type == "ICU":
+            return
+        if event.event_type == "TRANSFER_REQUEST":
+            self.transfer_requests.append(dict(event.payload, timestamp=event.timestamp))
+            return
+        vitals = dict(event.payload)
+        del vitals["patient_id"]
+        score, _ = news2(**vitals)
+        if score >= 7:
+            patient.acuity = 5
+            self.queue.schedule(event.timestamp, "TRANSFER_REQUEST", {
+                "patient_id": patient.patient_id, "destination": "ICU", "news2": score,
+            })
 
     def _handle_discharge(self, patient_id: str) -> None:
         patient = self.patients[patient_id]
@@ -91,8 +133,9 @@ class SimulationEngine:
             self.state.equipment[patient.equipment_id].status = "AVAILABLE"
 
         bed.status = "CLEANING"
-        clean_mins = self._cleaning_minutes.get(bed.bed_type, BED_CLEANING_MINUTES)
+        clean_mins = BED_CLEANING_MINUTES
         release_time = self.state.current_time + timedelta(minutes=clean_mins)
+        self._release_times[bed.bed_id] = release_time
         self.queue.schedule(release_time, "BED_RELEASE", {"bed_id": bed.bed_id})
 
     def _handle_bed_release(self, bed_id: str) -> None:
@@ -114,6 +157,15 @@ class SimulationEngine:
         if now is not None:
             new_release = now + timedelta(minutes=self._cleaning_minutes[bed_type])
             for b in self.state.cleaning_beds_by_type(bed_type):
+                previous = self._release_times.get(b.bed_id, now + timedelta(minutes=BED_CLEANING_MINUTES))
+                saved = (previous - new_release).total_seconds() / 60
+                if saved <= 0:
+                    continue
+                if self.state.turnaround_overtime_minutes + saved > 300:
+                    self.denied_overtime += saved
+                    continue
+                self.state.turnaround_overtime_minutes += saved
+                self._release_times[b.bed_id] = new_release
                 self.queue.schedule(new_release, "BED_RELEASE", {"bed_id": b.bed_id})
                 accelerated += 1
         self.resource_interventions["expedite_cleaning"] += 1
@@ -144,6 +196,7 @@ class SimulationEngine:
                 return 100.0
 
         chosen = min(candidates, key=_wl)
+        self.state.nurse_fatigue_index = min(1.0, self.state.nurse_fatigue_index + 0.15)
         chosen.skill_level = to_skill
         self.resource_interventions["float_staff"] += 1
         return chosen.staff_id
@@ -203,14 +256,18 @@ class SimulationEngine:
         while not self.queue.is_empty():
             next_event = self.queue.peek()
             if max_time is not None and next_event.timestamp > max_time:
-                self.state.current_time = max_time
+                self._advance_clock(max_time)
                 return None
             event = self.queue.pop()
-            self.state.current_time = event.timestamp
+            self._advance_clock(event.timestamp)
             if self._last_event_time != event.timestamp:
                 self._deferred_waiters.clear()
                 self._last_event_time = event.timestamp
 
+            if event.event_type == "BED_RELEASE":
+                due = self._release_times.get(event.payload["bed_id"])
+                if due is not None and due != event.timestamp:
+                    continue
             if event.event_type == "PATIENT_ARRIVAL":
                 self._notify_external_tick()      # time advanced; state unchanged
                 patient_id = event.payload["patient_id"]
@@ -220,6 +277,8 @@ class SimulationEngine:
                 if patient.status == "WAITING" and patient_id not in self.state.admitted_patients:
                     self._pending_patient_id = patient_id
                     return patient_id
+            elif event.event_type in ("DETERIORATION", "TRANSFER_REQUEST"):
+                self._clinical_event(event)
             elif event.event_type == "PATIENT_DISCHARGE":
                 self._handle_discharge(event.payload["patient_id"])
                 self._notify_external_tick()
@@ -302,10 +361,16 @@ class SimulationEngine:
 
             event = self.queue.pop()
 
-            self.state.current_time = event.timestamp
+            self._advance_clock(event.timestamp)
 
+            if event.event_type == "BED_RELEASE":
+                due = self._release_times.get(event.payload["bed_id"])
+                if due is not None and due != event.timestamp:
+                    continue
             if event.event_type == "PATIENT_ARRIVAL":
                 self._handle_arrival(event.payload["patient_id"])
+            elif event.event_type in ("DETERIORATION", "TRANSFER_REQUEST"):
+                self._clinical_event(event)
             elif event.event_type == "PATIENT_DISCHARGE":
                 self._handle_discharge(event.payload["patient_id"])
             elif event.event_type == "BED_RELEASE":

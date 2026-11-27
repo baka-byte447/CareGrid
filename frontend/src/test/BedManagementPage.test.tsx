@@ -53,6 +53,28 @@ function renderBeds(role: UserRole, beds: Bed[] = [
 describe('Bed Management', () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  it('finds a bed by ID in its ward and restores the grid when cleared', async () => {
+    renderBeds('nurse', [
+      { bed_id: 'ICU-01', bed_type: 'ICU', ward: 'ICU-A', status: 'AVAILABLE', isolation_capable: false },
+      { bed_id: 'B076', bed_type: 'WARD', ward: 'Medical-South', status: 'OCCUPIED', isolation_capable: false },
+    ]);
+    await screen.findByRole('button', { name: /Bed ICU-01, AVAILABLE/ });
+    const search = screen.getByRole('searchbox', { name: 'Search by bed ID' });
+    const submit = screen.getByRole('button', { name: 'Search' });
+    fireEvent.change(search, { target: { value: ' b076 ' } });
+    fireEvent.click(submit);
+    expect(screen.getByRole('heading', { name: 'Medical-South' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Bed B076, OCCUPIED/ })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'ICU-A' })).toBeNull();
+
+    fireEvent.change(search, { target: { value: 'missing' } });
+    fireEvent.click(submit);
+    expect(screen.getByRole('status').textContent).toMatch(/No beds match/);
+
+    fireEvent.change(search, { target: { value: '' } });
+    expect(screen.getByRole('heading', { name: 'ICU-A' })).toBeTruthy();
+  });
+
   it('shows the assigned patient on the occupied bed tile and in its details', async () => {
     renderBeds('nurse', [
       { bed_id: 'ICU-01', bed_type: 'ICU', ward: 'ICU-A', status: 'OCCUPIED', isolation_capable: false, patient_id: 'PAT-101', predicted_los: 1.3 },

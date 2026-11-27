@@ -13,9 +13,9 @@ import { ErrorState } from '@/components/feedback/ErrorState';
 import { useToast } from '@/components/feedback/Toast';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
-import { Select } from '@/components/ui/Input';
+import { Input, Select } from '@/components/ui/Input';
 import { formatLOS, formatPct } from '@/lib/format';
-import { BedDouble, Shield, RefreshCw, Sparkles, CheckCircle, Activity, Plus } from 'lucide-react';
+import { BedDouble, Shield, RefreshCw, Sparkles, CheckCircle, Activity, Plus, Search } from 'lucide-react';
 
 export const BedManagementPage: React.FC = () => {
   const { user } = useAuth();
@@ -27,6 +27,8 @@ export const BedManagementPage: React.FC = () => {
     user?.role === 'admin' || user?.role === 'nurse' || user?.role === 'operator';
 
   const [isAddBedOpen, setAddBedOpen] = useState(false);
+  const [bedSearchInput, setBedSearchInput] = useState('');
+  const [bedSearch, setBedSearch] = useState('');
   const [wardFilter, setWardFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isolationFilter, setIsolationFilter] = useState(false);
@@ -44,13 +46,15 @@ export const BedManagementPage: React.FC = () => {
 
   // Filter beds
   const filteredBeds = useMemo(() => {
+    const search = bedSearch.trim().toLowerCase();
     return beds.filter((b) => {
+      if (!b.bed_id.toLowerCase().includes(search)) return false;
       if (wardFilter !== '' && b.ward !== wardFilter) return false;
       if (statusFilter !== 'ALL' && b.status !== statusFilter) return false;
       if (isolationFilter && !b.isolation_capable) return false;
       return true;
     });
-  }, [beds, wardFilter, statusFilter, isolationFilter]);
+  }, [beds, bedSearch, wardFilter, statusFilter, isolationFilter]);
 
   // Group filtered beds by ward
   const bedsByWard = useMemo(() => {
@@ -161,6 +165,27 @@ export const BedManagementPage: React.FC = () => {
       {/* Filters Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-4 glass-panel border border-border-light rounded-2xl text-xs">
         <div className="flex flex-wrap items-center gap-3">
+          <form
+            className="flex w-full items-center gap-2 sm:w-auto"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setBedSearch(bedSearchInput);
+            }}
+          >
+            <Input
+              type="search"
+              aria-label="Search by bed ID"
+              placeholder="Search by bed ID"
+              value={bedSearchInput}
+              onChange={(e) => {
+                setBedSearchInput(e.target.value);
+                if (!e.target.value.trim()) setBedSearch('');
+              }}
+              leftIcon={<Search className="w-3.5 h-3.5" />}
+              className="h-8 text-xs"
+            />
+            <Button type="submit" variant="outline" size="sm" className="h-8">Search</Button>
+          </form>
           <Select
             value={wardFilter}
             onChange={(e) => setWardFilter(e.target.value)}
@@ -205,6 +230,11 @@ export const BedManagementPage: React.FC = () => {
 
       {/* Grouped Wards and Bed Tiles */}
       <div className="space-y-6">
+        {filteredBeds.length === 0 && (
+          <p role="status" className="rounded-xl border border-border-light bg-bg-surface p-5 text-sm text-text-secondary">
+            No beds match your search or filters.
+          </p>
+        )}
         {Object.entries(bedsByWard).map(([wardName, wardBeds]) => {
           const wardTotal = wardBeds.length;
           const wardAvailable = wardBeds.filter((b) => b.status === 'AVAILABLE').length;
